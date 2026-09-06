@@ -16,10 +16,13 @@ export function GuessInput({
   onSubmit: (value: string) => boolean;
 }) {
   const listId = useId();
+  const optionId = useId();
   const [value, setValue] = useState("");
   const [active, setActive] = useState(0);
   const [open, setOpen] = useState(false);
   const suggestions = taxonomy.searchGenera(value, prune, 8);
+  const activeOptionId =
+    open && suggestions[active] ? `${optionId}-${suggestions[active].id}` : undefined;
 
   useEffect(() => {
     setActive(0);
@@ -59,6 +62,7 @@ export function GuessInput({
           role="combobox"
           aria-expanded={open && suggestions.length > 0}
           aria-controls={listId}
+          aria-activedescendant={activeOptionId}
           aria-autocomplete="list"
           autoComplete="off"
           spellCheck={false}
@@ -95,7 +99,12 @@ export function GuessInput({
               </li>
             ) : (
               suggestions.map((taxon, index) => (
-                <li key={taxon.id} role="option" aria-selected={index === active}>
+                <li
+                  key={taxon.id}
+                  id={`${optionId}-${taxon.id}`}
+                  role="option"
+                  aria-selected={index === active}
+                >
                   <button
                     type="button"
                     onMouseEnter={() => setActive(index)}
