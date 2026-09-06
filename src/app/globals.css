@@ -144,8 +144,13 @@ input {
   display: grid;
   grid-template-columns: minmax(280px, 0.92fr) minmax(340px, 1.18fr);
   grid-template-rows: auto minmax(0, 1fr);
-  gap: 10px 14px;
-  padding-bottom: 12px;
+  gap: 0;
+  margin-bottom: 12px;
+  background: linear-gradient(180deg, var(--card), var(--bg-2));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
 .play-hero {
@@ -153,8 +158,9 @@ input {
   grid-row: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
+  padding: 0 0 4px;
 }
 
 .play-guesses {
@@ -171,6 +177,11 @@ input {
   grid-column: 2;
   grid-row: 1 / span 2;
   min-height: 0;
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  background: rgba(0, 0, 0, 0.12);
 }
 
 .panel {
@@ -183,11 +194,15 @@ input {
 .specimen {
   overflow: hidden;
   flex: 0 1 auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
 }
 
 .specimen-frame {
   position: relative;
-  height: min(36vh, 300px);
+  height: min(32vh, 260px);
   background: #0c0a08;
 }
 
@@ -233,7 +248,11 @@ input {
   display: grid;
   grid-template-rows: repeat(6, minmax(0, 1fr));
   gap: 5px;
-  padding: 8px;
+  padding: 8px 10px 10px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
 }
 
 .guess-slot {
@@ -281,12 +300,11 @@ input {
 }
 
 .composer {
-  padding: 8px 12px 10px;
+  padding: 4px 12px 6px;
   display: grid;
   gap: 4px;
-  background: linear-gradient(180deg, var(--card), var(--bg-2));
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: transparent;
+  border: 0;
 }
 
 .composer label {
@@ -382,6 +400,7 @@ input {
 .flash {
   min-height: 1.15em;
   margin: 0;
+  padding: 0 12px;
   font-size: 0.84rem;
   color: var(--copper-2);
 }
@@ -681,8 +700,8 @@ input {
 
   .board {
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(260px, 36vh) auto;
-    overflow: visible;
+    grid-template-rows: auto minmax(280px, 38vh) auto;
+    overflow: hidden;
   }
 
   .play-hero {
@@ -693,8 +712,11 @@ input {
   .tree-panel {
     grid-column: 1;
     grid-row: 2;
-    min-height: 300px;
-    max-height: 40vh;
+    min-height: 280px;
+    max-height: 38vh;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
   }
 
   .crumbs {
@@ -712,7 +734,7 @@ input {
   }
 
   .specimen-frame {
-    height: min(22vh, 190px);
+    height: min(20vh, 168px);
   }
 
   .guess-list {
