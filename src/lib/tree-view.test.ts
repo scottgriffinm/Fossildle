@@ -150,5 +150,15 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     expect(dino?.status).toBe("constraint");
     expect(dino && dino.children.length).toBeGreaterThan(0);
     expect(findNode(tree, "Protostomia")?.status).toBe("pruned");
+    expect(findNode(tree, "Chordata")).toBeTruthy();
+    expect(findNode(tree, "Gnathostomata")).toBeNull();
+    expect(findNode(tree, "Osteichthyes")).toBeNull();
+    const allNames: string[] = [];
+    const walk = (node: NonNullable<ReturnType<typeof findNode>>) => {
+      allNames.push(node.taxon.name);
+      node.children.forEach(walk);
+    };
+    walk(tree);
+    expect(allNames.length).toBeLessThan(40);
   });
 });

@@ -109,12 +109,15 @@ export function viewChildren(
     return 3;
   };
 
-  return rows.sort(
-    (a, b) =>
+  return rows.sort((a, b) => {
+    const genusPenalty = (row: TreeBranch) => (row.taxon.rank === "genus" ? 1 : 0);
+    return (
       rank(a) - rank(b) ||
+      genusPenalty(a) - genusPenalty(b) ||
       b.genusCount - a.genusCount ||
-      a.taxon.name.localeCompare(b.taxon.name),
-  );
+      a.taxon.name.localeCompare(b.taxon.name)
+    );
+  });
 }
 
 export function spineKeepIds(taxonomy: TaxonomyIndex, state: PruneState): Set<number> {
@@ -135,15 +138,14 @@ export function spineKeepIds(taxonomy: TaxonomyIndex, state: PruneState): Set<nu
 }
 
 export function autoExpandIds(taxonomy: TaxonomyIndex, state: PruneState): number[] {
-  const expanded = new Set<number>();
-  for (const id of taxonomy.pathToRoot(state.constraintId)) {
-    expanded.add(id);
-  }
+  const keep = spineKeepIds(taxonomy, state);
+  const expanded = new Set<number>(keep);
 
   const counts = remainingGenusCounts(taxonomy, state);
   const fullCounts = allGenusCounts(taxonomy);
   let cursor = state.constraintId;
-  let extraLevels = 1;
+  const constraintDepth = taxonomy.pathToRoot(state.constraintId).length;
+  let extraLevels = constraintDepth <= 6 ? 1 : 0;
 
   for (let depth = 0; depth < 10; depth += 1) {
     const kids = viewChildren(taxonomy, state, cursor, counts, fullCounts).filter(
@@ -168,7 +170,9 @@ export function autoExpandIds(taxonomy: TaxonomyIndex, state: PruneState): numbe
 
     if (extraLevels > 0) {
       extraLevels -= 1;
-      for (const kid of kids) expanded.add(kid.taxon.id);
+      for (const kid of kids.filter((row) => row.taxon.rank !== "genus").slice(0, 6)) {
+        expanded.add(kid.taxon.id);
+      }
     }
     break;
   }
@@ -185,8 +189,11 @@ export function buildCabinetTree(
   const expanded = new Set(expandedIds);
   const counts = remainingGenusCounts(taxonomy, state);
   const fullCounts = allGenusCounts(taxonomy);
-  const keep = spineKeepIds(taxonomy, state);
-  for (const id of expanded) keep.add(id);
+  const keep = new Set(spineKeepIds(taxonomy, state));
+  for (const id of expanded) {
+    const status = nodeStatus(taxonomy, id, state);
+    if (status !== "lineage") keep.add(id);
+  }
 
   const walk = (id: number): TreeNodeView => {
     const taxon = taxonomy.require(id);
