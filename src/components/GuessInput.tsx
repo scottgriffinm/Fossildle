@@ -67,7 +67,7 @@ export function GuessInput({
           autoComplete="off"
           spellCheck={false}
           disabled={disabled}
-          placeholder={disabled ? "Today's cabinet is closed" : "e.g. Tyrannosaurus"}
+          placeholder={disabled ? "No more guesses" : "e.g. Tyrannosaurus"}
           value={value}
           onChange={(event) => {
             setValue(event.target.value);
@@ -111,7 +111,6 @@ export function GuessInput({
                     onClick={() => choose(taxon)}
                   >
                     <em>{taxon.name}</em>
-                    <small>{taxon.rank}</small>
                   </button>
                 </li>
               ))

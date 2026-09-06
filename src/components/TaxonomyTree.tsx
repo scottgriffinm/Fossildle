@@ -12,12 +12,10 @@ import type { PruneState } from "@/lib/types";
 export function TaxonomyTree({
   taxonomy,
   prune,
-  answerId,
   loading = false,
 }: {
   taxonomy: TaxonomyIndex | null;
   prune: PruneState | null;
-  answerId: number | null;
   loading?: boolean;
 }) {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
@@ -43,11 +41,6 @@ export function TaxonomyTree({
     return buildCabinetTree(taxonomy, prune, expanded);
   }, [taxonomy, prune, expanded]);
 
-  const crumbs = taxonomy && prune ? taxonomy.displayPath(prune.constraintId) : [];
-  const remaining =
-    taxonomy && prune ? taxonomy.remainingGenera(prune).length : null;
-  const constraint = taxonomy && prune ? taxonomy.require(prune.constraintId) : null;
-
   function toggle(id: number) {
     setExpanded((current) => {
       const next = new Set(current);
@@ -59,31 +52,6 @@ export function TaxonomyTree({
 
   return (
     <section className="panel tree-panel" aria-label="Taxonomic tree">
-      <div className="tree-head">
-        <div>
-          <div className="kicker">{answerId ? "Identified lineage" : "Animalia cabinet"}</div>
-          <h2>{constraint?.name ?? "Animalia"}</h2>
-        </div>
-        <div className="guess-note">
-          {loading
-            ? "Loading tree…"
-            : answerId
-              ? constraint?.rank
-              : remaining != null
-                ? `${remaining.toLocaleString()} genera`
-                : ""}
-        </div>
-      </div>
-      {crumbs.length > 0 && (
-        <ol className="crumbs" aria-label="Lineage from Animalia">
-          {crumbs.map((taxon) => (
-            <li key={taxon.id}>
-              <strong>{taxon.name}</strong>
-              <span>{taxon.rank}</span>
-            </li>
-          ))}
-        </ol>
-      )}
       <div className="tree-scroll">
         {loading || !tree || !taxonomy ? (
           <TreeSkeleton />
@@ -100,12 +68,6 @@ export function TaxonomyTree({
           </ul>
         )}
       </div>
-      {last?.prunedId && taxonomy && (
-        <p className="pruned-note">
-          Pruned {taxonomy.require(last.prunedId).name}
-          {last.mrcaId ? ` at ${taxonomy.require(last.mrcaId).name}` : ""}.
-        </p>
-      )}
     </section>
   );
 }
@@ -143,9 +105,7 @@ function TreeNode({
       aria-selected={node.status === "constraint"}
       aria-expanded={canExpand ? isOpen : undefined}
     >
-      {node.skipped ? (
-        <div className="phylo-skip">⋯ {node.skipped} ranks</div>
-      ) : null}
+      {node.skipped ? <div className="phylo-skip">⋯</div> : null}
       <button
         type="button"
         className="phylo-row"
@@ -154,16 +114,6 @@ function TreeNode({
       >
         <span className="phylo-dot" aria-hidden="true" />
         <span className="phylo-name">{node.taxon.name}</span>
-        <span className="phylo-rank">{node.taxon.rank}</span>
-        {node.status === "pruned" ? (
-          <span className="phylo-tag">pruned</span>
-        ) : node.status === "constraint" ? (
-          <span className="phylo-tag live">focus</span>
-        ) : node.status === "outside" ? (
-          <span className="phylo-tag">out</span>
-        ) : (
-          <span className="phylo-count">{node.genusCount.toLocaleString()}</span>
-        )}
       </button>
       {isOpen && node.children.length > 0 && (
         <ul className="phylo-children" role="group">
@@ -179,7 +129,7 @@ function TreeNode({
             />
           ))}
           {node.overflow ? (
-            <li className="phylo-overflow">{node.overflow} more clades</li>
+            <li className="phylo-overflow">{node.overflow} more</li>
           ) : null}
         </ul>
       )}
