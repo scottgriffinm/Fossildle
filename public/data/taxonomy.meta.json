@@ -1,0 +1,30 @@
+{
+  "taxonCount": 19050,
+  "genusCount": 13293,
+  "aliasCount": 259,
+  "rootId": 67091,
+  "bytes": 1312244,
+  "clades": [
+    "Dinosauria",
+    "Trilobita",
+    "Ammonoidea",
+    "Placodermi",
+    "Avialae",
+    "Carnivora",
+    "Proboscidea",
+    "Arthrodira"
+  ],
+  "starterGenera": [
+    "Tyrannosaurus",
+    "Triceratops",
+    "Archaeopteryx",
+    "Mammuthus",
+    "Phacops",
+    "Perisphinctes",
+    "Dunkleosteus",
+    "Smilodon",
+    "Elrathia",
+    "Diplodocus"
+  ],
+  "generatedAt": "2026-09-06T23:11:10.749Z"
+}
