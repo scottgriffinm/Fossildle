@@ -515,8 +515,16 @@ input {
 }
 
 .phylo-node.is-constraint > .phylo-row {
-  background: rgba(208, 138, 74, 0.16);
-  box-shadow: inset 0 0 0 1px var(--copper);
+  background: transparent;
+}
+
+.phylo-node.is-constraint > .phylo-row .phylo-name {
+  color: var(--copper-2);
+}
+
+.phylo-node.is-constraint > .phylo-row .phylo-dot {
+  background: var(--copper-2);
+  box-shadow: 0 0 0 3px rgba(240, 195, 106, 0.28);
 }
 
 .phylo-node.is-shared > .phylo-row {
