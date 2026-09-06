@@ -58,4 +58,23 @@ describe("automated playthroughs on the shipped tree", () => {
     expect(guesses.at(-1)).toBe(answer);
     expect(guesses.length).toBeLessThanOrEqual(MAX_GUESSES);
   });
+
+  it("can lose after six remaining-set misses without dropping the answer", () => {
+    const answer = parsePbdbOid("txn:38613");
+    const guesses: number[] = [];
+    for (let i = 0; i < MAX_GUESSES; i += 1) {
+      const state = tax.pruneRemaining(answer, guesses);
+      const pick = tax.remainingGenera(state).find((taxon) => taxon.id !== answer);
+      expect(pick).toBeTruthy();
+      const resolved = tax.resolveGuess(pick!.name, state, guesses);
+      expect(resolved.ok).toBe(true);
+      if (resolved.ok) guesses.push(resolved.taxon.id);
+    }
+    expect(guesses).toHaveLength(MAX_GUESSES);
+    expect(guesses.includes(answer)).toBe(false);
+    const final = tax.pruneRemaining(answer, guesses);
+    expect(tax.isRemaining(answer, final)).toBe(true);
+    const late = tax.resolveGuess("Tyrannosaurus", final, guesses);
+    expect(late.ok).toBe(true);
+  });
 });

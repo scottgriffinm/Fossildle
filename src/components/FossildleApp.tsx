@@ -135,23 +135,43 @@ export function FossildleApp() {
     }
   }
 
+  const specimen = (
+    <SpecimenCard
+      fossil={puzzle.fossil}
+      revealed={status !== "playing"}
+      dateKey={puzzle.dateKey}
+    />
+  );
+
   if (loadError) {
-    return <div className="error-state">{loadError}</div>;
+    return (
+      <div className="layout">
+        {specimen}
+        <div className="error-state" role="alert">
+          {loadError}
+        </div>
+      </div>
+    );
   }
 
   if (!taxonomy || !prune) {
-    return <div className="loading">Opening the cabinet…</div>;
+    return (
+      <div className="layout">
+        {specimen}
+        <div className="guess-col">
+          <div className="panel loading" role="status" aria-live="polite" aria-busy="true">
+            Loading the taxonomic tree…
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const remaining = taxonomy.remainingGenera(prune).length;
 
   return (
     <div className="layout">
-      <SpecimenCard
-        fossil={puzzle.fossil}
-        revealed={status !== "playing"}
-        dateKey={puzzle.dateKey}
-      />
+      {specimen}
       <div className="guess-col">
         <GuessBoard
           taxonomy={taxonomy}

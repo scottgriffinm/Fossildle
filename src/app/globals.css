@@ -288,7 +288,7 @@ input {
   gap: 12px;
 }
 
-.suggest button[aria-selected="true"],
+.suggest li[aria-selected="true"] button,
 .suggest button:hover {
   background: rgba(208, 138, 74, 0.16);
 }
