@@ -140,6 +140,7 @@ function TreeNode({
         shared ? " is-shared" : ""
       }`}
       role="treeitem"
+      aria-selected={node.status === "constraint"}
       aria-expanded={canExpand ? isOpen : undefined}
     >
       {node.skipped ? (

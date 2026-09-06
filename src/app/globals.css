@@ -693,8 +693,17 @@ input {
   .tree-panel {
     grid-column: 1;
     grid-row: 2;
-    min-height: 260px;
-    max-height: 38vh;
+    min-height: 300px;
+    max-height: 40vh;
+  }
+
+  .crumbs {
+    margin: 4px 0 2px;
+  }
+
+  .phylo-row {
+    min-height: 30px;
+    padding: 2px 6px;
   }
 
   .play-guesses {

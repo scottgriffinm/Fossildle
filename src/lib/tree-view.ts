@@ -66,11 +66,20 @@ export function nodeStatus(
   return "outside";
 }
 
+export function allGenusCounts(taxonomy: TaxonomyIndex): Map<number, number> {
+  return remainingGenusCounts(taxonomy, {
+    constraintId: taxonomy.rootId,
+    eliminated: [],
+    steps: [],
+  });
+}
+
 export function viewChildren(
   taxonomy: TaxonomyIndex,
   state: PruneState,
   parentId: number,
   counts = remainingGenusCounts(taxonomy, state),
+  fullCounts = allGenusCounts(taxonomy),
 ): TreeBranch[] {
   const kids = taxonomy.children.get(parentId) ?? [];
   const rows: TreeBranch[] = [];
@@ -83,8 +92,7 @@ export function viewChildren(
       continue;
     }
     if (status === "outside") {
-      const hadAnyChild = (taxonomy.children.get(taxon.id) ?? []).length > 0;
-      if (hadAnyChild || taxon.rank === "phylum" || taxon.rank === "class") {
+      if ((fullCounts.get(taxon.id) ?? 0) > 0) {
         rows.push({ taxon, genusCount, status });
       }
       continue;
@@ -133,11 +141,12 @@ export function autoExpandIds(taxonomy: TaxonomyIndex, state: PruneState): numbe
   }
 
   const counts = remainingGenusCounts(taxonomy, state);
+  const fullCounts = allGenusCounts(taxonomy);
   let cursor = state.constraintId;
   let extraLevels = 1;
 
   for (let depth = 0; depth < 10; depth += 1) {
-    const kids = viewChildren(taxonomy, state, cursor, counts).filter(
+    const kids = viewChildren(taxonomy, state, cursor, counts, fullCounts).filter(
       (row) => row.status === "remaining" || row.status === "lineage" || row.status === "constraint",
     );
     if (kids.length === 0) break;
@@ -175,6 +184,7 @@ export function buildCabinetTree(
 ): TreeNodeView {
   const expanded = new Set(expandedIds);
   const counts = remainingGenusCounts(taxonomy, state);
+  const fullCounts = allGenusCounts(taxonomy);
   const keep = spineKeepIds(taxonomy, state);
   for (const id of expanded) keep.add(id);
 
@@ -191,7 +201,7 @@ export function buildCabinetTree(
     if (status === "pruned" || status === "outside") return node;
     if (!expanded.has(id) && id !== state.constraintId) return node;
 
-    const kids = viewChildren(taxonomy, state, id, counts);
+    const kids = viewChildren(taxonomy, state, id, counts, fullCounts);
     const rendered: TreeNodeView[] = [];
     let skipped = 0;
 

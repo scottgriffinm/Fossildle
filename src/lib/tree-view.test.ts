@@ -137,6 +137,8 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     expect(findNode(tree, "Eubilateria")?.status).toBe("constraint");
     expect(findNode(tree, "Protostomia")?.status).toBe("pruned");
     expect(findNode(tree, "Deuterostomia")?.status).toBe("remaining");
+    expect(findNode(tree, "Porifera")).toBeNull();
+    expect(findNode(tree, "Cnidaria")?.status).toBe("outside");
   });
 
   it("still shows a tree crown at Dinosauria after a close miss", () => {
