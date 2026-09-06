@@ -143,7 +143,7 @@ input {
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(280px, 0.92fr) minmax(340px, 1.18fr);
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 0;
   margin-bottom: 12px;
   background: linear-gradient(180deg, var(--card), var(--bg-2));
@@ -158,9 +158,7 @@ input {
   grid-row: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
   min-width: 0;
-  padding: 0 0 4px;
 }
 
 .play-guesses {
@@ -171,6 +169,15 @@ input {
   gap: 8px;
   min-height: 0;
   min-width: 0;
+}
+
+.play-compose {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  flex: 0 0 auto;
+  border-top: 1px solid var(--line);
+  background: #160f0b;
+  padding: 8px 0 10px;
 }
 
 .tree-panel {
@@ -357,7 +364,8 @@ input {
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(100% + 6px);
+  bottom: calc(100% + 6px);
+  top: auto;
   grid-column: 1 / -1;
   z-index: 5;
   background: #160f0b;
@@ -412,62 +420,15 @@ input {
 .tree-panel {
   display: flex;
   flex-direction: column;
-  padding: 12px 12px 8px;
+  padding: 10px 10px 8px;
   min-width: 0;
-}
-
-.tree-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: flex-end;
-  flex: 0 0 auto;
-}
-
-.tree-head h2 {
-  margin: 0;
-  font-family: var(--font-serif), serif;
-  font-size: 1.25rem;
-  line-height: 1.15;
-}
-
-.crumbs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 8px 0 6px;
-  padding: 0;
-  list-style: none;
-  flex: 0 0 auto;
-}
-
-.crumbs li {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--muted);
-  font-size: 0.74rem;
-}
-
-.crumbs li::after {
-  content: "›";
-  color: var(--faint);
-}
-
-.crumbs li:last-child::after {
-  content: "";
-}
-
-.crumbs strong {
-  color: var(--bone);
-  font-weight: 600;
 }
 
 .tree-scroll {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  padding: 4px 4px 8px 2px;
+  padding: 2px 4px 8px 2px;
 }
 
 .phylo-tree,
@@ -541,34 +502,6 @@ input {
   white-space: nowrap;
 }
 
-.phylo-rank {
-  color: var(--faint);
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.phylo-count,
-.phylo-tag {
-  margin-left: auto;
-  font-size: 0.7rem;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.phylo-tag {
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 1px 7px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.phylo-tag.live {
-  color: var(--copper-2);
-  border-color: var(--copper);
-}
-
 .phylo-skip {
   color: var(--faint);
   font-size: 0.72rem;
@@ -582,8 +515,16 @@ input {
 }
 
 .phylo-node.is-constraint > .phylo-row {
-  background: rgba(208, 138, 74, 0.16);
-  box-shadow: inset 0 0 0 1px var(--copper);
+  background: transparent;
+}
+
+.phylo-node.is-constraint > .phylo-row .phylo-name {
+  color: var(--copper-2);
+}
+
+.phylo-node.is-constraint > .phylo-row .phylo-dot {
+  background: var(--copper-2);
+  box-shadow: 0 0 0 3px rgba(240, 195, 106, 0.28);
 }
 
 .phylo-node.is-shared > .phylo-row {
@@ -624,13 +565,6 @@ input {
   100% {
     background: transparent;
   }
-}
-
-.pruned-note {
-  flex: 0 0 auto;
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 0.78rem;
 }
 
 .result {
@@ -691,16 +625,15 @@ input {
 
 @media (max-width: 860px) {
   .shell-play {
-    height: auto;
-    max-height: none;
-    min-height: 100dvh;
-    overflow: visible;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
     width: min(100% - 16px, 1240px);
   }
 
   .board {
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(280px, 38vh) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
     overflow: hidden;
   }
 
@@ -712,15 +645,11 @@ input {
   .tree-panel {
     grid-column: 1;
     grid-row: 2;
-    min-height: 280px;
-    max-height: 38vh;
+    min-height: 0;
+    max-height: none;
     border-left: 0;
     border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
-  }
-
-  .crumbs {
-    margin: 4px 0 2px;
   }
 
   .phylo-row {
@@ -733,13 +662,19 @@ input {
     grid-row: 3;
   }
 
+  .play-compose {
+    grid-column: 1;
+    grid-row: 4;
+  }
+
   .specimen-frame {
-    height: min(20vh, 168px);
+    height: min(16vh, 140px);
   }
 
   .guess-list {
     flex: 0 0 auto;
-    grid-template-rows: repeat(6, 34px);
+    grid-template-rows: repeat(6, 28px);
+    padding: 4px 8px 6px;
   }
 
   .brand strong {

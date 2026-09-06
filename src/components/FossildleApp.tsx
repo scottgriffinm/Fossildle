@@ -51,7 +51,7 @@ export function FossildleApp() {
       if (saved.status === "won") {
         setMessage(`Yes — ${puzzle.fossil.taxon}.`);
       } else if (saved.status === "lost") {
-        setMessage(`The cabinet closes. It was ${puzzle.fossil.taxon}.`);
+        setMessage(`Out of guesses. It was ${puzzle.fossil.taxon}.`);
         setMessageKind("error");
       }
     }
@@ -109,7 +109,7 @@ export function FossildleApp() {
 
     if (nextGuesses.length >= MAX_GUESSES) {
       setStatus("lost");
-      announce(`The cabinet closes. It was ${puzzle.fossil.taxon}.`, "error");
+      announce(`Out of guesses. It was ${puzzle.fossil.taxon}.`, "error");
       return true;
     }
 
@@ -154,6 +154,39 @@ export function FossildleApp() {
             revealed={status !== "playing"}
             dateKey={puzzle.dateKey}
           />
+        </div>
+        <TaxonomyTree
+          taxonomy={taxonomy}
+          prune={prune}
+          loading={!taxonomy || !prune}
+        />
+        <div className="play-guesses">
+          <GuessBoard
+            taxonomy={taxonomy}
+            guesses={guesses}
+            prune={prune}
+            answerId={puzzle.fossil.taxonId}
+            status={status}
+          />
+          {status !== "playing" && (
+            <div className="result">
+              <h3>
+                {status === "won"
+                  ? `Identified in ${guesses.length}`
+                  : `It was ${puzzle.fossil.taxon}`}
+              </h3>
+              <p className="guess-note">
+                Puzzle {puzzle.dateKey}. Same specimen worldwide until the next UTC midnight.
+              </p>
+              <div className="actions">
+                <button type="button" onClick={() => void share()}>
+                  Copy result
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="play-compose">
           {loadError ? (
             <div className="error-state" role="alert">
               {loadError}
@@ -184,38 +217,6 @@ export function FossildleApp() {
                   : "Loading the taxonomic tree…"
                 : "")}
           </p>
-        </div>
-        <TaxonomyTree
-          taxonomy={taxonomy}
-          prune={prune}
-          answerId={status === "playing" ? null : puzzle.fossil.taxonId}
-          loading={!taxonomy || !prune}
-        />
-        <div className="play-guesses">
-          <GuessBoard
-            taxonomy={taxonomy}
-            guesses={guesses}
-            prune={prune}
-            answerId={puzzle.fossil.taxonId}
-            status={status}
-          />
-          {status !== "playing" && (
-            <div className="result">
-              <h3>
-                {status === "won"
-                  ? `Identified in ${guesses.length}`
-                  : `It was ${puzzle.fossil.taxon}`}
-              </h3>
-              <p className="guess-note">
-                Puzzle {puzzle.dateKey}. Same specimen worldwide until the next UTC midnight.
-              </p>
-              <div className="actions">
-                <button type="button" onClick={() => void share()}>
-                  Copy result
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </>

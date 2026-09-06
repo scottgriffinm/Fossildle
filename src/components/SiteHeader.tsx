@@ -25,7 +25,7 @@ export function SiteHeader({
               {guessesLeft} guess{guessesLeft === 1 ? "" : "es"} left
             </span>
           ) : (
-            <span>cabinet closed</span>
+            <span>done</span>
           )}
         </p>
       )}
