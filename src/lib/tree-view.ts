@@ -104,8 +104,8 @@ export function viewChildren(
 
   const rank = (row: TreeBranch) => {
     if (row.status === "constraint" || row.status === "lineage") return 0;
-    if (row.status === "remaining") return 1;
-    if (row.status === "pruned") return 2;
+    if (row.status === "pruned") return 1;
+    if (row.status === "remaining") return 2;
     return 3;
   };
 
@@ -230,9 +230,12 @@ export function buildCabinetTree(
       rendered.push(walk(kid.taxon.id));
     }
 
+    const pruned = rendered.filter((child) => child.status === "pruned");
+    const rest = rendered.filter((child) => child.status !== "pruned");
     if (rendered.length > MAX_CHILDREN) {
-      node.overflow = rendered.length - MAX_CHILDREN;
-      node.children = rendered.slice(0, MAX_CHILDREN);
+      const room = Math.max(MAX_CHILDREN - pruned.length, 0);
+      node.overflow = rest.length - room;
+      node.children = [...pruned, ...rest.slice(0, room)];
     } else {
       node.children = rendered;
     }
