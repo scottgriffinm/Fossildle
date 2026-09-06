@@ -1,0 +1,92 @@
+[
+  {
+    "id": "tyrannosaurus-lacm-baby-skull",
+    "file": "fossils/tyrannosaurus-lacm-baby-skull.jpg",
+    "bytes": 163969,
+    "license": "CC BY-SA 4.0",
+    "attribution": "Jonathan Chen",
+    "commons_file": "File:Baby Tyrannosaurus skull LACM.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/0/05/Baby_Tyrannosaurus_skull_LACM.jpg"
+  },
+  {
+    "id": "triceratops-tyrrell-skull",
+    "file": "fossils/triceratops-tyrrell-skull.jpg",
+    "bytes": 274590,
+    "license": "CC BY-SA 4.0",
+    "attribution": "Chris Woodrich",
+    "commons_file": "File:Triceratops horridus (TMP 1982.006.0001, skull), Royal Tyrrell Museum, Drumheller, Alberta, 2025-07-13.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Triceratops_horridus_%28TMP_1982.006.0001%2C_skull%29%2C_Royal_Tyrrell_Museum%2C_Drumheller%2C_Alberta%2C_2025-07-13.jpg"
+  },
+  {
+    "id": "archaeopteryx-stjohn",
+    "file": "fossils/archaeopteryx-stjohn.jpg",
+    "bytes": 441902,
+    "license": "CC BY 2.0",
+    "attribution": "James St. John",
+    "commons_file": "File:Archaeopteryx lithographica (fossil bird) (Solnhofen Limestone, Upper Jurassic; Blumenberg Quarry, Eichstatt District, Germany) 2 (35865844352).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/7/70/Archaeopteryx_lithographica_%28fossil_bird%29_%28Solnhofen_Limestone%2C_Upper_Jurassic%3B_Blumenberg_Quarry%2C_Eichstatt_District%2C_Germany%29_2_%2835865844352%29.jpg"
+  },
+  {
+    "id": "mammuthus-primigenius-molar",
+    "file": "fossils/mammuthus-primigenius-molar.jpg",
+    "bytes": 357849,
+    "license": "CC BY 4.0",
+    "attribution": "Tiia Monto",
+    "commons_file": "File:Mammuthus primigenius - molar.png",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/7/7a/Mammuthus_primigenius_-_molar.png"
+  },
+  {
+    "id": "phacops-rana",
+    "file": "fossils/phacops-rana.jpg",
+    "bytes": 882672,
+    "license": "CC BY-SA 4.0",
+    "attribution": "Didier Descouens",
+    "commons_file": "File:Phacops rana.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Phacops_rana.jpg"
+  },
+  {
+    "id": "perisphinctes-ammonite",
+    "file": "fossils/perisphinctes-ammonite.jpg",
+    "bytes": 440178,
+    "license": "CC BY-SA 3.0",
+    "attribution": "Masur",
+    "commons_file": "File:Perisphinctes ammonite.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/7/76/Perisphinctes_ammonite.jpg"
+  },
+  {
+    "id": "dunkleosteus-terrelli",
+    "file": "fossils/dunkleosteus-terrelli.jpg",
+    "bytes": 327464,
+    "license": "CC BY 2.0",
+    "attribution": "James St. John",
+    "commons_file": "File:Dunkleosteus terrelli (fossil fish) (Cleveland Shale Member, Ohio Shale, Upper Devonian; Rocky River Valley, Cleveland, Ohio, USA) 16 (33289195654).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Dunkleosteus_terrelli_%28fossil_fish%29_%28Cleveland_Shale_Member%2C_Ohio_Shale%2C_Upper_Devonian%3B_Rocky_River_Valley%2C_Cleveland%2C_Ohio%2C_USA%29_16_%2833289195654%29.jpg"
+  },
+  {
+    "id": "smilodon-fatalis-amnh",
+    "file": "fossils/smilodon-fatalis-amnh.jpg",
+    "bytes": 131831,
+    "license": "CC BY-SA 4.0",
+    "attribution": "Bloopityboop",
+    "commons_file": "File:AMNH Smilodon fatalis skull, Pleistocene California.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/5/59/AMNH_Smilodon_fatalis_skull%2C_Pleistocene_California.jpg"
+  },
+  {
+    "id": "elrathia-kingii",
+    "file": "fossils/elrathia-kingii.jpg",
+    "bytes": 233078,
+    "license": "CC BY-SA 4.0",
+    "attribution": "Daiju Azuma",
+    "commons_file": "File:Elrathia kingii by DaijuAzuma.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Elrathia_kingii_by_DaijuAzuma.jpg"
+  },
+  {
+    "id": "diplodocus-amnh-bones",
+    "file": "fossils/diplodocus-amnh-bones.jpg",
+    "bytes": 226494,
+    "license": "CC BY 4.0",
+    "attribution": "Vicpeters",
+    "commons_file": "File:Diplodocus longus bones, first fossils at American Museum of Natural History.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/4/43/Diplodocus_longus_bones%2C_first_fossils_at_American_Museum_of_Natural_History.jpg"
+  }
+]
