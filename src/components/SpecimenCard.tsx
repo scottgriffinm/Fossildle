@@ -24,25 +24,24 @@ export function SpecimenCard({
           }
           fill
           unoptimized
-          sizes="(max-width: 860px) 100vw, 50vw"
+          sizes="(max-width: 860px) 100vw, 42vw"
           style={{ objectFit: "contain" }}
           priority
         />
       </div>
       <div className="specimen-meta">
-        <div className="kicker">
-          {dateKey} · {revealed ? fossil.taxon : "Identify the genus"}
-        </div>
+        <div className="kicker">{revealed ? fossil.taxon : "Identify the genus"}</div>
         <p className="attribution">
-          Photo: {fossil.attribution} · {fossil.license}
+          {fossil.attribution} · {fossil.license}
           {" · "}
           <a
             href={`${COMMONS_BASE}${encodeURIComponent(fossil.commons_file)}`}
             target="_blank"
             rel="noreferrer"
           >
-            Wikimedia Commons
+            Commons
           </a>
+          <span className="sr-only"> {dateKey}</span>
         </p>
       </div>
     </section>

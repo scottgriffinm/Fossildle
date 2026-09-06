@@ -8,6 +8,7 @@ import { TaxonomyIndex } from "@/lib/taxonomy";
 import type { GameStatus, TaxonomyData } from "@/lib/types";
 import { GuessBoard } from "./GuessBoard";
 import { GuessInput } from "./GuessInput";
+import { SiteHeader } from "./SiteHeader";
 import { SpecimenCard } from "./SpecimenCard";
 import { TaxonomyTree } from "./TaxonomyTree";
 
@@ -116,7 +117,7 @@ export function FossildleApp() {
     const last = nextPrune.steps.at(-1);
     const shared = last ? taxonomy.require(last.mrcaId).name : "Animalia";
     const pruned = last?.prunedId ? taxonomy.require(last.prunedId).name : "that branch";
-    announce(`Shared clade: ${shared}. Pruned ${pruned}.`);
+    announce(`Shared ${shared} · pruned ${pruned}.`);
     return true;
   }
 
@@ -135,88 +136,88 @@ export function FossildleApp() {
     }
   }
 
-  const specimen = (
-    <SpecimenCard
-      fossil={puzzle.fossil}
-      revealed={status !== "playing"}
-      dateKey={puzzle.dateKey}
-    />
-  );
-
-  if (loadError) {
-    return (
-      <div className="layout">
-        {specimen}
-        <div className="error-state" role="alert">
-          {loadError}
-        </div>
-      </div>
-    );
-  }
-
-  if (!taxonomy || !prune) {
-    return (
-      <div className="layout">
-        {specimen}
-        <div className="guess-col">
-          <div className="panel loading" role="status" aria-live="polite" aria-busy="true">
-            Loading the taxonomic tree…
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const remaining = taxonomy.remainingGenera(prune).length;
+  const guessesLeft = MAX_GUESSES - guesses.length;
+  const remaining = taxonomy && prune ? taxonomy.remainingGenera(prune).length : null;
 
   return (
-    <div className="layout">
-      {specimen}
-      <div className="guess-col">
-        <GuessBoard
-          taxonomy={taxonomy}
-          guesses={guesses}
-          prune={prune}
-          answerId={puzzle.fossil.taxonId}
-          status={status}
-        />
-        <GuessInput
-          taxonomy={taxonomy}
-          prune={prune}
-          disabled={status !== "playing"}
-          onSubmit={submitGuess}
-        />
-        <p className={`flash ${messageKind === "error" ? "error" : ""}`} aria-live="polite">
-          {message ||
-            (status === "playing"
-              ? `${remaining.toLocaleString()} genera still possible · ${MAX_GUESSES - guesses.length} guess${
-                  MAX_GUESSES - guesses.length === 1 ? "" : "es"
-                } left`
-              : "")}
-        </p>
-        {status !== "playing" && (
-          <div className="result">
-            <h3>
-              {status === "won"
-                ? `Identified in ${guesses.length}`
-                : `It was ${puzzle.fossil.taxon}`}
-            </h3>
-            <p className="guess-note">
-              Puzzle {puzzle.dateKey}. Same specimen worldwide until the next UTC midnight.
-            </p>
-            <div className="actions">
-              <button type="button" onClick={() => void share()}>
-                Copy result
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-      <TaxonomyTree
-        taxonomy={taxonomy}
-        prune={prune}
-        answerId={status === "playing" ? null : puzzle.fossil.taxonId}
+    <>
+      <SiteHeader
+        current="play"
+        dateKey={puzzle.dateKey}
+        guessesLeft={status === "playing" ? guessesLeft : 0}
+        playing={status === "playing"}
       />
-    </div>
+      <div className="board">
+        <div className="play-hero">
+          <SpecimenCard
+            fossil={puzzle.fossil}
+            revealed={status !== "playing"}
+            dateKey={puzzle.dateKey}
+          />
+          {loadError ? (
+            <div className="error-state" role="alert">
+              {loadError}
+            </div>
+          ) : taxonomy && prune ? (
+            <GuessInput
+              taxonomy={taxonomy}
+              prune={prune}
+              disabled={status !== "playing"}
+              onSubmit={submitGuess}
+            />
+          ) : (
+            <div className="composer">
+              <label htmlFor="genus-guess">Guess a scientific genus</label>
+              <div className="input-wrap">
+                <input id="genus-guess" disabled placeholder="Loading genera…" />
+                <button className="guess-btn" type="button" disabled>
+                  Guess
+                </button>
+              </div>
+            </div>
+          )}
+          <p className={`flash ${messageKind === "error" ? "error" : ""}`} aria-live="polite">
+            {message ||
+              (status === "playing"
+                ? remaining != null
+                  ? `${remaining.toLocaleString()} genera possible · ${guessesLeft} left`
+                  : "Loading the taxonomic tree…"
+                : "")}
+          </p>
+        </div>
+        <TaxonomyTree
+          taxonomy={taxonomy}
+          prune={prune}
+          answerId={status === "playing" ? null : puzzle.fossil.taxonId}
+          loading={!taxonomy || !prune}
+        />
+        <div className="play-guesses">
+          <GuessBoard
+            taxonomy={taxonomy}
+            guesses={guesses}
+            prune={prune}
+            answerId={puzzle.fossil.taxonId}
+            status={status}
+          />
+          {status !== "playing" && (
+            <div className="result">
+              <h3>
+                {status === "won"
+                  ? `Identified in ${guesses.length}`
+                  : `It was ${puzzle.fossil.taxon}`}
+              </h3>
+              <p className="guess-note">
+                Puzzle {puzzle.dateKey}. Same specimen worldwide until the next UTC midnight.
+              </p>
+              <div className="actions">
+                <button type="button" onClick={() => void share()}>
+                  Copy result
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 }

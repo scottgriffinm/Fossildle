@@ -1,10 +1,8 @@
 import { FossildleApp } from "@/components/FossildleApp";
-import { SiteHeader } from "@/components/SiteHeader";
 
 export default function HomePage() {
   return (
-    <main className="shell">
-      <SiteHeader current="play" />
+    <main className="shell shell-play">
       <FossildleApp />
     </main>
   );
