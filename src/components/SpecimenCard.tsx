@@ -6,9 +6,11 @@ const COMMONS_BASE = "https://commons.wikimedia.org/wiki/";
 export function SpecimenCard({
   fossil,
   revealed,
+  dateKey,
 }: {
   fossil: FossilRecord;
   revealed: boolean;
+  dateKey: string;
 }) {
   return (
     <section className="panel specimen" aria-label="Today's fossil">
@@ -28,7 +30,9 @@ export function SpecimenCard({
         />
       </div>
       <div className="specimen-meta">
-        <div className="kicker">{revealed ? fossil.taxon : "Identify the genus"}</div>
+        <div className="kicker">
+          {dateKey} · {revealed ? fossil.taxon : "Identify the genus"}
+        </div>
         <p className="attribution">
           Photo: {fossil.attribution} · {fossil.license}
           {" · "}

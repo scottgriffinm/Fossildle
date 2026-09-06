@@ -98,6 +98,18 @@ describe("TaxonomyIndex helpers", () => {
     });
   });
 
+  it("opens the cabinet on a rank that still splits remaining genera", () => {
+    const open = tax.pruneRemaining(5, []);
+    expect(tax.informativeBranches(open).map((b) => b.taxon.name).sort()).toEqual([
+      "Arthropoda",
+      "Chordata",
+    ]);
+    const after = tax.pruneRemaining(5, [13]);
+    expect(tax.informativeBranches(after).every((b) => b.taxon.name !== "Arthropoda")).toBe(
+      true,
+    );
+  });
+
   it("restricts autocomplete to remaining genera", () => {
     const open = tax.pruneRemaining(5, []);
     expect(tax.searchGenera("p", open).map((t) => t.name)).toContain("Phacops");
@@ -148,5 +160,12 @@ describe("shipped PBDB taxonomy artifact", () => {
     expect(tax.isRemaining(answer, second)).toBe(true);
     expect(tax.remainingGenera(second).length).toBeGreaterThan(1);
     expect(tax.remainingGenera(second).some((t) => t.id === answer)).toBe(true);
+  });
+
+  it("opens on phyla so the first view is wide", () => {
+    const open = tax.pruneRemaining(parsePbdbOid("txn:38613"), []);
+    const names = tax.informativeBranches(open).map((b) => b.taxon.name);
+    expect(names).toEqual(expect.arrayContaining(["Chordata", "Arthropoda", "Mollusca"]));
+    expect(names.length).toBeGreaterThanOrEqual(3);
   });
 });

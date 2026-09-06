@@ -47,10 +47,16 @@ export function FossildleApp() {
     if (saved && saved.fossilId === puzzle.fossil.id) {
       setGuesses(saved.guesses);
       setStatus(saved.status);
+      if (saved.status === "won") {
+        setMessage(`Yes — ${puzzle.fossil.taxon}.`);
+      } else if (saved.status === "lost") {
+        setMessage(`The cabinet closes. It was ${puzzle.fossil.taxon}.`);
+        setMessageKind("error");
+      }
     }
     restoreRef.current = true;
     setHydrated(true);
-  }, [taxonomy, puzzle.dateKey, puzzle.fossil.id]);
+  }, [taxonomy, puzzle.dateKey, puzzle.fossil.id, puzzle.fossil.taxon]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -141,7 +147,11 @@ export function FossildleApp() {
 
   return (
     <div className="layout">
-      <SpecimenCard fossil={puzzle.fossil} revealed={status !== "playing"} />
+      <SpecimenCard
+        fossil={puzzle.fossil}
+        revealed={status !== "playing"}
+        dateKey={puzzle.dateKey}
+      />
       <div className="guess-col">
         <GuessBoard
           taxonomy={taxonomy}
@@ -158,9 +168,11 @@ export function FossildleApp() {
         />
         <p className={`flash ${messageKind === "error" ? "error" : ""}`} aria-live="polite">
           {message ||
-            `${remaining.toLocaleString()} genera still possible · ${MAX_GUESSES - guesses.length} guess${
-              MAX_GUESSES - guesses.length === 1 ? "" : "es"
-            } left`}
+            (status === "playing"
+              ? `${remaining.toLocaleString()} genera still possible · ${MAX_GUESSES - guesses.length} guess${
+                  MAX_GUESSES - guesses.length === 1 ? "" : "es"
+                } left`
+              : "")}
         </p>
         {status !== "playing" && (
           <div className="result">
@@ -180,7 +192,11 @@ export function FossildleApp() {
           </div>
         )}
       </div>
-      <TaxonomyTree taxonomy={taxonomy} prune={prune} />
+      <TaxonomyTree
+        taxonomy={taxonomy}
+        prune={prune}
+        answerId={status === "playing" ? null : puzzle.fossil.taxonId}
+      />
     </div>
   );
 }

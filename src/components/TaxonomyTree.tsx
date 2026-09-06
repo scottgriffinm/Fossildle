@@ -7,18 +7,20 @@ import type { PruneState } from "@/lib/types";
 export function TaxonomyTree({
   taxonomy,
   prune,
+  answerId,
 }: {
   taxonomy: TaxonomyIndex;
   prune: PruneState;
+  answerId: number | null;
 }) {
-  const constraint = taxonomy.require(prune.constraintId);
+  const constraint = taxonomy.require(answerId ?? prune.constraintId);
   const crumbs = taxonomy.displayPath(constraint.id);
-  const [focusId, setFocusId] = useState(constraint.id);
-  const parentId = taxonomy.isAncestor(constraint.id, focusId)
+  const [focusId, setFocusId] = useState(prune.constraintId);
+  const parentId = taxonomy.isAncestor(prune.constraintId, focusId)
     ? focusId
-    : constraint.id;
+    : prune.constraintId;
   const branches = useMemo(
-    () => taxonomy.remainingBranches(prune, parentId),
+    () => taxonomy.informativeBranches(prune, parentId),
     [taxonomy, prune, parentId],
   );
   const last = prune.steps.at(-1);
@@ -28,10 +30,12 @@ export function TaxonomyTree({
     <section className="panel tree-panel" aria-label="Remaining taxonomy">
       <div className="tree-head">
         <div>
-          <div className="kicker">Remaining subtree</div>
+          <div className="kicker">{answerId ? "Identified lineage" : "Remaining subtree"}</div>
           <h2>{constraint.name}</h2>
         </div>
-        <div className="guess-note">{remaining.toLocaleString()} genera</div>
+        <div className="guess-note">
+          {answerId ? constraint.rank : `${remaining.toLocaleString()} genera`}
+        </div>
       </div>
       <ol className="crumbs">
         {crumbs.map((taxon) => (
@@ -41,40 +45,44 @@ export function TaxonomyTree({
           </li>
         ))}
       </ol>
-      {parentId !== constraint.id && (
+      {!answerId && parentId !== prune.constraintId && (
         <p className="guess-note">
           Viewing {taxonomy.require(parentId).name}.{" "}
           <button
             type="button"
             className="branch"
             style={{ display: "inline-block", padding: "4px 10px" }}
-            onClick={() => setFocusId(constraint.id)}
+            onClick={() => setFocusId(prune.constraintId)}
           >
-            Back to {constraint.name}
+            Back to {taxonomy.require(prune.constraintId).name}
           </button>
         </p>
       )}
-      <div className="branches">
-        {branches.length === 0 ? (
-          <p className="guess-note">No further named branches remain in this view.</p>
-        ) : (
-          branches.slice(0, 24).map(({ taxon, genusCount }) => (
-            <button
-              key={taxon.id}
-              type="button"
-              className={`branch${taxon.id === parentId ? " active" : ""}`}
-              onClick={() => setFocusId(taxon.id)}
-            >
-              <b>{taxon.name}</b>
-              <span>
-                {taxon.rank} · {genusCount.toLocaleString()} genera
-              </span>
-            </button>
-          ))
-        )}
-      </div>
-      {branches.length > 24 && (
-        <p className="guess-note">{branches.length - 24} more clades not shown</p>
+      {!answerId && (
+        <>
+          <div className="branches">
+            {branches.length === 0 ? (
+              <p className="guess-note">No further named branches remain in this view.</p>
+            ) : (
+              branches.slice(0, 36).map(({ taxon, genusCount }) => (
+                <button
+                  key={taxon.id}
+                  type="button"
+                  className={`branch${taxon.id === parentId ? " active" : ""}`}
+                  onClick={() => setFocusId(taxon.id)}
+                >
+                  <b>{taxon.name}</b>
+                  <span>
+                    {taxon.rank} · {genusCount.toLocaleString()} genera
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+          {branches.length > 36 && (
+            <p className="guess-note">{branches.length - 36} more clades not shown</p>
+          )}
+        </>
       )}
       {last?.prunedId && (
         <p className="pruned-note">

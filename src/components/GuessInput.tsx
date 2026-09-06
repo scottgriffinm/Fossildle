@@ -82,6 +82,9 @@ export function GuessInput({
             }
           }}
         />
+        <button className="guess-btn" type="submit" disabled={disabled}>
+          Guess
+        </button>
         {open && value && (
           <ul className="suggest" id={listId} role="listbox">
             {suggestions.length === 0 ? (

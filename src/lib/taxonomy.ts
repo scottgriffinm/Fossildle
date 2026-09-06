@@ -178,6 +178,44 @@ export class TaxonomyIndex {
       .sort((a, b) => b.genusCount - a.genusCount || a.taxon.name.localeCompare(b.taxon.name));
   }
 
+  /**
+   * Branches to show in the cabinet: the shallowest major rank that still
+   * splits remaining genera (phylum → class → order → family → genus).
+   * This keeps the opening view wide (Chordata / Arthropoda / Mollusca)
+   * instead of a single unranked child like Bilateria.
+   */
+  informativeBranches(
+    state: PruneState,
+    viewRoot = state.constraintId,
+  ): { taxon: Taxon; genusCount: number }[] {
+    const ranks = ["phylum", "class", "order", "family", "genus"] as const;
+    const remaining = this.remainingGenera(state).filter((genus) =>
+      this.isAncestor(viewRoot, genus.id),
+    );
+
+    for (const rank of ranks) {
+      const groups = new Map<number, number>();
+      for (const genus of remaining) {
+        const path = this.pathToRoot(genus.id);
+        const rootIndex = path.indexOf(viewRoot);
+        const slice = rootIndex === -1 ? path : path.slice(0, rootIndex);
+        const nodeId = slice.find((id) => this.require(id).rank === rank);
+        if (nodeId == null) continue;
+        groups.set(nodeId, (groups.get(nodeId) ?? 0) + 1);
+      }
+      if (groups.size >= 2) {
+        return [...groups.entries()]
+          .map(([id, genusCount]) => ({ taxon: this.require(id), genusCount }))
+          .sort(
+            (a, b) =>
+              b.genusCount - a.genusCount || a.taxon.name.localeCompare(b.taxon.name),
+          );
+      }
+    }
+
+    return this.remainingBranches(state, viewRoot);
+  }
+
   displayPath(id: number): Taxon[] {
     const full = this.pathToRoot(id)
       .map((nodeId) => this.require(nodeId))
