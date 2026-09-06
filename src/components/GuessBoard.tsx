@@ -9,9 +9,9 @@ export function GuessBoard({
   answerId,
   status,
 }: {
-  taxonomy: TaxonomyIndex;
+  taxonomy: TaxonomyIndex | null;
   guesses: number[];
-  prune: PruneState;
+  prune: PruneState | null;
   answerId: number;
   status: GameStatus;
 }) {
@@ -20,8 +20,8 @@ export function GuessBoard({
   return (
     <ol className="guess-list panel" aria-label="Guesses">
       {slots.map((guessId, index) => {
-        const filled = guessId != null;
-        const step = prune.steps[index];
+        const filled = guessId != null && taxonomy != null;
+        const step = prune?.steps[index];
         const taxon = filled ? taxonomy.require(guessId) : null;
         const won = filled && guessId === answerId;
         const lost = status === "lost" && index === guesses.length - 1;
@@ -35,12 +35,10 @@ export function GuessBoard({
             <span className="guess-index">{String(index + 1).padStart(2, "0")}</span>
             <div>
               <div className="guess-name">{taxon ? taxon.name : "—"}</div>
-              {step && !won && step.mrcaId && (
+              {taxonomy && step && !won && step.mrcaId && (
                 <div className="guess-note">
                   shared {taxonomy.require(step.mrcaId).name}
-                  {step.prunedId
-                    ? ` · pruned ${taxonomy.require(step.prunedId).name}`
-                    : ""}
+                  {step.prunedId ? ` · pruned ${taxonomy.require(step.prunedId).name}` : ""}
                 </div>
               )}
               {won && <div className="guess-note">correct genus</div>}

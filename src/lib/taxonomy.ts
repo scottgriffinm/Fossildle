@@ -230,6 +230,7 @@ export class TaxonomyIndex {
         "Mammalia",
         "Avialae",
         "Bilateria",
+        "Eubilateria",
         "Protostomia",
         "Deuterostomia",
       ].includes(taxon.name);
