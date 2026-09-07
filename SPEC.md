@@ -71,7 +71,7 @@ set.
 
 ## Daily rotation
 
-1. Take the committed catalog `data/fossils.json` (10 specimens).
+1. Take the committed catalog `data/fossils.json` (17 specimens).
 2. Fisher–Yates shuffle with Mulberry32, seed `CATALOG_SEED = 0xF05511DE`.
 3. `dayIndex = floor(UTC-midnight(date) / 86400000)` (Unix UTC days).
 4. Today's fossil is `shuffled[dayIndex % poolLength]`.
@@ -85,7 +85,7 @@ the whole cycle.
 
 1. Pull PBDB `data1.2` taxa with parent fields `par` / `prl`.
 2. Ingest Animalia, every Animalia phylum / class / order, complete
-   `all_parents` paths for the ten starter genera, accepted genera in
+   `all_parents` paths for the starter genera, accepted genera in
    Dinosauria, Trilobita, Ammonoidea, Placodermi, Avialae, Carnivora,
    Proboscidea, and Arthrodira, plus a short list of famous extra genera.
 3. Walk any missing parent ids until every kept node reaches Animalia.
@@ -115,5 +115,5 @@ Images are downloaded from the catalog `image_url`s into `public/fossils/`
 - Server-side scoreboards
 - Live PBDB queries
 - Guessing higher taxa as first-class answers
-- Expanding the daily pool beyond the committed ten fossils (the engine will
+- Expanding the daily pool beyond the committed catalog (the engine will
   accept more catalog rows without code changes)

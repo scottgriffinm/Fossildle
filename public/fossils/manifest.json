@@ -88,5 +88,68 @@
     "attribution": "Vicpeters",
     "commons_file": "File:Diplodocus longus bones, first fossils at American Museum of Natural History.jpg",
     "source_url": "https://upload.wikimedia.org/wikipedia/commons/4/43/Diplodocus_longus_bones%2C_first_fossils_at_American_Museum_of_Natural_History.jpg"
+  },
+  {
+    "id": "anomalocaris-canadensis",
+    "file": "fossils/anomalocaris-canadensis.jpg",
+    "bytes": 417526,
+    "license": "CC BY 2.0",
+    "attribution": "James St. John",
+    "commons_file": "File:Anomalocaris canadensis grasping claw, Burgess Shale.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/1/1b/Anomalocaris_canadensis_grasping_claw%2C_Burgess_Shale.jpg"
+  },
+  {
+    "id": "baculites-ozan",
+    "file": "fossils/baculites-ozan.jpg",
+    "bytes": 284655,
+    "license": "CC BY 2.0",
+    "attribution": "James St. John",
+    "commons_file": "File:Baculites (fossil ammonite) (Ozan Formation, Upper Cretaceous; eastern Texas, USA) 7.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Baculites_(fossil_ammonite)_(Ozan_Formation,_Upper_Cretaceous;_eastern_Texas,_USA)_7.jpg"
+  },
+  {
+    "id": "stegosaurus-stenops",
+    "file": "fossils/stegosaurus-stenops.jpg",
+    "bytes": 418452,
+    "license": "CC BY 2.0",
+    "attribution": "James St. John",
+    "commons_file": "File:Stegosaurus stenops (stegosaur dinosaur dorsal plate) (Morrison Formation, Upper Jurassic; Dinosaur National Monument, Utah, USA) (48696019227).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/8/81/Stegosaurus_stenops_%28stegosaur_dinosaur_dorsal_plate%29_%28Morrison_Formation%2C_Upper_Jurassic%3B_Dinosaur_National_Monument%2C_Utah%2C_USA%29_%2848696019227%29.jpg"
+  },
+  {
+    "id": "mucrospirifer-mucronatus",
+    "file": "fossils/mucrospirifer-mucronatus.jpg",
+    "bytes": 142909,
+    "license": "CC BY-SA 3.0",
+    "attribution": "Wilson44691",
+    "commons_file": "File:Mucrospirifer mucronatus Silica Shale.JPG",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/2/23/Mucrospirifer_mucronatus_Silica_Shale.JPG"
+  },
+  {
+    "id": "bothriolepis-canadensis",
+    "file": "fossils/bothriolepis-canadensis.jpg",
+    "bytes": 470437,
+    "license": "CC BY-SA 4.0",
+    "attribution": "Bloopityboop",
+    "commons_file": "File:Bothriolepis canadensis Royal Tyrrell.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/2/22/Bothriolepis_canadensis_Royal_Tyrrell.jpg"
+  },
+  {
+    "id": "allosaurus-atrox",
+    "file": "fossils/allosaurus-atrox.jpg",
+    "bytes": 323715,
+    "license": "CC BY 2.0",
+    "attribution": "James St. John",
+    "commons_file": "File:Allosaurus atrox (theropod dinosaur) (Morrison Formation, Upper Jurassic; Carnegie Quarry, Dinosaur National Monument, Utah, USA) 7 (48691921341).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Allosaurus_atrox_(theropod_dinosaur)_(Morrison_Formation,_Upper_Jurassic;_Carnegie_Quarry,_Dinosaur_National_Monument,_Utah,_USA)_7_(48691921341).jpg"
+  },
+  {
+    "id": "calymene-blumenbachii",
+    "file": "fossils/calymene-blumenbachii.jpg",
+    "bytes": 514777,
+    "license": "CC BY 2.0",
+    "attribution": "James St. John",
+    "commons_file": "File:Calymene blumenbachii (fossil trilobite) (Much Wenlock Limestone, Middle Silurian; Wrens Nest, Dudley, England) 7.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Calymene_blumenbachii_%28fossil_trilobite%29_%28Much_Wenlock_Limestone%2C_Middle_Silurian%3B_Wrens_Nest%2C_Dudley%2C_England%29_7.jpg"
   }
 ]
