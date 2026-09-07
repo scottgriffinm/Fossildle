@@ -3,7 +3,13 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { TaxonomyIndex, parsePbdbOid } from "./taxonomy";
 import type { Taxon, TaxonomyData } from "./types";
-import { buildCabinetTree, nodeStatus, viewChildren } from "./tree-view";
+import {
+  autoExpandIds,
+  buildCabinetTree,
+  expandBranchIds,
+  nodeStatus,
+  viewChildren,
+} from "./tree-view";
 
 function fixture(): TaxonomyData {
   const taxa: Taxon[] = [
@@ -93,9 +99,29 @@ describe("cabinet tree view", () => {
     const tree = buildCabinetTree(tax, open);
     expect(tree.taxon.name).toBe("Animalia");
     expect(tree.status).toBe("constraint");
+    expect(tree.expandable).toBe(true);
     expect(names(tree.children).sort()).toEqual(["Arthropoda", "Chordata"]);
-    expect(findNode(tree, "Chordata")).toBeTruthy();
+    expect(findNode(tree, "Chordata")?.expandable).toBe(true);
+    expect(findNode(tree, "Chordata")?.children).toEqual([]);
+    expect(findNode(tree, "Dinosauria")).toBeNull();
     expect(findNode(tree, "Arthropoda")).toBeTruthy();
+  });
+
+  it("reveals a collapsed clade's remaining children when that node is expanded", () => {
+    const open = tax.pruneRemaining(5, []);
+    const tree = buildCabinetTree(tax, open);
+    const chordata = findNode(tree, "Chordata");
+    expect(chordata?.expandable).toBe(true);
+
+    const opened = buildCabinetTree(tax, open, {
+      expandedIds: [
+        ...autoExpandIds(tax, open),
+        ...expandBranchIds(tax, open, chordata!.taxon.id),
+      ],
+    });
+    expect(findNode(opened, "Dinosauria")).toBeTruthy();
+    expect(findNode(opened, "Mammalia")).toBeTruthy();
+    expect(findNode(opened, "Arthropoda")?.children).toEqual([]);
   });
 
   it("deletes a pruned clade from the rendered tree after a miss", () => {
@@ -145,9 +171,10 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
   const phacops = parsePbdbOid("txn:21701");
   const triceratops = parsePbdbOid("txn:38862");
 
-  it("opens on a fully expanded Animalia crown before any guess", () => {
+  it("opens on the Animalia crown, collapsed to about three levels", () => {
     const open = tax.pruneRemaining(answer, []);
     const tree = buildCabinetTree(tax, open);
+    const auto = autoExpandIds(tax, open);
     expect(tree.taxon.name).toBe("Animalia");
     expect(tree.status).toBe("constraint");
     expect(names(tree.children)).toEqual(
@@ -161,14 +188,43 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     expect(findNode(tree, "Arthropoda")).toBeTruthy();
     expect(findNode(tree, "Mollusca")).toBeTruthy();
     expect(tree.children.length).toBeGreaterThanOrEqual(3);
+    expect(findNode(tree, "Cnidaria")?.expandable).toBe(true);
     expect(findNode(tree, "Cnidaria")?.children).toEqual([]);
+    expect(findNode(tree, "Chordata")?.expandable).toBe(true);
+    expect(findNode(tree, "Chordata")?.children).toEqual([]);
     expect(findNode(tree, "Anthozoa")).toBeNull();
+    expect(findNode(tree, "Dinosauria")).toBeNull();
     expect(findNode(tree, "Ecdysozoa")).toBeNull();
     expect(findNode(tree, "Panarthropoda")).toBeNull();
     expect(findNode(tree, "Opabiniidae")).toBeNull();
+    expect(auto).toEqual(expect.arrayContaining([tree.taxon.id]));
     const rendered = allNames(tree);
     expect(rendered.length).toBeGreaterThanOrEqual(10);
     expect(rendered.length).toBeLessThan(48);
+  });
+
+  it("expands a remaining crown branch on request and keeps siblings collapsed", () => {
+    const open = tax.pruneRemaining(answer, []);
+    const tree = buildCabinetTree(tax, open);
+    const chordata = findNode(tree, "Chordata");
+    expect(chordata?.expandable).toBe(true);
+
+    const opened = buildCabinetTree(tax, open, {
+      expandedIds: [
+        ...autoExpandIds(tax, open),
+        ...expandBranchIds(tax, open, chordata!.taxon.id),
+      ],
+    });
+    expect(names(findNode(opened, "Chordata")!.children)).toEqual(["Vertebrata"]);
+    expect(findNode(opened, "Vertebrata")?.status).toBe("remaining");
+    expect(findNode(opened, "Gnathostomata")).toBeTruthy();
+    expect(names(findNode(opened, "Gnathostomata")!.children)).toEqual(
+      expect.arrayContaining(["Osteichthyes", "Placodermi", "Chondrichthyes"]),
+    );
+    expect(findNode(opened, "Dinosauria")).toBeNull();
+    expect(findNode(opened, "Anthozoa")).toBeNull();
+    expect(findNode(opened, "Arthropoda")?.children).toEqual([]);
+    expect(findNode(opened, "Opabiniidae")).toBeNull();
   });
 
   it("keeps only the Eubilateria surviving branch after an arthropod miss", () => {
@@ -185,9 +241,25 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     expect(findNode(tree, "Animalia")).toBeNull();
     expect(findNode(tree, "Deuterostomia")?.status).toBe("remaining");
     expect(findNode(tree, "Chordata")?.status).toBe("remaining");
+    expect(findNode(tree, "Chordata")?.expandable).toBe(true);
     expect(allStatuses(tree).every((status) => status !== "pruned" && status !== "outside")).toBe(
       true,
     );
+
+    const chordata = findNode(tree, "Chordata")!;
+    const opened = buildCabinetTree(tax, after, {
+      expandedIds: [
+        ...autoExpandIds(tax, after),
+        ...expandBranchIds(tax, after, chordata.taxon.id),
+      ],
+    });
+    expect(findNode(opened, "Arthropoda")).toBeNull();
+    expect(findNode(opened, "Phacops")).toBeNull();
+    expect(findNode(opened, "Protostomia")).toBeNull();
+    expect(findNode(opened, "Gnathostomata")).toBeTruthy();
+    expect(findNode(opened, "Dinosauria")).toBeNull();
+    expect(names(findNode(opened, "Chordata")!.children)).toEqual(["Vertebrata"]);
+    expect(findNode(opened, "Vertebrata")?.status).toBe("remaining");
   });
 
   it("roots at Dinosauria after a close miss and deletes Ornithischia", () => {

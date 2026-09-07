@@ -14,6 +14,7 @@ export type TreeNodeView = {
   status: NodeStatus;
   genusCount: number;
   children: TreeNodeView[];
+  expandable: boolean;
 };
 
 /** Textbook Animalia crown and major clades shown as structure even without genera. */
@@ -46,7 +47,7 @@ const SCAFFOLD_TAXA = new Set([
   "Avialae",
 ]);
 
-/** Named spine clades that stay expanded so the crown is a real tree. */
+/** Named spine clades open by default so the crown reads as a real tree. */
 const SCAFFOLD_EXPAND = new Set([
   "Animalia",
   "Bilateria",
@@ -226,7 +227,7 @@ export function viewChildren(
   });
 }
 
-function shouldExpand(
+function shouldDefaultExpand(
   taxonomy: TaxonomyIndex,
   state: PruneState,
   taxon: Taxon,
@@ -240,30 +241,73 @@ function shouldExpand(
   return splitDepth < 2;
 }
 
+/** Node plus its remaining unary chain, so a click reaches the next split. */
+export function expandBranchIds(
+  taxonomy: TaxonomyIndex,
+  state: PruneState,
+  startId: number,
+): number[] {
+  const counts = remainingGenusCounts(taxonomy, state);
+  const fullCounts = allGenusCounts(taxonomy);
+  const ids = [startId];
+  let cursor = startId;
+  for (;;) {
+    const kids = viewChildren(taxonomy, state, cursor, counts, fullCounts);
+    if (kids.length !== 1) break;
+    cursor = kids[0]!.taxon.id;
+    ids.push(cursor);
+  }
+  return ids;
+}
+
+/** Crown / remaining-subtree nodes that start open (~top 3 levels). */
+export function autoExpandIds(taxonomy: TaxonomyIndex, state: PruneState): number[] {
+  const expanded = new Set<number>();
+  const counts = remainingGenusCounts(taxonomy, state);
+  const fullCounts = allGenusCounts(taxonomy);
+
+  const walk = (id: number, splitDepth: number) => {
+    const taxon = taxonomy.require(id);
+    const status = nodeStatus(taxonomy, id, state);
+    if (!VISIBLE_STATUSES.has(status)) return;
+    if (!shouldDefaultExpand(taxonomy, state, taxon, splitDepth)) return;
+    expanded.add(id);
+    const kids = viewChildren(taxonomy, state, id, counts, fullCounts);
+    const nextDepth = kids.length <= 1 ? splitDepth : splitDepth + 1;
+    for (const kid of kids) walk(kid.taxon.id, nextDepth);
+  };
+
+  walk(state.constraintId, 0);
+  return [...expanded];
+}
+
 function walkRemaining(
   taxonomy: TaxonomyIndex,
   state: PruneState,
   id: number,
   counts: Map<number, number>,
   fullCounts: Map<number, number>,
-  splitDepth: number,
+  expanded: Set<number>,
 ): TreeNodeView {
   const taxon = taxonomy.require(id);
   const status = nodeStatus(taxonomy, id, state);
+  const kids = VISIBLE_STATUSES.has(status)
+    ? viewChildren(taxonomy, state, id, counts, fullCounts)
+    : [];
   const node: TreeNodeView = {
     taxon,
     status,
     genusCount: counts.get(id) ?? 0,
     children: [],
+    expandable: kids.length > 0 && taxon.rank !== "genus",
   };
 
   if (!VISIBLE_STATUSES.has(status)) return node;
-  if (!shouldExpand(taxonomy, state, taxon, splitDepth)) return node;
+  const isOpen = expanded.has(id) || id === state.constraintId;
+  if (!isOpen) return node;
 
-  const kids = viewChildren(taxonomy, state, id, counts, fullCounts);
-  const nextDepth = kids.length <= 1 ? splitDepth : splitDepth + 1;
   node.children = kids.map((kid) =>
-    walkRemaining(taxonomy, state, kid.taxon.id, counts, fullCounts, nextDepth),
+    walkRemaining(taxonomy, state, kid.taxon.id, counts, fullCounts, expanded),
   );
   return node;
 }
@@ -354,6 +398,7 @@ function buildRevealPath(
       status,
       genusCount: counts.get(taxon.id) ?? 0,
       children: [],
+      expandable: false,
     };
   });
 
@@ -363,7 +408,7 @@ function buildRevealPath(
 export function buildCabinetTree(
   taxonomy: TaxonomyIndex,
   state: PruneState,
-  options?: { revealId?: number },
+  options?: { revealId?: number; expandedIds?: Iterable<number> },
 ): TreeNodeView {
   if (options?.revealId != null) {
     return buildRevealPath(taxonomy, state, options.revealId);
@@ -371,5 +416,6 @@ export function buildCabinetTree(
 
   const counts = remainingGenusCounts(taxonomy, state);
   const fullCounts = allGenusCounts(taxonomy);
-  return walkRemaining(taxonomy, state, state.constraintId, counts, fullCounts, 0);
+  const expanded = new Set(options?.expandedIds ?? autoExpandIds(taxonomy, state));
+  return walkRemaining(taxonomy, state, state.constraintId, counts, fullCounts, expanded);
 }

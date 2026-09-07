@@ -203,12 +203,13 @@ input {
 }
 
 .tree-panel {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 1 38vh;
+  max-height: 40vh;
+  min-height: 188px;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 10px 12px 8px;
+  padding: 8px 12px 6px;
   border: 0;
   border-top: 1px solid var(--line);
   background: var(--tree-bg);
@@ -232,7 +233,7 @@ input {
 
 .specimen-frame {
   position: relative;
-  height: clamp(118px, 17vh, 148px);
+  height: clamp(176px, 24vh, 228px);
   background: #0c0a08;
 }
 
@@ -473,6 +474,41 @@ input {
   text-align: left;
 }
 
+button.tax-item {
+  cursor: pointer;
+}
+
+button.tax-item:hover .tax-name,
+button.tax-item:focus-visible .tax-name {
+  color: var(--copper-2);
+}
+
+button.tax-item:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: -2px;
+}
+
+.tax-twist {
+  flex: 0 0 1rem;
+  width: 1rem;
+  height: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #7a6856;
+  border-radius: 2px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  line-height: 1;
+  background: rgba(20, 16, 12, 0.4);
+}
+
+.tax-twist:empty {
+  border-color: transparent;
+  background: transparent;
+}
+
 .tax-kids > .tax-node::before {
   content: "";
   position: absolute;
@@ -630,6 +666,10 @@ input {
   .tree-panel {
     grid-column: 2;
     grid-row: 1;
+    flex: 1 1 auto;
+    height: auto;
+    max-height: none;
+    min-height: 0;
     border-top: 0;
     border-left: 1px solid var(--line);
   }
