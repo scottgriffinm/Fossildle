@@ -211,6 +211,36 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     );
   });
 
+  it("deletes leftovers after Phacops then Triceratops against Mammuthus", () => {
+    const mammoth = parsePbdbOid("txn:43266");
+    const after = tax.pruneRemaining(mammoth, [phacops, triceratops]);
+    expect(tax.require(after.constraintId).name).toBe("Amniota");
+    const tree = buildCabinetTree(tax, after);
+    const rendered = allNames(tree);
+    expect(tree.taxon.name).toBe("Amniota");
+    expect(tree.status).toBe("constraint");
+    expect(rendered).not.toEqual(expect.arrayContaining([
+      "Animalia",
+      "Porifera",
+      "Cnidaria",
+      "Eumetazoa",
+      "Protostomia",
+      "Ambulacraria",
+      "Sauropsida",
+      "Phacops",
+      "Triceratops",
+    ]));
+    expect(rendered.some((name) => name.includes("⋯") || name === "…")).toBe(false);
+    expect(findNode(tree, "Synapsida")?.status).toBe("remaining");
+    expect(allStatuses(tree).every((status) => status !== "pruned" && status !== "outside")).toBe(
+      true,
+    );
+    expect(JSON.stringify(tree)).not.toContain("skipped");
+    expect(tree.children.length).toBeGreaterThan(0);
+    expect(rendered.length).toBeGreaterThanOrEqual(2);
+    expect(rendered.length).toBeLessThan(40);
+  });
+
   it("reveals a clean path to Tyrannosaurus after a win", () => {
     const won = tax.pruneRemaining(answer, [phacops, answer]);
     const tree = buildCabinetTree(tax, won, { revealId: answer });
