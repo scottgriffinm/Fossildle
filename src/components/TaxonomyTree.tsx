@@ -154,6 +154,7 @@ function Cladogram({
         width: fittedW,
         height: fittedH,
       }}
+      data-cladogram-engine={layout.engine}
       data-cladogram-leaves={layout.leafCount}
       data-cladogram-scale={scale.toFixed(3)}
     >
@@ -166,13 +167,22 @@ function Cladogram({
         overflow="visible"
         aria-hidden="true"
       >
-        {layout.edges.map((edge) => (
-          <path
-            key={`${edge.kind}:${edge.d}`}
-            d={edge.d}
-            vectorEffect="nonScalingStroke"
-          />
-        ))}
+        <g className="cladogram-links">
+          {layout.links.map((link) => (
+            <path key={`${link.parentId}-${link.childId}`} d={link.d} />
+          ))}
+        </g>
+        <g className="cladogram-nodes">
+          {layout.nodes.map((node) => (
+            <circle
+              key={node.id}
+              className={node.status === "constraint" ? "is-constraint" : undefined}
+              cx={node.x}
+              cy={node.y}
+              r={DEFAULT_METRICS.nodeRadius}
+            />
+          ))}
+        </g>
       </svg>
       <div
         className="cladogram"
@@ -241,7 +251,7 @@ function CladeLabel({
       aria-selected={node.status === "constraint"}
       aria-expanded={canExpand ? isOpen : undefined}
       style={{
-        left: node.x,
+        left: node.x + DEFAULT_METRICS.nodeRadius + 3,
         top: node.y - DEFAULT_METRICS.rowHeight / 2,
         width: node.labelWidth,
         height: DEFAULT_METRICS.rowHeight,

@@ -1,18 +1,26 @@
+import { cluster, hierarchy, type HierarchyNode, type HierarchyPointNode } from "d3-hierarchy";
+import { linkHorizontal } from "d3-shape";
 import type { NodeStatus, TreeNodeView } from "./tree-view";
 
 export type CladogramMetrics = {
   rowHeight: number;
-  rail: number;
   charWidth: number;
   labelPadX: number;
+  linkGap: number;
+  nodeRadius: number;
+  padX: number;
+  padY: number;
 };
 
 /** Tight leaf packing; columns sized from label estimates. */
 export const DEFAULT_METRICS: CladogramMetrics = {
-  rowHeight: 16,
-  rail: 10,
+  rowHeight: 17,
   charWidth: 6.6,
   labelPadX: 10,
+  linkGap: 22,
+  nodeRadius: 2.4,
+  padX: 6,
+  padY: 8,
 };
 
 export type PlacedNode = {
@@ -28,25 +36,44 @@ export type PlacedNode = {
   children: PlacedNode[];
 };
 
-export type CladogramEdge = {
+export type CladogramLink = {
+  parentId: number;
+  childId: number;
+  source: [number, number];
+  target: [number, number];
   d: string;
-  kind: "stem" | "spine" | "twig";
 };
-
-/** Horizontal run from the right edge of a parent label to the child elbow. */
-export function parentStemX(parentRight: number, metrics: CladogramMetrics = DEFAULT_METRICS): number {
-  return parentRight + metrics.rail;
-}
 
 export type CladogramLayout = {
   root: PlacedNode;
   nodes: PlacedNode[];
-  edges: CladogramEdge[];
+  links: CladogramLink[];
   width: number;
   height: number;
   leafCount: number;
   depth: number;
+  engine: "d3-cluster-linkHorizontal";
 };
+
+type CladeDatum = {
+  id: number;
+  name: string;
+  rank: string;
+  status: NodeStatus;
+  expandable: boolean;
+  children?: CladeDatum[];
+};
+
+function toDatum(node: TreeNodeView): CladeDatum {
+  return {
+    id: node.taxon.id,
+    name: node.taxon.name,
+    rank: node.taxon.rank,
+    status: node.status,
+    expandable: node.expandable,
+    children: node.children.length > 0 ? node.children.map(toDatum) : undefined,
+  };
+}
 
 export function estimateLabelWidth(name: string, metrics: CladogramMetrics = DEFAULT_METRICS): number {
   return Math.ceil(name.length * metrics.charWidth + metrics.labelPadX);
@@ -62,103 +89,133 @@ export function treeDepth(node: TreeNodeView): number {
   return 1 + Math.max(...node.children.map(treeDepth));
 }
 
+const horizontalLink = linkHorizontal<
+  { source: [number, number]; target: [number, number] },
+  [number, number]
+>();
+
+/** Parent→child cubic (curveBumpX) from d3-shape's linkHorizontal. */
+export function cladogramLink(source: [number, number], target: [number, number]): string {
+  return horizontalLink({ source, target }) ?? "";
+}
+
+function columnWidths(
+  root: HierarchyNode<CladeDatum>,
+  metrics: CladogramMetrics,
+): number[] {
+  const height = Math.max(root.height, 1);
+  const cols = Array.from({ length: height }, () => metrics.linkGap);
+  root.each((node) => {
+    if (!node.children || node.depth >= height) return;
+    const needed = estimateLabelWidth(node.data.name, metrics) + metrics.linkGap;
+    cols[node.depth] = Math.max(cols[node.depth]!, needed);
+  });
+  return cols;
+}
+
+function cumulative(cols: number[], padX: number): number[] {
+  const xs = [padX];
+  for (const col of cols) xs.push(xs[xs.length - 1]! + col);
+  return xs;
+}
+
 /**
- * Pack remaining taxa as a left-to-right cladogram: each leaf takes one row,
- * parents sit on the midpoint of their descendant leaves. This replaces nested
- * flex alignment, which stretched parents to the height of huge child groups.
+ * Classic left-to-right cladogram via open-source D3:
+ * d3-hierarchy cluster (equal leaf spacing, parents on midpoints)
+ * + d3-shape linkHorizontal (one real parent→child curve per edge).
  */
 export function layoutCladogram(
   tree: TreeNodeView,
   metrics: CladogramMetrics = DEFAULT_METRICS,
 ): CladogramLayout {
-  let nextLeaf = 0;
-  const place = (node: TreeNodeView, depth: number, x: number): PlacedNode => {
-    const labelWidth = estimateLabelWidth(node.taxon.name, metrics);
-    const childX = x + labelWidth + metrics.rail;
-    const children = node.children.map((child) => place(child, depth + 1, childX));
-    let y: number;
-    if (children.length === 0) {
-      y = nextLeaf * metrics.rowHeight + metrics.rowHeight / 2;
-      nextLeaf += 1;
-    } else {
-      const first = children[0]!;
-      const last = children[children.length - 1]!;
-      y = (first.y + last.y) / 2;
-    }
-    return {
-      id: node.taxon.id,
-      name: node.taxon.name,
-      rank: node.taxon.rank,
-      status: node.status,
-      expandable: node.expandable,
-      depth,
+  const root = hierarchy(toDatum(tree));
+  const leafCount = Math.max(root.leaves().length, 1);
+  const cols = columnWidths(root, metrics);
+  const xAt = cumulative(cols, metrics.padX);
+
+  const laid = cluster<CladeDatum>()
+    .nodeSize([metrics.rowHeight, 1])
+    .separation(() => 1)(root);
+
+  let minY = Infinity;
+  let maxY = -Infinity;
+  laid.each((node) => {
+    minY = Math.min(minY, node.x);
+    maxY = Math.max(maxY, node.x);
+  });
+  if (!Number.isFinite(minY)) {
+    minY = 0;
+    maxY = 0;
+  }
+
+  const placedById = new Map<number, PlacedNode>();
+  const nodes: PlacedNode[] = [];
+  let maxRight = metrics.padX;
+
+  const screenOf = (node: HierarchyPointNode<CladeDatum>): { x: number; y: number; labelWidth: number } => {
+    const labelWidth = estimateLabelWidth(node.data.name, metrics);
+    const x = xAt[node.depth] ?? metrics.padX;
+    const y = node.x - minY + metrics.padY + metrics.rowHeight / 2;
+    return { x, y, labelWidth };
+  };
+
+  laid.each((node) => {
+    const { x, y, labelWidth } = screenOf(node);
+    const placed: PlacedNode = {
+      id: node.data.id,
+      name: node.data.name,
+      rank: node.data.rank,
+      status: node.data.status,
+      expandable: node.data.expandable,
+      depth: node.depth,
       x,
       y,
       labelWidth,
-      children,
+      children: [],
     };
-  };
+    placedById.set(placed.id, placed);
+    nodes.push(placed);
+    maxRight = Math.max(maxRight, x + labelWidth + metrics.nodeRadius);
+  });
 
-  const root = place(tree, 0, 0);
-  const nodes: PlacedNode[] = [];
-  const edges: CladogramEdge[] = [];
-  let maxRight = 0;
-  let maxDepth = 1;
+  laid.each((node) => {
+    const parent = placedById.get(node.data.id);
+    if (!parent || !node.children) return;
+    parent.children = node.children.map((child) => placedById.get(child.data.id)!);
+  });
 
-  const walk = (node: PlacedNode) => {
-    nodes.push(node);
-    maxRight = Math.max(maxRight, node.x + node.labelWidth);
-    maxDepth = Math.max(maxDepth, node.depth + 1);
-    if (node.children.length === 0) return;
+  const links: CladogramLink[] = [];
+  laid.each((node) => {
+    if (!node.parent) return;
+    const parent = placedById.get(node.parent.data.id)!;
+    const child = placedById.get(node.data.id)!;
+    const source: [number, number] = [
+      parent.x + parent.labelWidth + metrics.nodeRadius,
+      parent.y,
+    ];
+    const target: [number, number] = [child.x, child.y];
+    links.push({
+      parentId: parent.id,
+      childId: child.id,
+      source,
+      target,
+      d: cladogramLink(source, target),
+    });
+  });
 
-    const parentRight = node.x + node.labelWidth;
-    const elbowX = parentStemX(parentRight, metrics);
-    const first = node.children[0]!;
-    const last = node.children[node.children.length - 1]!;
-
-    // Separate path elements: compound H/V subpaths drop segments on some
-    // mobile WebKit compositors after a CSS scale transform.
-    if (node.children.length === 1 && Math.abs(first.y - node.y) < 0.5) {
-      edges.push({
-        kind: "stem",
-        d: `M ${fmt(parentRight)} ${fmt(node.y)} L ${fmt(first.x)} ${fmt(first.y)}`,
-      });
-    } else {
-      edges.push({
-        kind: "stem",
-        d: `M ${fmt(parentRight)} ${fmt(node.y)} L ${fmt(elbowX)} ${fmt(node.y)}`,
-      });
-      if (Math.abs(first.y - last.y) > 0.5) {
-        edges.push({
-          kind: "spine",
-          d: `M ${fmt(elbowX)} ${fmt(first.y)} L ${fmt(elbowX)} ${fmt(last.y)}`,
-        });
-      }
-      for (const child of node.children) {
-        edges.push({
-          kind: "twig",
-          d: `M ${fmt(elbowX)} ${fmt(child.y)} L ${fmt(child.x)} ${fmt(child.y)}`,
-        });
-      }
-    }
-
-    for (const child of node.children) walk(child);
-  };
-  walk(root);
+  const placedRoot = placedById.get(laid.data.id)!;
+  const height = Math.ceil(maxY - minY + metrics.rowHeight + metrics.padY * 2);
 
   return {
-    root,
+    root: placedRoot,
     nodes,
-    edges,
-    width: Math.ceil(maxRight + metrics.rail),
-    height: Math.ceil(nextLeaf * metrics.rowHeight),
-    leafCount: nextLeaf,
-    depth: maxDepth,
+    links,
+    width: Math.ceil(maxRight + metrics.padX),
+    height,
+    leafCount,
+    depth: root.height + 1,
+    engine: "d3-cluster-linkHorizontal",
   };
-}
-
-function fmt(value: number): string {
-  return value.toFixed(2);
 }
 
 export function fitScale(
