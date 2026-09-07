@@ -16,8 +16,9 @@
   --radius: 14px;
   --tree-line: #8a7460;
   --tree-bg: #1a1611;
-  --label-h: 1.7rem;
-  --rail: 1.1rem;
+  --label-h: 28px;
+  --rail: 14px;
+  --tree-stroke: 2px;
   color-scheme: dark;
 }
 
@@ -449,18 +450,8 @@ input {
 }
 
 .tax-kids {
-  position: relative;
   margin: 0;
   padding: 0 0 0 var(--rail);
-}
-
-.tax-kids::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  border-left: 1.5px solid var(--tree-line);
 }
 
 .tax-node {
@@ -474,7 +465,7 @@ input {
   gap: 0.45rem;
   width: 100%;
   height: var(--label-h);
-  padding: 0 6px 0 6px;
+  padding: 0 6px 0 8px;
   border: 0;
   border-radius: 2px;
   background: transparent;
@@ -482,23 +473,27 @@ input {
   text-align: left;
 }
 
-.tax-kids > .tax-node > .tax-item::before {
+.tax-kids > .tax-node::before {
   content: "";
   position: absolute;
   left: calc(-1 * var(--rail));
-  width: var(--rail);
-  top: calc(var(--label-h) / 2);
-  border-top: 1.5px solid var(--tree-line);
+  top: 0;
+  bottom: 0;
+  border-left: var(--tree-stroke) solid var(--tree-line);
 }
 
-.tax-kids > .tax-node:last-child::after {
+.tax-kids > .tax-node:last-child::before {
+  bottom: auto;
+  height: calc(var(--label-h) / 2);
+}
+
+.tax-kids > .tax-node::after {
   content: "";
   position: absolute;
-  left: calc(-1 * var(--rail) - 1px);
+  left: calc(-1 * var(--rail));
   top: calc(var(--label-h) / 2);
-  bottom: 0;
-  width: 4px;
-  background: var(--tree-bg);
+  width: var(--rail);
+  border-top: var(--tree-stroke) solid var(--tree-line);
 }
 
 .tax-name {
