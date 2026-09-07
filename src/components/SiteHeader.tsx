@@ -15,7 +15,7 @@ export function SiteHeader({
     <header className="topbar">
       <Link className="brand" href="/">
         <strong>FOSSILDLE</strong>
-        <span>Daily fossil</span>
+        <span>Daily fossil identification</span>
       </Link>
       {dateKey && (
         <p className="game-meta" aria-live="polite">
