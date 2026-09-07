@@ -455,21 +455,21 @@ input {
   left: -0.95rem;
   top: 0;
   bottom: 0;
-  border-left: 1.5px solid var(--tree-line, #7a6854);
+  border-left: 2px solid var(--tree-line, #8a7460);
 }
 
 .tax-node:not(.is-root):last-child::before {
   bottom: auto;
-  height: 0.95em;
+  height: 0.72em;
 }
 
 .tax-node:not(.is-root)::after {
   content: "";
   position: absolute;
   left: -0.95rem;
-  top: 0.95em;
+  top: 0.72em;
   width: 0.9rem;
-  border-top: 1.5px solid var(--tree-line, #7a6854);
+  border-top: 2px solid var(--tree-line, #8a7460);
 }
 
 .tax-item {
@@ -477,8 +477,8 @@ input {
   align-items: center;
   gap: 5px;
   width: 100%;
-  min-height: 1.7em;
-  padding: 1px 6px 1px 2px;
+  min-height: 1.45em;
+  padding: 0 6px 0 2px;
   border: 0;
   border-radius: 3px;
   background: transparent;
@@ -496,10 +496,11 @@ button.tax-item:hover {
 }
 
 .tax-twist {
-  flex: 0 0 0.75rem;
-  width: 0.75rem;
+  flex: 0 0 0.7rem;
+  width: 0.7rem;
   color: var(--faint);
-  font-size: 0.62rem;
+  font-size: 0.72rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
   line-height: 1;
   text-align: center;
 }
@@ -542,7 +543,7 @@ button.tax-item:hover {
   left: -0.95rem;
   top: 0;
   height: 0.8em;
-  border-left: 1.5px solid var(--tree-line, #7a6854);
+  border-left: 2px solid var(--tree-line, #8a7460);
 }
 
 .tax-overflow::after {
@@ -551,7 +552,7 @@ button.tax-item:hover {
   left: -0.95rem;
   top: 0.8em;
   width: 0.9rem;
-  border-top: 1.5px solid var(--tree-line, #7a6854);
+  border-top: 2px solid var(--tree-line, #8a7460);
 }
 
 .tax-node.is-constraint > .tax-item .tax-name {
@@ -559,7 +560,9 @@ button.tax-item:hover {
 }
 
 .tax-node.is-shared > .tax-item {
-  background: rgba(240, 195, 106, 0.1);
+  width: max-content;
+  max-width: 100%;
+  background: rgba(240, 195, 106, 0.12);
   box-shadow: inset 2px 0 0 var(--copper-2);
 }
 
@@ -682,8 +685,8 @@ button.tax-item:hover {
   }
 
   .tax-item {
-    min-height: 1.65em;
-    padding: 1px 4px 1px 0;
+    min-height: 1.5em;
+    padding: 0 4px 0 0;
   }
 
   .tax-name {
@@ -723,7 +726,7 @@ button.tax-item:hover {
 
 @media (max-width: 520px) {
   .tax-item {
-    min-height: 1.85em;
+    min-height: 1.7em;
   }
 
   .attribution {

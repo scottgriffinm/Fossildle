@@ -100,6 +100,25 @@ const SCAFFOLD_ORDER = [
 
 const MAX_CHILDREN = 16;
 
+const CROWN_HIDE_RANKS = new Set([
+  "genus",
+  "subgenus",
+  "family",
+  "subfamily",
+  "tribe",
+  "subtribe",
+  "superfamily",
+]);
+
+const DRILLED_PARENT_RANKS = new Set([
+  "class",
+  "subclass",
+  "infraclass",
+  "order",
+  "suborder",
+  "infraorder",
+]);
+
 export function isScaffoldTaxon(
   taxon: Taxon,
   fullCounts?: Map<number, number>,
@@ -153,10 +172,19 @@ export function viewChildren(
   const kids = taxonomy.children.get(parentId) ?? [];
   const rows: TreeBranch[] = [];
 
+  const parent = taxonomy.require(parentId);
+  const parentDrilled = DRILLED_PARENT_RANKS.has(parent.rank);
+
   for (const taxon of kids) {
     const status = nodeStatus(taxonomy, taxon.id, state);
     const genusCount = counts.get(taxon.id) ?? 0;
     const scaffold = isScaffoldTaxon(taxon, fullCounts);
+    const hideDeepLeaf =
+      CROWN_HIDE_RANKS.has(taxon.rank) &&
+      status !== "pruned" &&
+      parentId !== state.constraintId &&
+      !parentDrilled;
+    if (hideDeepLeaf) continue;
     if (status === "pruned") {
       rows.push({ taxon, genusCount, status });
       continue;
@@ -237,7 +265,7 @@ export function autoExpandIds(taxonomy: TaxonomyIndex, state: PruneState): numbe
   }
 
   let cursor = state.constraintId;
-  let extraLevels = constraintDepth <= 6 ? 1 : 0;
+  let extraLevels = constraintDepth > 1 && constraintDepth <= 6 ? 1 : 0;
 
   for (let depth = 0; depth < 10; depth += 1) {
     const kids = viewChildren(taxonomy, state, cursor, counts, fullCounts).filter(

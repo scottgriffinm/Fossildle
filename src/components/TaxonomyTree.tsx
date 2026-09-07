@@ -119,7 +119,7 @@ function TreeNode({
           onClick={() => onToggle(node.taxon.id)}
         >
           <span className="tax-twist" aria-hidden="true">
-            {isOpen ? "▾" : "▸"}
+            {isOpen ? "−" : "+"}
           </span>
           {node.skipped ? <span className="tax-skip">⋯</span> : null}
           <span className="tax-name">{node.taxon.name}</span>
@@ -157,7 +157,7 @@ function TreeSkeleton() {
     <ul className="tax-tree is-loading" aria-hidden="true">
       <li className="tax-node is-constraint is-root is-open">
         <div className="tax-item">
-          <span className="tax-twist">▾</span>
+          <span className="tax-twist">−</span>
           <span className="tax-name">Animalia</span>
         </div>
         <ul className="tax-kids">
@@ -169,13 +169,13 @@ function TreeSkeleton() {
           </li>
           <li className="tax-node is-remaining">
             <div className="tax-item">
-              <span className="tax-twist">▸</span>
+              <span className="tax-twist">+</span>
               <span className="tax-name">Cnidaria</span>
             </div>
           </li>
           <li className="tax-node is-remaining is-open">
             <div className="tax-item">
-              <span className="tax-twist">▾</span>
+              <span className="tax-twist">−</span>
               <span className="tax-name">Bilateria</span>
             </div>
             <ul className="tax-kids">

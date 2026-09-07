@@ -184,6 +184,9 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     expect(allNames.length).toBeLessThan(36);
     expect(findNode(tree, "Porifera")?.expandable).toBe(false);
     expect(findNode(tree, "Cnidaria")?.expandable).toBe(true);
+    expect(findNode(tree, "Cnidaria")?.children).toEqual([]);
     expect(findNode(tree, "Chordata")?.expandable).toBe(true);
+    expect(findNode(tree, "Opabiniidae")).toBeNull();
+    expect(findNode(tree, "Anthozoa")).toBeNull();
   });
 });
