@@ -33,8 +33,7 @@ export function GuessBoard({
               <div className="guess-name">{taxon ? taxon.name : "—"}</div>
               {taxonomy && step && !won && step.mrcaId && (
                 <div className="guess-note">
-                  shared {taxonomy.require(step.mrcaId).name}
-                  {step.prunedId ? ` · pruned ${taxonomy.require(step.prunedId).name}` : ""}
+                  through {taxonomy.require(step.mrcaId).name}
                 </div>
               )}
               {won && <div className="guess-note">that&apos;s the animal</div>}

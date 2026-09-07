@@ -15,9 +15,9 @@ export default function AboutPage() {
           Each UTC day shows one fossil photograph. You have six guesses to name
           the <em>animal</em> — the creature that fossil came from. Common names
           work when we have them (mammoth, T. rex), and so do scientific names.
-          After every miss, the game tells you the shared clade with the answer
-          and cuts away the branch you were on. Search only offers animals that
-          are still possible.
+          After every miss, matching ranks on the taxonomic path turn green
+          down to the clade you still share with the answer. Search only
+          offers animals that are still possible.
         </p>
 
         <h2>Prune rule</h2>
@@ -40,11 +40,12 @@ export default function AboutPage() {
           </li>
         </ol>
         <p>
-          So a distant miss (an arthropod when the answer is a theropod) teaches
-          you the shared high clade and removes that arthropod line. A close miss
-          (a ceratopsian when the answer is a tyrannosaur) jumps the cabinet down
-          to Dinosauria and throws out Ornithischia. Naming the right animal
-          wins. A species or common name that maps to that animal —{" "}
+          So a distant miss (an arthropod when the answer is a theropod) greens
+          the path through the shared high clade and removes that arthropod
+          line from later guesses. A close miss (a ceratopsian when the answer
+          is a tyrannosaur) greens down to Dinosauria and throws out
+          Ornithischia. Naming the right animal wins. A species or common name
+          that maps to that animal —{" "}
           <em>Tyrannosaurus rex</em> or T. rex for <em>Tyrannosaurus</em> — also
           wins.
         </p>

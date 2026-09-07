@@ -62,32 +62,19 @@ Helpers (`src/lib/taxonomy.ts`):
 - `mrca(a, b)`
 - `pruneRemaining(answerId, guesses[])`
 
-The tree UI is a left-to-right cladogram: Animalia (or the current
-constraint) sits on the left, and lineages branch to the right toward
-sparse tips. A fresh game shows the remaining Animalia radiation —
-phyla and classes packed so Porifera, Cnidaria, arthropods/molluscs,
-and Chordata are visible together — not a collapsed top slice and not
-every PBDB stem rank. Unranked spine wrappers (Bilateria, Eubilateria,
-Protostomia, Deuterostomia, and similar comb nodes) are flattened on
-the high crown so those phyla hang near the root. Genera and other deep
-ranks stay hidden until the remaining set is small. The remaining
-subtree is drawn as a textbook left-to-right rectangular cladogram
-following [phylotree.js](https://github.com/veg/phylotree.js)
-(`src/render/cartesian.js`): `d3-hierarchy` cluster for equal leaf
-spacing and parent midpoints, and `d3-shape` `curveStepBefore`
-orthogonal elbows from parent join to child join. Internal names sit
-**above** the incoming horizontal (printed-cladogram /
-`lineSegmentPlacer` geometry). Tip names sit flush to the **right of
-the line end**, like phylotree’s default rectangular tip labels.
-Links are continuous join→join — never “right of a label box → left
-of the next box” with a visible gap. No +/− twisties.
-The finished crown is scaled to the panel so the opening view does not
-require panning. Scrollbar chrome stays hidden; wheel/touch pan still
-works if a later expansion overflows. Nodes with remaining children can
-still expand or collapse when the taxon name is clicked — no +/− twisty
-controls. After each miss the view is only the remaining constraint
-subtree — pruned clades are removed, not greyed — and the leftover tree
-is again packed to fit. Autocomplete uses the same remaining set.
+The play UI is a Wordle-like **taxonomic path**, not a tree. The chain
+is the answer’s real ranks from Animalia toward the genus — kingdom,
+phylum, class, order, family, genus (deepest taxon of each rank so
+PBDB stem duplicates drop out), plus named clades that matter for play
+(Bilateria, Eubilateria, Protostomia, Deuterostomia, Dinosauria,
+Trilobita, Ammonoidea, Mammalia, Avialae). No invented ranks.
+
+Green = taxa on the shared path from Animalia down to the remaining
+constraint (the MRCA of the latest miss and the answer). Deeper
+divergence stays muted: rank label + ellipsis, never prune leftovers.
+A constraint that is a real taxon but not already a play rank is
+inserted on the chain. A hit greens the whole path, including genus.
+Autocomplete still uses the remaining set from `pruneRemaining`.
 
 ## Daily rotation
 
