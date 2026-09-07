@@ -64,18 +64,21 @@ Helpers (`src/lib/taxonomy.ts`):
 
 The tree UI is a left-to-right cladogram: Animalia (or the current
 constraint) sits on the left, and lineages branch to the right toward
-sparse tips. A fresh game shows the full remaining crown/scaffold tree —
-phyla, classes, and named textbook clades — not a collapsed top slice and
-not every PBDB stem rank. Genera and other deep ranks stay hidden until
-the remaining set is small. Unary intermediates and unranked comb nodes
-are flattened so the opening view is dense enough to read the Animalia
-radiation at a glance. Row height, column rails, and type are sized for
-that compact LTR layout. The panel may still scroll after densifying.
-Nodes with remaining children can still expand or collapse when the taxon
-name is clicked — no +/− twisty controls. After each miss the view is
-only the remaining constraint subtree — pruned clades are removed, not
-greyed — and the leftover tree is again fully visible. Autocomplete uses
-the same remaining set.
+sparse tips. A fresh game shows the remaining Animalia radiation —
+phyla and classes packed so Porifera, Cnidaria, arthropods/molluscs,
+and Chordata are visible together — not a collapsed top slice and not
+every PBDB stem rank. Unranked spine wrappers (Bilateria, Eubilateria,
+Protostomia, Deuterostomia, and similar comb nodes) are flattened on
+the high crown so those phyla hang near the root. Genera and other deep
+ranks stay hidden until the remaining set is small. Nodes are placed
+with a packed leaf-row layout (parents at leaf midpoints) and the
+finished crown is scaled to the panel so the opening view does not
+require panning. Scrollbar chrome stays hidden; wheel/touch pan still
+works if a later expansion overflows. Nodes with remaining children can
+still expand or collapse when the taxon name is clicked — no +/− twisty
+controls. After each miss the view is only the remaining constraint
+subtree — pruned clades are removed, not greyed — and the leftover tree
+is again packed to fit. Autocomplete uses the same remaining set.
 
 ## Daily rotation
 

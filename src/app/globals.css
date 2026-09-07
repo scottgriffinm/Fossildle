@@ -169,6 +169,8 @@ input {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .play-stage {
@@ -221,6 +223,15 @@ input {
   border: 0;
   border-top: 1px solid var(--line);
   background: var(--tree-bg);
+  overflow: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tree-panel::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .panel {
@@ -452,12 +463,56 @@ input {
   overscroll-behavior: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
-.tree-scroll::-webkit-scrollbar {
+.tree-scroll::-webkit-scrollbar,
+.tree-scroll::-webkit-scrollbar-thumb,
+.tree-scroll::-webkit-scrollbar-track {
   width: 0;
   height: 0;
   display: none;
+  background: transparent;
+}
+
+.tree-scroll:has(.cladogram-fit.is-fit) {
+  overflow: hidden;
+}
+
+.tree-scroll:has(.cladogram-fit:not(.is-fit)) {
+  align-items: flex-start;
+}
+
+.cladogram-fit {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.cladogram {
+  position: relative;
+  transform-origin: 0 0;
+}
+
+.cladogram-edges {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.cladogram-edges path {
+  fill: none;
+  stroke: var(--tree-line);
+  stroke-width: var(--tree-stroke);
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.cladogram .tax-node {
+  position: absolute;
+  display: flex;
+  align-items: center;
 }
 
 .tax-tree,
@@ -467,31 +522,11 @@ input {
   padding: 0;
 }
 
-/* Left-to-right cladogram: root on the left, tips to the right. */
-.tax-tree.is-ltr {
-  display: block;
-  width: max-content;
-  min-height: 100%;
-}
-
-.tax-tree.is-ltr .tax-node {
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  width: max-content;
-}
-
-.tax-tree.is-ltr .tax-kids {
+.tax-tree.is-loading {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  margin: 0;
-  padding: 0 0 0 var(--rail);
-}
-
-.tax-tree.is-ltr .tax-kids:has(> .tax-node:only-child) {
-  padding-left: var(--rail-unary);
+  gap: 4px;
+  padding: 4px 0;
 }
 
 .tax-item {
@@ -499,9 +534,10 @@ input {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
-  width: auto;
-  height: var(--label-h);
-  padding: 0 5px 0 2px;
+  width: 100%;
+  height: 100%;
+  min-height: var(--label-h);
+  padding: 0 4px 0 2px;
   border: 0;
   border-radius: 2px;
   background: transparent;
@@ -539,57 +575,6 @@ button.tax-item .tax-name::after {
 
 .tax-node.is-expandable:not(.is-open) > button.tax-item .tax-name::after {
   display: inline-block;
-}
-
-.tax-tree.is-ltr .tax-node:has(> .tax-kids) > .tax-item::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 50%;
-  width: 5px;
-  border-top: var(--tree-stroke) solid var(--tree-line);
-}
-
-.tax-tree.is-ltr .tax-kids > .tax-node::before {
-  content: "";
-  position: absolute;
-  left: calc(-1 * var(--rail));
-  top: 0;
-  bottom: 0;
-  border-left: var(--tree-stroke) solid var(--tree-line);
-}
-
-.tax-tree.is-ltr .tax-kids > .tax-node:first-child::before {
-  top: 50%;
-}
-
-.tax-tree.is-ltr .tax-kids > .tax-node:last-child::before {
-  bottom: 50%;
-}
-
-.tax-tree.is-ltr .tax-kids > .tax-node:only-child::before {
-  top: 50%;
-  bottom: auto;
-  height: 0;
-  border-left: 0;
-}
-
-.tax-tree.is-ltr .tax-kids > .tax-node::after {
-  content: "";
-  position: absolute;
-  left: calc(-1 * var(--rail));
-  top: 50%;
-  width: var(--rail);
-  border-top: var(--tree-stroke) solid var(--tree-line);
-}
-
-.tax-tree.is-ltr .tax-kids:has(> .tax-node:only-child) > .tax-node::before,
-.tax-tree.is-ltr .tax-kids:has(> .tax-node:only-child) > .tax-node::after {
-  left: calc(-1 * var(--rail-unary));
-}
-
-.tax-tree.is-ltr .tax-kids:has(> .tax-node:only-child) > .tax-node::after {
-  width: var(--rail-unary);
 }
 
 .tax-name {

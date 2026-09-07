@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { TaxonomyIndex } from "@/lib/taxonomy";
+import {
+  DEFAULT_METRICS,
+  fitScale,
+  layoutCladogram,
+  type PlacedNode,
+} from "@/lib/cladogram-layout";
 import {
   autoExpandIds,
   buildCabinetTree,
   expandBranchIds,
-  type TreeNodeView,
 } from "@/lib/tree-view";
 import type { GameStatus, PruneState } from "@/lib/types";
 
@@ -57,6 +62,8 @@ export function TaxonomyTree({
     });
   }, [taxonomy, prune, status, answerId, expanded]);
 
+  const layout = useMemo(() => (tree ? layoutCladogram(tree) : null), [tree]);
+
   function toggle(id: number) {
     if (id === constraintId || !taxonomy || !prune) return;
     setBrowseExpanded((current) => {
@@ -70,57 +77,131 @@ export function TaxonomyTree({
     });
   }
 
-  const treeReady = Boolean(tree);
-
-  useEffect(() => {
-    const scroller = scrollRef.current;
-    if (!scroller || !treeReady) return;
-    const frame = window.requestAnimationFrame(() => {
-      // Origin, not spine-center: the LTR root sits mid-subtree, and
-      // centering it hid every crown phylum behind empty rails.
-      scroller.scrollTo({ top: 0, left: 0 });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [pruneKey, treeReady]);
-
   return (
     <section className="tree-panel" aria-label="Taxonomic tree">
       <div className="tree-scroll" ref={scrollRef}>
-        {loading || !tree || !taxonomy ? (
+        {loading || !layout || !taxonomy ? (
           <TreeSkeleton />
         ) : (
-          <ul className="tax-tree is-ltr" role="tree" aria-label="Remaining taxonomic hierarchy">
-            <TreeNode
-              node={tree}
-              flashId={flashId}
-              expanded={expanded}
-              isRoot
-              onToggle={toggle}
-            />
-          </ul>
+          <Cladogram
+            layout={layout}
+            flashId={flashId}
+            expanded={expanded}
+            constraintId={constraintId}
+            scrollRef={scrollRef}
+            onToggle={toggle}
+          />
         )}
       </div>
     </section>
   );
 }
 
-function TreeNode({
+function Cladogram({
+  layout,
+  flashId,
+  expanded,
+  constraintId,
+  scrollRef,
+  onToggle,
+}: {
+  layout: NonNullable<ReturnType<typeof layoutCladogram>>;
+  flashId: number | null;
+  expanded: Set<number>;
+  constraintId: number | undefined;
+  scrollRef: RefObject<HTMLDivElement | null>;
+  onToggle: (id: number) => void;
+}) {
+  const [scale, setScale] = useState(1);
+  const [fits, setFits] = useState(true);
+
+  useLayoutEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+
+    const measure = () => {
+      const next = fitScale(
+        layout.width,
+        layout.height,
+        scroller.clientWidth,
+        scroller.clientHeight,
+        { min: 0.62, pad: 4 },
+      );
+      setScale(next);
+      const fittedW = layout.width * next;
+      const fittedH = layout.height * next;
+      setFits(fittedW <= scroller.clientWidth + 1 && fittedH <= scroller.clientHeight + 1);
+      scroller.scrollTo({ top: 0, left: 0 });
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(scroller);
+    return () => observer.disconnect();
+  }, [layout, scrollRef]);
+
+  return (
+    <div
+      className={`cladogram-fit${fits ? " is-fit" : ""}`}
+      style={{
+        width: Math.ceil(layout.width * scale),
+        height: Math.ceil(layout.height * scale),
+      }}
+      data-cladogram-leaves={layout.leafCount}
+      data-cladogram-scale={scale.toFixed(3)}
+    >
+      <div
+        className="cladogram"
+        role="tree"
+        aria-label="Remaining taxonomic hierarchy"
+        style={{
+          width: layout.width,
+          height: layout.height,
+          transform: `scale(${scale})`,
+        }}
+      >
+        <svg
+          className="cladogram-edges"
+          width={layout.width}
+          height={layout.height}
+          aria-hidden="true"
+        >
+          {layout.edges.map((edge) => (
+            <path key={edge.d} d={edge.d} />
+          ))}
+        </svg>
+        {layout.nodes.map((node) => (
+          <CladeLabel
+            key={node.id}
+            node={node}
+            flashId={flashId}
+            expanded={expanded}
+            isRoot={node.id === constraintId || node.depth === 0}
+            onToggle={onToggle}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CladeLabel({
   node,
   flashId,
   expanded,
-  isRoot = false,
+  isRoot,
   onToggle,
 }: {
-  node: TreeNodeView;
+  node: PlacedNode;
   flashId: number | null;
   expanded: Set<number>;
-  isRoot?: boolean;
+  isRoot: boolean;
   onToggle: (id: number) => void;
 }) {
-  const flashing = flashId === node.taxon.id;
-  const isGenus = node.taxon.rank === "genus";
+  const flashing = flashId === node.id;
+  const isGenus = node.rank === "genus";
   const canExpand = node.expandable;
-  const isOpen = !canExpand || expanded.has(node.taxon.id) || node.status === "constraint";
+  const isOpen = !canExpand || expanded.has(node.id) || node.status === "constraint";
   const canToggle = canExpand && node.status !== "constraint";
 
   const classes = [
@@ -135,21 +216,28 @@ function TreeNode({
     .filter(Boolean)
     .join(" ");
 
-  const name = <span className="tax-name">{node.taxon.name}</span>;
+  const name = <span className="tax-name">{node.name}</span>;
 
   return (
-    <li
+    <div
       className={classes}
       role="treeitem"
-      data-tree-root={isRoot || node.status === "constraint" ? "true" : undefined}
+      data-tree-root={isRoot ? "true" : undefined}
+      aria-level={node.depth + 1}
       aria-selected={node.status === "constraint"}
       aria-expanded={canExpand ? isOpen : undefined}
+      style={{
+        left: node.x,
+        top: node.y - DEFAULT_METRICS.rowHeight / 2,
+        width: node.labelWidth,
+        height: DEFAULT_METRICS.rowHeight,
+      }}
     >
       {canToggle ? (
         <button
           type="button"
           className="tax-item"
-          onClick={() => onToggle(node.taxon.id)}
+          onClick={() => onToggle(node.id)}
           aria-expanded={isOpen}
         >
           {name}
@@ -157,55 +245,40 @@ function TreeNode({
       ) : (
         <div className="tax-item">{name}</div>
       )}
-      {isOpen && node.children.length > 0 && (
-        <ul className="tax-kids" role="group">
-          {node.children.map((child) => (
-            <TreeNode
-              key={child.taxon.id}
-              node={child}
-              flashId={flashId}
-              expanded={expanded}
-              onToggle={onToggle}
-            />
-          ))}
-        </ul>
-      )}
-    </li>
+    </div>
   );
 }
 
 function TreeSkeleton() {
   return (
-    <ul className="tax-tree is-ltr is-loading" aria-hidden="true">
-      <li className="tax-node is-constraint is-root is-open">
-        <div className="tax-item">
-          <span className="tax-name">Animalia</span>
-        </div>
-        <ul className="tax-kids">
-          <li className="tax-node is-remaining">
-            <div className="tax-item">
-              <span className="tax-name">Porifera</span>
-            </div>
-          </li>
-          <li className="tax-node is-remaining is-open">
-            <div className="tax-item">
-              <span className="tax-name">Cnidaria</span>
-            </div>
-          </li>
-          <li className="tax-node is-remaining is-open">
-            <div className="tax-item">
-              <span className="tax-name">Bilateria</span>
-            </div>
-            <ul className="tax-kids">
-              <li className="tax-node is-remaining">
-                <div className="tax-item">
-                  <span className="tax-name">Loading branches…</span>
-                </div>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-    </ul>
+    <div className="cladogram-fit is-fit">
+      <ul className="tax-tree is-ltr is-loading" aria-hidden="true">
+        <li className="tax-node is-constraint is-root is-open">
+          <div className="tax-item">
+            <span className="tax-name">Animalia</span>
+          </div>
+        </li>
+        <li className="tax-node is-remaining">
+          <div className="tax-item">
+            <span className="tax-name">Porifera</span>
+          </div>
+        </li>
+        <li className="tax-node is-remaining">
+          <div className="tax-item">
+            <span className="tax-name">Cnidaria</span>
+          </div>
+        </li>
+        <li className="tax-node is-remaining">
+          <div className="tax-item">
+            <span className="tax-name">Arthropoda</span>
+          </div>
+        </li>
+        <li className="tax-node is-remaining">
+          <div className="tax-item">
+            <span className="tax-name">Chordata</span>
+          </div>
+        </li>
+      </ul>
+    </div>
   );
 }
