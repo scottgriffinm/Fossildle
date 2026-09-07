@@ -458,7 +458,7 @@ input {
 .tree-scroll {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   padding: 6px 8px 10px;
   overscroll-behavior: contain;
   scrollbar-width: none;
@@ -477,11 +477,8 @@ input {
   background: transparent;
 }
 
-.tree-scroll:has(.cladogram-fit.is-fit) {
-  overflow: hidden;
-}
-
 .tree-scroll:has(.cladogram-fit:not(.is-fit)) {
+  overflow: auto;
   align-items: flex-start;
 }
 

@@ -10,7 +10,7 @@ export type CladogramMetrics = {
 /** Tight leaf packing; columns sized from label estimates. */
 export const DEFAULT_METRICS: CladogramMetrics = {
   rowHeight: 16,
-  rail: 12,
+  rail: 10,
   charWidth: 6.6,
   labelPadX: 10,
 };
@@ -65,24 +65,11 @@ export function layoutCladogram(
   tree: TreeNodeView,
   metrics: CladogramMetrics = DEFAULT_METRICS,
 ): CladogramLayout {
-  const maxWidthAtDepth: number[] = [];
-
-  const measure = (node: TreeNodeView, depth: number) => {
-    const width = estimateLabelWidth(node.taxon.name, metrics);
-    maxWidthAtDepth[depth] = Math.max(maxWidthAtDepth[depth] ?? 0, width);
-    for (const child of node.children) measure(child, depth + 1);
-  };
-  measure(tree, 0);
-
-  const colX: number[] = [0];
-  for (let depth = 0; depth < maxWidthAtDepth.length; depth += 1) {
-    colX[depth + 1] = (colX[depth] ?? 0) + (maxWidthAtDepth[depth] ?? 0) + metrics.rail;
-  }
-
   let nextLeaf = 0;
-  const place = (node: TreeNodeView, depth: number): PlacedNode => {
-    const children = node.children.map((child) => place(child, depth + 1));
+  const place = (node: TreeNodeView, depth: number, x: number): PlacedNode => {
     const labelWidth = estimateLabelWidth(node.taxon.name, metrics);
+    const childX = x + labelWidth + metrics.rail;
+    const children = node.children.map((child) => place(child, depth + 1, childX));
     let y: number;
     if (children.length === 0) {
       y = nextLeaf * metrics.rowHeight + metrics.rowHeight / 2;
@@ -99,14 +86,14 @@ export function layoutCladogram(
       status: node.status,
       expandable: node.expandable,
       depth,
-      x: colX[depth] ?? 0,
+      x,
       y,
       labelWidth,
       children,
     };
   };
 
-  const root = place(tree, 0);
+  const root = place(tree, 0, 0);
   const nodes: PlacedNode[] = [];
   const edges: CladogramEdge[] = [];
   let maxRight = 0;
@@ -118,8 +105,8 @@ export function layoutCladogram(
     maxDepth = Math.max(maxDepth, node.depth + 1);
     if (node.children.length === 0) return;
 
-    const elbowX = (colX[node.depth + 1] ?? node.x + node.labelWidth + metrics.rail) - metrics.rail;
     const parentRight = node.x + node.labelWidth;
+    const elbowX = parentRight + metrics.rail * 0.45;
     const first = node.children[0]!;
     const last = node.children[node.children.length - 1]!;
 

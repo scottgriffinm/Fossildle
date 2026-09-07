@@ -22,7 +22,7 @@ describe("packed LTR cladogram layout", () => {
     expect(layout.leafCount).toBeLessThan(28);
     expect(layout.height).toBe(layout.leafCount * DEFAULT_METRICS.rowHeight);
     expect(layout.height).toBeLessThan(400);
-    expect(layout.width).toBeLessThan(420);
+    expect(layout.width).toBeLessThan(340);
     expect(layout.depth).toBeLessThan(6);
 
     const byName = new Map(layout.nodes.map((node) => [node.name, node]));

@@ -120,17 +120,21 @@ function Cladogram({
     if (!scroller) return;
 
     const measure = () => {
-      const next = fitScale(
-        layout.width,
-        layout.height,
-        scroller.clientWidth,
-        scroller.clientHeight,
-        { min: 0.62, pad: 4 },
-      );
+      const style = window.getComputedStyle(scroller);
+      const padX =
+        Number.parseFloat(style.paddingLeft) + Number.parseFloat(style.paddingRight);
+      const padY =
+        Number.parseFloat(style.paddingTop) + Number.parseFloat(style.paddingBottom);
+      const viewW = Math.max(1, scroller.clientWidth - padX);
+      const viewH = Math.max(1, scroller.clientHeight - padY);
+      const next = fitScale(layout.width, layout.height, viewW, viewH, {
+        min: 0.62,
+        pad: 2,
+      });
       setScale(next);
       const fittedW = layout.width * next;
       const fittedH = layout.height * next;
-      setFits(fittedW <= scroller.clientWidth + 1 && fittedH <= scroller.clientHeight + 1);
+      setFits(fittedW <= viewW + 0.5 && fittedH <= viewH + 0.5);
       scroller.scrollTo({ top: 0, left: 0 });
     };
 
@@ -144,8 +148,8 @@ function Cladogram({
     <div
       className={`cladogram-fit${fits ? " is-fit" : ""}`}
       style={{
-        width: Math.ceil(layout.width * scale),
-        height: Math.ceil(layout.height * scale),
+        width: Math.max(1, Math.floor(layout.width * scale)),
+        height: Math.max(1, Math.floor(layout.height * scale)),
       }}
       data-cladogram-leaves={layout.leafCount}
       data-cladogram-scale={scale.toFixed(3)}
