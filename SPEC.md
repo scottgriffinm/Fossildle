@@ -63,11 +63,11 @@ Helpers (`src/lib/taxonomy.ts`):
 - `pruneRemaining(answerId, guesses[])`
 
 The tree UI starts at Animalia, collapsed to roughly the top three levels
-(the Animalia crown and major clades). Nodes with remaining children can be
-expanded or collapsed by click. After each miss the view is only the remaining
-constraint subtree — pruned clades are removed, not greyed — and expand /
-collapse still applies to what is left. Autocomplete uses the same remaining
-set.
+(the Animalia crown and major clades). Nodes with remaining children expand
+or collapse when the taxon name is clicked — no +/− twisty controls. After
+each miss the view is only the remaining constraint subtree — pruned clades
+are removed, not greyed — and expand / collapse still applies to what is
+left. Autocomplete uses the same remaining set.
 
 ## Daily rotation
 

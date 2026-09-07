@@ -121,14 +121,7 @@ function TreeNode({
     .filter(Boolean)
     .join(" ");
 
-  const label = (
-    <>
-      <span className="tax-twist" aria-hidden="true">
-        {canExpand ? (isOpen ? "−" : "+") : ""}
-      </span>
-      <span className="tax-name">{node.taxon.name}</span>
-    </>
-  );
+  const name = <span className="tax-name">{node.taxon.name}</span>;
 
   return (
     <li
@@ -142,12 +135,12 @@ function TreeNode({
           type="button"
           className="tax-item"
           onClick={() => onToggle(node.taxon.id)}
-          aria-label={`${isOpen ? "Collapse" : "Expand"} ${node.taxon.name}`}
+          aria-expanded={isOpen}
         >
-          {label}
+          {name}
         </button>
       ) : (
-        <div className="tax-item">{label}</div>
+        <div className="tax-item">{name}</div>
       )}
       {isOpen && node.children.length > 0 && (
         <ul className="tax-kids" role="group">
@@ -171,31 +164,26 @@ function TreeSkeleton() {
     <ul className="tax-tree is-loading" aria-hidden="true">
       <li className="tax-node is-constraint is-root is-open">
         <div className="tax-item">
-          <span className="tax-twist">−</span>
           <span className="tax-name">Animalia</span>
         </div>
         <ul className="tax-kids">
           <li className="tax-node is-remaining">
             <div className="tax-item">
-              <span className="tax-twist" />
               <span className="tax-name">Porifera</span>
             </div>
           </li>
           <li className="tax-node is-remaining is-expandable">
             <div className="tax-item">
-              <span className="tax-twist">+</span>
               <span className="tax-name">Cnidaria</span>
             </div>
           </li>
           <li className="tax-node is-remaining is-open">
             <div className="tax-item">
-              <span className="tax-twist">−</span>
               <span className="tax-name">Bilateria</span>
             </div>
             <ul className="tax-kids">
               <li className="tax-node is-remaining">
                 <div className="tax-item">
-                  <span className="tax-twist" />
                   <span className="tax-name">Loading branches…</span>
                 </div>
               </li>
