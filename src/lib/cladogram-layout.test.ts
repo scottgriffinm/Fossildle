@@ -4,7 +4,13 @@ import { describe, expect, it } from "vitest";
 import { TaxonomyIndex, parsePbdbOid } from "./taxonomy";
 import type { TaxonomyData } from "./types";
 import { buildCabinetTree } from "./tree-view";
-import { DEFAULT_METRICS, fitScale, layoutCladogram, parentStemX } from "./cladogram-layout";
+import {
+  DEFAULT_METRICS,
+  childOriginX,
+  fitScale,
+  layoutCladogram,
+  parentElbowX,
+} from "./cladogram-layout";
 
 describe("packed LTR cladogram layout", () => {
   const data = JSON.parse(
@@ -22,7 +28,7 @@ describe("packed LTR cladogram layout", () => {
     expect(layout.leafCount).toBeLessThan(28);
     expect(layout.height).toBe(layout.leafCount * DEFAULT_METRICS.rowHeight);
     expect(layout.height).toBeLessThan(400);
-    expect(layout.width).toBeLessThan(340);
+    expect(layout.width).toBeLessThan(360);
     expect(layout.depth).toBeLessThan(6);
 
     const byName = new Map(layout.nodes.map((node) => [node.name, node]));
@@ -45,26 +51,59 @@ describe("packed LTR cladogram layout", () => {
     expect(animalia!.y).toBeCloseTo((first.y + last.y) / 2, 5);
   });
 
-  it("draws a parent stem from the right edge of each label to the child elbow", () => {
+  it("draws a continuous parent→child L from the right of each name, not a child-side rail", () => {
     const open = tax.pruneRemaining(answer, []);
     const layout = layoutCladogram(buildCabinetTree(tax, open));
     const parents = layout.nodes.filter((node) => node.children.length > 0);
     expect(parents.length).toBeGreaterThan(0);
 
     for (const parent of parents) {
-      const parentRight = parent.x + parent.labelWidth;
-      const elbowX = parentStemX(parentRight);
-      expect(elbowX).toBeGreaterThan(parentRight);
-      const stem = layout.edges.find(
-        (edge) =>
-          edge.kind === "stem" &&
-          edge.d.startsWith(`M ${parentRight.toFixed(2)} ${parent.y.toFixed(2)}`),
-      );
-      expect(stem).toBeTruthy();
-      expect(stem!.d.includes(`${elbowX.toFixed(2)}`) || stem!.d.includes(`${parent.children[0]!.x.toFixed(2)}`)).toBe(
-        true,
-      );
+      const elbowX = parentElbowX(parent.inkRight);
+      const childX = childOriginX(parent.inkRight);
+
+      expect(elbowX).toBeGreaterThan(parent.inkRight);
+      expect(childX - elbowX).toBe(DEFAULT_METRICS.twig);
+      expect(DEFAULT_METRICS.twig).toBeGreaterThanOrEqual(16);
+      expect(elbowX - parent.inkRight).toBe(DEFAULT_METRICS.stem);
+      expect(DEFAULT_METRICS.stem).toBeLessThan(DEFAULT_METRICS.twig);
+
+      for (const child of parent.children) {
+        expect(child.x).toBe(childX);
+        expect(child.x).toBeGreaterThan(elbowX);
+
+        const branch = layout.edges.find(
+          (edge) =>
+            edge.kind === "branch" &&
+            edge.d.startsWith(`M ${parent.inkRight.toFixed(2)} ${parent.y.toFixed(2)}`) &&
+            edge.d.endsWith(`L ${child.x.toFixed(2)} ${child.y.toFixed(2)}`),
+        );
+        expect(branch).toBeTruthy();
+
+        if (Math.abs(child.y - parent.y) >= 0.5) {
+          expect(branch!.d).toContain(`L ${elbowX.toFixed(2)} ${parent.y.toFixed(2)}`);
+          expect(branch!.d).toContain(`L ${elbowX.toFixed(2)} ${child.y.toFixed(2)}`);
+        }
+      }
     }
+  });
+
+  it("does not park child labels on the sibling bar (the old tick-mark geometry)", () => {
+    const open = tax.pruneRemaining(answer, []);
+    const layout = layoutCladogram(buildCabinetTree(tax, open));
+    const animalia = layout.nodes.find((node) => node.name === "Animalia");
+    expect(animalia).toBeTruthy();
+    const porifera = animalia!.children.find((child) => child.name === "Porifera");
+    expect(porifera).toBeTruthy();
+
+    const elbowX = parentElbowX(animalia!.inkRight);
+    expect(porifera!.x - elbowX).toBeGreaterThanOrEqual(16);
+    expect(animalia!.inkRight).toBeLessThan(animalia!.x + animalia!.labelWidth);
+    expect(animalia!.x).toBe(DEFAULT_METRICS.rootStem);
+
+    const rootTail = layout.edges.find(
+      (edge) => edge.d === `M 0.00 ${animalia!.y.toFixed(2)} L ${animalia!.x.toFixed(2)} ${animalia!.y.toFixed(2)}`,
+    );
+    expect(rootTail).toBeTruthy();
   });
 
   it("fits the opening Animalia radiation in a 390×844 tree panel without shrinking below readable", () => {

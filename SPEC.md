@@ -71,7 +71,10 @@ every PBDB stem rank. Unranked spine wrappers (Bilateria, Eubilateria,
 Protostomia, Deuterostomia, and similar comb nodes) are flattened on
 the high crown so those phyla hang near the root. Genera and other deep
 ranks stay hidden until the remaining set is small. Nodes are placed
-with a packed leaf-row layout (parents at leaf midpoints) and the
+with a packed leaf-row layout (parents at leaf midpoints). Each parent
+name sits on its branch: a thin stem leaves the right of the name, a
+vertical bar gathers siblings, and a real twig reaches each child —
+a left-to-right cladogram, not a spine with tick marks. The
 finished crown is scaled to the panel so the opening view does not
 require panning. Scrollbar chrome stays hidden; wheel/touch pan still
 works if a later expansion overflows. Nodes with remaining children can

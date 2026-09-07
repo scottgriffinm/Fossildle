@@ -2,17 +2,30 @@ import type { NodeStatus, TreeNodeView } from "./tree-view";
 
 export type CladogramMetrics = {
   rowHeight: number;
-  rail: number;
+  /** Incoming stub so the root name sits on a branch, not a floating label. */
+  rootStem: number;
+  /** Horizontal run from the right of a parent name to the sibling bar. */
+  stem: number;
+  /** Horizontal run from the sibling bar to the child name. */
+  twig: number;
   charWidth: number;
   labelPadX: number;
 };
 
-/** Tight leaf packing; columns sized from label estimates. */
+/**
+ * Packed leaf rows, but connectors are a textbook LTR cladogram:
+ * name sits on the branch, a short stem leaves the right of the name,
+ * a vertical bar gathers siblings, then a real twig reaches each child.
+ * A 10px rail with zero-length twigs reads as file-tree ticks — do not
+ * collapse stem+twig into a single gap that ends at the child x.
+ */
 export const DEFAULT_METRICS: CladogramMetrics = {
   rowHeight: 16,
-  rail: 10,
-  charWidth: 6.6,
-  labelPadX: 10,
+  rootStem: 8,
+  stem: 6,
+  twig: 18,
+  charWidth: 6.05,
+  labelPadX: 4,
 };
 
 export type PlacedNode = {
@@ -25,17 +38,29 @@ export type PlacedNode = {
   x: number;
   y: number;
   labelWidth: number;
+  /** Right edge of the glyph run — outgoing connectors start here, not at the box. */
+  inkRight: number;
   children: PlacedNode[];
 };
 
 export type CladogramEdge = {
   d: string;
-  kind: "stem" | "spine" | "twig";
+  kind: "branch";
 };
 
-/** Horizontal run from the right edge of a parent label to the child elbow. */
-export function parentStemX(parentRight: number, metrics: CladogramMetrics = DEFAULT_METRICS): number {
-  return parentRight + metrics.rail;
+/** Sibling-bar x: just to the right of the parent name, not beside the children. */
+export function parentElbowX(
+  parentInkRight: number,
+  metrics: CladogramMetrics = DEFAULT_METRICS,
+): number {
+  return parentInkRight + metrics.stem;
+}
+
+export function childOriginX(
+  parentInkRight: number,
+  metrics: CladogramMetrics = DEFAULT_METRICS,
+): number {
+  return parentInkRight + metrics.stem + metrics.twig;
 }
 
 export type CladogramLayout = {
@@ -48,8 +73,12 @@ export type CladogramLayout = {
   depth: number;
 };
 
+export function estimateTextWidth(name: string, metrics: CladogramMetrics = DEFAULT_METRICS): number {
+  return Math.ceil(name.length * metrics.charWidth);
+}
+
 export function estimateLabelWidth(name: string, metrics: CladogramMetrics = DEFAULT_METRICS): number {
-  return Math.ceil(name.length * metrics.charWidth + metrics.labelPadX);
+  return estimateTextWidth(name, metrics) + metrics.labelPadX;
 }
 
 export function countLeaves(node: TreeNodeView): number {
@@ -62,10 +91,21 @@ export function treeDepth(node: TreeNodeView): number {
   return 1 + Math.max(...node.children.map(treeDepth));
 }
 
+function branchPath(parent: PlacedNode, child: PlacedNode, elbowX: number): string {
+  const x0 = parent.inkRight;
+  const y0 = parent.y;
+  const x1 = child.x;
+  const y1 = child.y;
+  if (Math.abs(y1 - y0) < 0.5) {
+    return `M ${fmt(x0)} ${fmt(y0)} L ${fmt(x1)} ${fmt(y1)}`;
+  }
+  return `M ${fmt(x0)} ${fmt(y0)} L ${fmt(elbowX)} ${fmt(y0)} L ${fmt(elbowX)} ${fmt(y1)} L ${fmt(x1)} ${fmt(y1)}`;
+}
+
 /**
  * Pack remaining taxa as a left-to-right cladogram: each leaf takes one row,
- * parents sit on the midpoint of their descendant leaves. This replaces nested
- * flex alignment, which stretched parents to the height of huge child groups.
+ * parents sit on the midpoint of their descendant leaves. Connectors are
+ * continuous parent→child L-paths so the crown reads as branches, not a rail.
  */
 export function layoutCladogram(
   tree: TreeNodeView,
@@ -73,8 +113,10 @@ export function layoutCladogram(
 ): CladogramLayout {
   let nextLeaf = 0;
   const place = (node: TreeNodeView, depth: number, x: number): PlacedNode => {
-    const labelWidth = estimateLabelWidth(node.taxon.name, metrics);
-    const childX = x + labelWidth + metrics.rail;
+    const textWidth = estimateTextWidth(node.taxon.name, metrics);
+    const labelWidth = textWidth + metrics.labelPadX;
+    const inkRight = x + textWidth;
+    const childX = childOriginX(inkRight, metrics);
     const children = node.children.map((child) => place(child, depth + 1, childX));
     let y: number;
     if (children.length === 0) {
@@ -95,15 +137,23 @@ export function layoutCladogram(
       x,
       y,
       labelWidth,
+      inkRight,
       children,
     };
   };
 
-  const root = place(tree, 0, 0);
+  const root = place(tree, 0, metrics.rootStem);
   const nodes: PlacedNode[] = [];
   const edges: CladogramEdge[] = [];
   let maxRight = 0;
   let maxDepth = 1;
+
+  if (metrics.rootStem > 0) {
+    edges.push({
+      kind: "branch",
+      d: `M ${fmt(0)} ${fmt(root.y)} L ${fmt(root.x)} ${fmt(root.y)}`,
+    });
+  }
 
   const walk = (node: PlacedNode) => {
     nodes.push(node);
@@ -111,35 +161,12 @@ export function layoutCladogram(
     maxDepth = Math.max(maxDepth, node.depth + 1);
     if (node.children.length === 0) return;
 
-    const parentRight = node.x + node.labelWidth;
-    const elbowX = parentStemX(parentRight, metrics);
-    const first = node.children[0]!;
-    const last = node.children[node.children.length - 1]!;
-
-    // Separate path elements: compound H/V subpaths drop segments on some
-    // mobile WebKit compositors after a CSS scale transform.
-    if (node.children.length === 1 && Math.abs(first.y - node.y) < 0.5) {
+    const elbowX = parentElbowX(node.inkRight, metrics);
+    for (const child of node.children) {
       edges.push({
-        kind: "stem",
-        d: `M ${fmt(parentRight)} ${fmt(node.y)} L ${fmt(first.x)} ${fmt(first.y)}`,
+        kind: "branch",
+        d: branchPath(node, child, elbowX),
       });
-    } else {
-      edges.push({
-        kind: "stem",
-        d: `M ${fmt(parentRight)} ${fmt(node.y)} L ${fmt(elbowX)} ${fmt(node.y)}`,
-      });
-      if (Math.abs(first.y - last.y) > 0.5) {
-        edges.push({
-          kind: "spine",
-          d: `M ${fmt(elbowX)} ${fmt(first.y)} L ${fmt(elbowX)} ${fmt(last.y)}`,
-        });
-      }
-      for (const child of node.children) {
-        edges.push({
-          kind: "twig",
-          d: `M ${fmt(elbowX)} ${fmt(child.y)} L ${fmt(child.x)} ${fmt(child.y)}`,
-        });
-      }
     }
 
     for (const child of node.children) walk(child);
@@ -150,7 +177,7 @@ export function layoutCladogram(
     root,
     nodes,
     edges,
-    width: Math.ceil(maxRight + metrics.rail),
+    width: Math.ceil(maxRight + metrics.twig * 0.25),
     height: Math.ceil(nextLeaf * metrics.rowHeight),
     leafCount: nextLeaf,
     depth: maxDepth,

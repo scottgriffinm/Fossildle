@@ -243,7 +243,6 @@ function CladeLabel({
       style={{
         left: node.x,
         top: node.y - DEFAULT_METRICS.rowHeight / 2,
-        width: node.labelWidth,
         height: DEFAULT_METRICS.rowHeight,
       }}
     >

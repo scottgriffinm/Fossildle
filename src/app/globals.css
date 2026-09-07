@@ -14,12 +14,12 @@
   --bone: #e8dcc8;
   --shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
   --radius: 14px;
-  --tree-line: #8a7460;
+  --tree-line: #9a8674;
   --tree-bg: #1a1611;
   --label-h: 15px;
   --rail: 9px;
   --rail-unary: 7px;
-  --tree-stroke: 2px;
+  --tree-stroke: 1px;
   color-scheme: dark;
 }
 
@@ -511,7 +511,7 @@ input {
 .cladogram-edges path {
   fill: none;
   stroke: var(--tree-line);
-  stroke-width: 2px;
+  stroke-width: var(--tree-stroke);
   stroke-linecap: square;
   stroke-linejoin: miter;
   stroke-opacity: 1;
@@ -523,6 +523,7 @@ input {
   position: absolute;
   display: flex;
   align-items: center;
+  width: max-content;
 }
 
 .tax-tree,
@@ -547,7 +548,7 @@ input {
   width: 100%;
   height: 100%;
   min-height: var(--label-h);
-  padding: 0 4px 0 2px;
+  padding: 0;
   border: 0;
   border-radius: 2px;
   background: transparent;
@@ -594,6 +595,8 @@ button.tax-item .tax-name::after {
   letter-spacing: 0.01em;
   flex: 0 0 auto;
   white-space: nowrap;
+  padding: 0 2px;
+  background: var(--tree-bg);
 }
 
 .tax-node.is-genus > .tax-item .tax-name {
