@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type RefObject } from "react";
 import type { TaxonomyIndex } from "@/lib/taxonomy";
 import {
   DEFAULT_METRICS,
@@ -159,52 +159,34 @@ function Cladogram({
       data-cladogram-scale={scale.toFixed(3)}
     >
       <svg
-        className="cladogram-edges"
+        className="cladogram"
         width={fittedW}
         height={fittedH}
         viewBox={`0 0 ${layout.width} ${layout.height}`}
         preserveAspectRatio="xMinYMin meet"
         overflow="visible"
-        aria-hidden="true"
+        role="tree"
+        aria-label="Remaining taxonomic hierarchy"
       >
-        <g className="cladogram-links">
+        <g className="cladogram-links" aria-hidden="true">
+          <path d={layout.stem.d} />
           {layout.links.map((link) => (
             <path key={`${link.parentId}-${link.childId}`} d={link.d} />
           ))}
         </g>
-        <g className="cladogram-nodes">
+        <g className="cladogram-labels">
           {layout.nodes.map((node) => (
-            <circle
+            <CladeLabel
               key={node.id}
-              className={node.status === "constraint" ? "is-constraint" : undefined}
-              cx={node.x}
-              cy={node.y}
-              r={DEFAULT_METRICS.nodeRadius}
+              node={node}
+              flashId={flashId}
+              expanded={expanded}
+              isRoot={node.id === constraintId || node.depth === 0}
+              onToggle={onToggle}
             />
           ))}
         </g>
       </svg>
-      <div
-        className="cladogram"
-        role="tree"
-        aria-label="Remaining taxonomic hierarchy"
-        style={{
-          width: layout.width,
-          height: layout.height,
-          transform: `scale(${scale})`,
-        }}
-      >
-        {layout.nodes.map((node) => (
-          <CladeLabel
-            key={node.id}
-            node={node}
-            flashId={flashId}
-            expanded={expanded}
-            isRoot={node.id === constraintId || node.depth === 0}
-            onToggle={onToggle}
-          />
-        ))}
-      </div>
     </div>
   );
 }
@@ -240,36 +222,49 @@ function CladeLabel({
     .filter(Boolean)
     .join(" ");
 
-  const name = <span className="tax-name">{node.name}</span>;
+  function activate() {
+    if (canToggle) onToggle(node.id);
+  }
+
+  function onKeyDown(event: KeyboardEvent<SVGGElement>) {
+    if (!canToggle) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onToggle(node.id);
+    }
+  }
+
+  const hitH = DEFAULT_METRICS.fontSize + 6;
 
   return (
-    <div
+    <g
       className={classes}
       role="treeitem"
       data-tree-root={isRoot ? "true" : undefined}
       aria-level={node.depth + 1}
       aria-selected={node.status === "constraint"}
       aria-expanded={canExpand ? isOpen : undefined}
-      style={{
-        left: node.x + DEFAULT_METRICS.nodeRadius + 3,
-        top: node.y - DEFAULT_METRICS.rowHeight / 2,
-        width: node.labelWidth,
-        height: DEFAULT_METRICS.rowHeight,
-      }}
+      tabIndex={canToggle ? 0 : undefined}
+      onClick={activate}
+      onKeyDown={onKeyDown}
     >
-      {canToggle ? (
-        <button
-          type="button"
-          className="tax-item"
-          onClick={() => onToggle(node.id)}
-          aria-expanded={isOpen}
-        >
-          {name}
-        </button>
-      ) : (
-        <div className="tax-item">{name}</div>
-      )}
-    </div>
+      <rect
+        className="tax-hit"
+        x={node.labelX - 2}
+        y={node.labelY - DEFAULT_METRICS.fontSize}
+        width={node.labelWidth + 4}
+        height={hitH}
+      />
+      <text
+        className="tax-name"
+        x={node.labelX}
+        y={node.labelY}
+        fontSize={DEFAULT_METRICS.fontSize}
+      >
+        {node.name}
+        {canExpand && !isOpen ? <tspan className="tax-more"> ›</tspan> : null}
+      </text>
+    </g>
   );
 }
 

@@ -497,43 +497,66 @@ input {
 }
 
 .cladogram {
-  position: relative;
-  transform-origin: 0 0;
-}
-
-.cladogram-edges {
-  position: absolute;
-  inset: 0;
+  display: block;
   overflow: visible;
-  pointer-events: none;
 }
 
-.cladogram-edges path {
+.cladogram-links path {
   fill: none;
   stroke: var(--tree-line);
   stroke-width: 1.6px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
   stroke-opacity: 0.95;
   vector-effect: non-scaling-stroke;
 }
 
-.cladogram-nodes circle {
-  fill: var(--tree-bg);
-  stroke: var(--tree-line);
-  stroke-width: 1.4px;
-  vector-effect: non-scaling-stroke;
+.cladogram .tax-hit {
+  fill: transparent;
 }
 
-.cladogram-nodes circle.is-constraint {
+.cladogram .tax-node.is-expandable {
+  cursor: pointer;
+}
+
+.cladogram .tax-node:focus,
+.cladogram .tax-node:focus-visible {
+  outline: none;
+}
+
+.cladogram .tax-node:focus-visible .tax-hit {
+  stroke: var(--copper);
+  stroke-width: 1.2px;
+}
+
+.cladogram .tax-name {
+  fill: var(--ink);
+  font-family: var(--font-serif), "Fraunces", serif;
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}
+
+.cladogram .tax-node.is-genus .tax-name {
+  font-style: italic;
+}
+
+.cladogram .tax-node.is-constraint .tax-name {
   fill: var(--copper-2);
-  stroke: var(--copper-2);
 }
 
-.cladogram .tax-node {
-  position: absolute;
-  display: flex;
-  align-items: center;
+.cladogram .tax-node.is-expandable:hover .tax-name,
+.cladogram .tax-node.is-expandable:focus-visible .tax-name {
+  fill: var(--copper-2);
+}
+
+.cladogram .tax-more {
+  fill: var(--faint);
+  font-style: normal;
+}
+
+.cladogram .tax-node.is-flash .tax-name {
+  animation: prune-flash-fill 1.2s ease;
 }
 
 .tax-tree,
@@ -580,24 +603,6 @@ button.tax-item:focus-visible {
   outline-offset: -2px;
 }
 
-/* Chevron only when a branch is collapsed — default view is names only. */
-button.tax-item .tax-name::after {
-  content: "";
-  display: none;
-  width: 0.28em;
-  height: 0.28em;
-  margin-left: 0.38em;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  opacity: 0.45;
-  transform: rotate(-45deg) translateY(-0.08em);
-  vertical-align: 0.12em;
-}
-
-.tax-node.is-expandable:not(.is-open) > button.tax-item .tax-name::after {
-  display: inline-block;
-}
-
 .tax-name {
   font-family: var(--font-serif), "Fraunces", serif;
   font-size: 0.68rem;
@@ -629,6 +634,12 @@ button.tax-item .tax-name::after {
   }
   100% {
     background: transparent;
+  }
+}
+
+@keyframes prune-flash-fill {
+  0% {
+    fill: var(--copper-2);
   }
 }
 
