@@ -63,13 +63,6 @@ export function TaxonomyTree({
   }, [taxonomy, prune, status, answerId, expanded]);
 
   const [inkWidths, setInkWidths] = useState<ReadonlyMap<number, number>>(() => new Map());
-  const treeSignature = tree
-    ? `${pruneKey}:${[...expanded].sort((a, b) => a - b).join(",")}:${status}:${answerId ?? ""}`
-    : "";
-
-  useEffect(() => {
-    setInkWidths(new Map());
-  }, [treeSignature]);
 
   const layout = useMemo(
     () => (tree ? layoutCladogram(tree, DEFAULT_METRICS, inkWidths) : null),
@@ -183,7 +176,8 @@ function Cladogram({
     for (const node of layer.querySelectorAll<HTMLElement>("[data-node-id]")) {
       const name = node.querySelector<HTMLElement>(".tax-name");
       if (!name) continue;
-      next.set(Number(node.dataset.nodeId), name.offsetWidth);
+      const width = name.offsetWidth;
+      if (width > 1) next.set(Number(node.dataset.nodeId), width);
     }
     onInkWidths(next);
   }, [layout.nodes, onInkWidths]);
@@ -213,7 +207,7 @@ function Cladogram({
       >
         <g className="cladogram-links">
           {layout.links.map((link) => (
-            <path key={`${link.parentId}-${link.childId}`} d={link.d} />
+            <path key={`${link.kind}:${link.parentId}-${link.childId}:${link.d}`} d={link.d} />
           ))}
         </g>
         <g className="cladogram-nodes">

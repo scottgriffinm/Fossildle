@@ -48,6 +48,7 @@ export type PlacedNode = {
 };
 
 export type CladogramLink = {
+  kind: "seat" | "branch" | "root";
   parentId: number;
   childId: number;
   source: [number, number];
@@ -220,6 +221,7 @@ export function layoutCladogram(
   for (const placed of nodes) {
     if (placed.inkRight - placed.x > 0.5) {
       links.push({
+        kind: "seat",
         parentId: placed.id,
         childId: placed.id,
         source: [placed.x, placed.y],
@@ -237,6 +239,7 @@ export function layoutCladogram(
     const target: [number, number] = [child.x, child.y];
     const elbowX = parent.inkRight + metrics.stem;
     links.push({
+      kind: "branch",
       parentId: parent.id,
       childId: child.id,
       source,
@@ -249,6 +252,7 @@ export function layoutCladogram(
   const placedRoot = placedById.get(laid.data.id)!;
   if (metrics.padX > 0) {
     links.push({
+      kind: "root",
       parentId: placedRoot.id,
       childId: placedRoot.id,
       source: [0, placedRoot.y],

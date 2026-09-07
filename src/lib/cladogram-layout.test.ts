@@ -60,7 +60,8 @@ describe("d3 cluster + orthogonal elbow cladogram", () => {
     for (const parent of parents) {
       for (const child of parent.children) {
         const link = layout.links.find(
-          (edge) => edge.parentId === parent.id && edge.childId === child.id,
+          (edge) =>
+            edge.kind === "branch" && edge.parentId === parent.id && edge.childId === child.id,
         );
         expect(link).toBeTruthy();
         expect(link!.d).toBe(cladogramElbow(link!.source, link!.target, DEFAULT_METRICS.stem));
@@ -80,7 +81,8 @@ describe("d3 cluster + orthogonal elbow cladogram", () => {
     const animalia = layout.nodes.find((node) => node.name === "Animalia")!;
     const porifera = animalia.children.find((child) => child.name === "Porifera")!;
     const link = layout.links.find(
-      (edge) => edge.parentId === animalia.id && edge.childId === porifera.id,
+      (edge) =>
+        edge.kind === "branch" && edge.parentId === animalia.id && edge.childId === porifera.id,
     )!;
     expect(porifera.x - link.elbowX).toBeGreaterThanOrEqual(16);
     expect(link.source[0]).toBe(animalia.inkRight);
@@ -116,6 +118,15 @@ describe("d3 cluster + orthogonal elbow cladogram", () => {
     expect(scale).toBeGreaterThanOrEqual(0.72);
     expect(layout.width * scale).toBeLessThanOrEqual(332);
     expect(layout.height * scale).toBeLessThanOrEqual(360);
+  });
+
+  it("gives every SVG path a unique kind+endpoint identity", () => {
+    const open = tax.pruneRemaining(answer, []);
+    const layout = layoutCladogram(buildCabinetTree(tax, open));
+    const keys = layout.links.map((link) => `${link.kind}:${link.parentId}-${link.childId}:${link.d}`);
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(layout.links.some((link) => link.kind === "root")).toBe(true);
+    expect(layout.links.some((link) => link.kind === "seat")).toBe(true);
   });
 
   it("does not invent extra vertical space beyond packed leaves", () => {
