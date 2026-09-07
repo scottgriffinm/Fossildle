@@ -128,6 +128,18 @@ describe("packed LTR cladogram layout", () => {
     expect(layout.height * scale).toBeLessThanOrEqual(360);
   });
 
+  it("uses measured ink widths so stems leave the real right edge of each name", () => {
+    const open = tax.pruneRemaining(answer, []);
+    const tree = buildCabinetTree(tax, open);
+    const guessed = layoutCladogram(tree);
+    const animalia = guessed.nodes.find((node) => node.name === "Animalia")!;
+    const measured = new Map<number, number>([[animalia.id, animalia.inkRight - animalia.x + 12]]);
+    const laid = layoutCladogram(tree, DEFAULT_METRICS, measured);
+    const next = laid.nodes.find((node) => node.id === animalia.id)!;
+    expect(next.inkRight - next.x).toBe(animalia.inkRight - animalia.x + 12);
+    expect(next.children[0]!.x).toBeGreaterThan(animalia.children[0]!.x);
+  });
+
   it("does not invent extra vertical space beyond packed leaves", () => {
     const scale = fitScale(8000, 8000, 332, 400, { min: 0.62, pad: 0 });
     expect(scale).toBe(0.62);

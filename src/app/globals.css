@@ -595,8 +595,7 @@ button.tax-item .tax-name::after {
   letter-spacing: 0.01em;
   flex: 0 0 auto;
   white-space: nowrap;
-  padding: 0 2px;
-  background: var(--tree-bg);
+  padding: 0;
 }
 
 .tax-node.is-genus > .tax-item .tax-name {

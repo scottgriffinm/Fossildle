@@ -22,7 +22,7 @@ export type CladogramMetrics = {
 export const DEFAULT_METRICS: CladogramMetrics = {
   rowHeight: 16,
   rootStem: 8,
-  stem: 6,
+  stem: 8,
   twig: 18,
   charWidth: 6.05,
   labelPadX: 4,
@@ -110,10 +110,11 @@ function branchPath(parent: PlacedNode, child: PlacedNode, elbowX: number): stri
 export function layoutCladogram(
   tree: TreeNodeView,
   metrics: CladogramMetrics = DEFAULT_METRICS,
+  inkWidths?: ReadonlyMap<number, number>,
 ): CladogramLayout {
   let nextLeaf = 0;
   const place = (node: TreeNodeView, depth: number, x: number): PlacedNode => {
-    const textWidth = estimateTextWidth(node.taxon.name, metrics);
+    const textWidth = inkWidths?.get(node.taxon.id) ?? estimateTextWidth(node.taxon.name, metrics);
     const labelWidth = textWidth + metrics.labelPadX;
     const inkRight = x + textWidth;
     const childX = childOriginX(inkRight, metrics);
@@ -159,6 +160,12 @@ export function layoutCladogram(
     nodes.push(node);
     maxRight = Math.max(maxRight, node.x + node.labelWidth);
     maxDepth = Math.max(maxDepth, node.depth + 1);
+    if (node.inkRight - node.x > 0.5) {
+      edges.push({
+        kind: "branch",
+        d: `M ${fmt(node.x)} ${fmt(node.y)} L ${fmt(node.inkRight)} ${fmt(node.y)}`,
+      });
+    }
     if (node.children.length === 0) return;
 
     const elbowX = parentElbowX(node.inkRight, metrics);
