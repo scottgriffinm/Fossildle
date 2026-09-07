@@ -53,11 +53,6 @@ export function TaxonomyPath({
               .join(" ");
             return (
               <li key={`${segment.taxon.id}-${index}`} className="rank-step">
-                {index > 0 ? (
-                  <span className="rank-arrow" aria-hidden="true">
-                    →
-                  </span>
-                ) : null}
                 <span
                   className={classes}
                   aria-label={
@@ -71,6 +66,11 @@ export function TaxonomyPath({
                     {hidden ? "…" : segment.taxon.name}
                   </span>
                 </span>
+                {index < segments.length - 1 ? (
+                  <span className="rank-arrow" aria-hidden="true">
+                    →
+                  </span>
+                ) : null}
               </li>
             );
           })}
@@ -88,20 +88,20 @@ function PathSkeleton() {
           <span className="rank-label">kingdom</span>
           <span className="rank-name">Animalia</span>
         </span>
-      </li>
-      <li className="rank-step">
         <span className="rank-arrow" aria-hidden="true">
           →
         </span>
+      </li>
+      <li className="rank-step">
         <span className="rank-chip is-unknown">
           <span className="rank-label">phylum</span>
           <span className="rank-name">…</span>
         </span>
-      </li>
-      <li className="rank-step">
         <span className="rank-arrow" aria-hidden="true">
           →
         </span>
+      </li>
+      <li className="rank-step">
         <span className="rank-chip is-unknown">
           <span className="rank-label">genus</span>
           <span className="rank-name">…</span>
