@@ -19,7 +19,7 @@
   --label-h: 15px;
   --rail: 9px;
   --rail-unary: 7px;
-  --tree-stroke: 2px;
+  --tree-stroke: 1.6px;
   color-scheme: dark;
 }
 
@@ -511,12 +511,23 @@ input {
 .cladogram-edges path {
   fill: none;
   stroke: var(--tree-line);
-  stroke-width: 2px;
-  stroke-linecap: square;
-  stroke-linejoin: miter;
-  stroke-opacity: 1;
+  stroke-width: 1.6px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-opacity: 0.95;
   vector-effect: non-scaling-stroke;
-  shape-rendering: geometricPrecision;
+}
+
+.cladogram-nodes circle {
+  fill: var(--tree-bg);
+  stroke: var(--tree-line);
+  stroke-width: 1.4px;
+  vector-effect: non-scaling-stroke;
+}
+
+.cladogram-nodes circle.is-constraint {
+  fill: var(--copper-2);
+  stroke: var(--copper-2);
 }
 
 .cladogram .tax-node {
