@@ -14,30 +14,99 @@ export type TreeNodeView = {
   status: NodeStatus;
   genusCount: number;
   children: TreeNodeView[];
+  expandable: boolean;
   skipped?: number;
   overflow?: number;
 };
 
-const SPINE_NAMES = new Set([
-  "Animalia",
+/** Textbook Animalia crown and major clades shown as structure even without genera. */
+const SCAFFOLD_TAXA = new Set([
+  "Porifera",
+  "Cnidaria",
+  "Placozoa",
+  "Ctenophora",
+  "Eumetazoa",
+  "Triploblastica",
   "Bilateria",
   "Eubilateria",
   "Protostomia",
   "Deuterostomia",
   "Ecdysozoa",
   "Spiralia",
-  "Chordata",
+  "Lophotrochozoa",
+  "Panarthropoda",
+  "Ambulacraria",
   "Arthropoda",
   "Mollusca",
+  "Annelida",
+  "Brachiopoda",
+  "Bryozoa",
+  "Echinodermata",
+  "Hemichordata",
+  "Chordata",
   "Dinosauria",
   "Trilobita",
   "Ammonoidea",
   "Mammalia",
   "Avialae",
-  "Cnidaria",
 ]);
 
+/** Unranked wrappers that should be open so major phyla are visible on load. */
+const SCAFFOLD_EXPAND = new Set([
+  "Animalia",
+  "Eumetazoa",
+  "Triploblastica",
+  "Bilateria",
+  "Eubilateria",
+  "Protostomia",
+  "Deuterostomia",
+  "Ecdysozoa",
+  "Spiralia",
+  "Lophotrochozoa",
+  "Panarthropoda",
+  "Ambulacraria",
+]);
+
+const SPINE_NAMES = new Set([
+  "Animalia",
+  ...SCAFFOLD_TAXA,
+]);
+
+const SCAFFOLD_ORDER = [
+  "Porifera",
+  "Cnidaria",
+  "Placozoa",
+  "Ctenophora",
+  "Eumetazoa",
+  "Triploblastica",
+  "Bilateria",
+  "Eubilateria",
+  "Protostomia",
+  "Ecdysozoa",
+  "Panarthropoda",
+  "Arthropoda",
+  "Spiralia",
+  "Lophotrochozoa",
+  "Mollusca",
+  "Annelida",
+  "Brachiopoda",
+  "Bryozoa",
+  "Deuterostomia",
+  "Ambulacraria",
+  "Echinodermata",
+  "Hemichordata",
+  "Chordata",
+];
+
 const MAX_CHILDREN = 16;
+
+export function isScaffoldTaxon(
+  taxon: Taxon,
+  fullCounts?: Map<number, number>,
+): boolean {
+  if (SCAFFOLD_TAXA.has(taxon.name)) return true;
+  return taxon.rank === "phylum" && (fullCounts?.get(taxon.id) ?? 0) > 0;
+}
 
 export function remainingGenusCounts(
   taxonomy: TaxonomyIndex,
@@ -87,17 +156,23 @@ export function viewChildren(
   for (const taxon of kids) {
     const status = nodeStatus(taxonomy, taxon.id, state);
     const genusCount = counts.get(taxon.id) ?? 0;
+    const scaffold = isScaffoldTaxon(taxon, fullCounts);
     if (status === "pruned") {
       rows.push({ taxon, genusCount, status });
       continue;
     }
     if (status === "outside") {
-      if ((fullCounts.get(taxon.id) ?? 0) > 0) {
+      if ((fullCounts.get(taxon.id) ?? 0) > 0 || scaffold) {
         rows.push({ taxon, genusCount, status });
       }
       continue;
     }
-    if (genusCount > 0 || status === "lineage" || status === "constraint") {
+    if (
+      genusCount > 0 ||
+      status === "lineage" ||
+      status === "constraint" ||
+      scaffold
+    ) {
       rows.push({ taxon, genusCount, status });
     }
   }
@@ -109,10 +184,16 @@ export function viewChildren(
     return 3;
   };
 
+  const orderOf = (name: string) => {
+    const index = SCAFFOLD_ORDER.indexOf(name);
+    return index === -1 ? 1000 : index;
+  };
+
   return rows.sort((a, b) => {
     const genusPenalty = (row: TreeBranch) => (row.taxon.rank === "genus" ? 1 : 0);
     return (
       rank(a) - rank(b) ||
+      orderOf(a.taxon.name) - orderOf(b.taxon.name) ||
       genusPenalty(a) - genusPenalty(b) ||
       b.genusCount - a.genusCount ||
       a.taxon.name.localeCompare(b.taxon.name)
@@ -143,8 +224,19 @@ export function autoExpandIds(taxonomy: TaxonomyIndex, state: PruneState): numbe
 
   const counts = remainingGenusCounts(taxonomy, state);
   const fullCounts = allGenusCounts(taxonomy);
-  let cursor = state.constraintId;
   const constraintDepth = taxonomy.pathToRoot(state.constraintId).length;
+
+  if (constraintDepth <= 8) {
+    for (const taxon of taxonomy.byId.values()) {
+      if (!SCAFFOLD_EXPAND.has(taxon.name)) continue;
+      const status = nodeStatus(taxonomy, taxon.id, state);
+      if (status === "remaining" || status === "lineage" || status === "constraint") {
+        expanded.add(taxon.id);
+      }
+    }
+  }
+
+  let cursor = state.constraintId;
   let extraLevels = constraintDepth <= 6 ? 1 : 0;
 
   for (let depth = 0; depth < 10; depth += 1) {
@@ -198,19 +290,21 @@ export function buildCabinetTree(
   const walk = (id: number): TreeNodeView => {
     const taxon = taxonomy.require(id);
     const status = nodeStatus(taxonomy, id, state);
+    const kids = viewChildren(taxonomy, state, id, counts, fullCounts);
     const node: TreeNodeView = {
       taxon,
       status,
       genusCount: counts.get(id) ?? 0,
       children: [],
+      expandable:
+        status !== "pruned" &&
+        status !== "outside" &&
+        kids.length > 0,
     };
 
     if (status === "pruned" || status === "outside") return node;
     if (!expanded.has(id) && id !== state.constraintId) return node;
-
-    const kids = viewChildren(taxonomy, state, id, counts, fullCounts);
     const rendered: TreeNodeView[] = [];
-    let skipped = 0;
 
     for (const kid of kids) {
       if (

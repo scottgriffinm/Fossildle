@@ -123,11 +123,17 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     const tree = buildCabinetTree(tax, open, autoExpandIds(tax, open));
     expect(tree.taxon.name).toBe("Animalia");
     expect(tree.status).toBe("constraint");
+    expect(names(tree.children)).toEqual(
+      expect.arrayContaining(["Porifera", "Cnidaria", "Bilateria"]),
+    );
     expect(findNode(tree, "Bilateria")).toBeTruthy();
     expect(findNode(tree, "Eubilateria")).toBeTruthy();
     expect(findNode(tree, "Deuterostomia")).toBeTruthy();
     expect(findNode(tree, "Protostomia")).toBeTruthy();
-    expect(tree.children.length).toBeGreaterThanOrEqual(1);
+    expect(findNode(tree, "Chordata")).toBeTruthy();
+    expect(findNode(tree, "Arthropoda")).toBeTruthy();
+    expect(findNode(tree, "Mollusca")).toBeTruthy();
+    expect(tree.children.length).toBeGreaterThanOrEqual(3);
   });
 
   it("greys Protostomia in place after an arthropod miss", () => {
@@ -137,8 +143,9 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     expect(findNode(tree, "Eubilateria")?.status).toBe("constraint");
     expect(findNode(tree, "Protostomia")?.status).toBe("pruned");
     expect(findNode(tree, "Deuterostomia")?.status).toBe("remaining");
-    expect(findNode(tree, "Porifera")).toBeNull();
+    expect(findNode(tree, "Porifera")?.status).toBe("outside");
     expect(findNode(tree, "Cnidaria")?.status).toBe("outside");
+    expect(findNode(tree, "Chordata")?.status).toBe("remaining");
   });
 
   it("still shows a tree crown at Dinosauria after a close miss", () => {
@@ -160,6 +167,23 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
       node.children.forEach(walk);
     };
     walk(tree);
-    expect(allNames.length).toBeLessThan(40);
+    expect(allNames.length).toBeLessThan(48);
+    expect(allNames).toEqual(expect.arrayContaining(["Porifera", "Cnidaria", "Protostomia"]));
+  });
+
+  it("keeps the opening Animalia crown readable", () => {
+    const open = tax.pruneRemaining(answer, []);
+    const tree = buildCabinetTree(tax, open, autoExpandIds(tax, open));
+    const allNames: string[] = [];
+    const walk = (node: NonNullable<ReturnType<typeof findNode>>) => {
+      allNames.push(node.taxon.name);
+      node.children.forEach(walk);
+    };
+    walk(tree);
+    expect(allNames.length).toBeGreaterThanOrEqual(10);
+    expect(allNames.length).toBeLessThan(36);
+    expect(findNode(tree, "Porifera")?.expandable).toBe(false);
+    expect(findNode(tree, "Cnidaria")?.expandable).toBe(true);
+    expect(findNode(tree, "Chordata")?.expandable).toBe(true);
   });
 });

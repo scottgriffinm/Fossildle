@@ -56,13 +56,13 @@ export function TaxonomyTree({
         {loading || !tree || !taxonomy ? (
           <TreeSkeleton />
         ) : (
-          <ul className="phylo-tree" role="tree" aria-label="Remaining Animalia tree">
+          <ul className="tax-tree" role="tree" aria-label="Animalia taxonomic hierarchy">
             <TreeNode
               node={tree}
-              taxonomy={taxonomy}
               expanded={expanded}
               flashId={flashId}
               lastMrcaId={last?.mrcaId ?? null}
+              isRoot
               onToggle={toggle}
             />
           </ul>
@@ -74,54 +74,69 @@ export function TaxonomyTree({
 
 function TreeNode({
   node,
-  taxonomy,
   expanded,
   flashId,
   lastMrcaId,
+  isRoot = false,
   onToggle,
 }: {
   node: TreeNodeView;
-  taxonomy: TaxonomyIndex;
   expanded: Set<number>;
   flashId: number | null;
   lastMrcaId: number | null;
+  isRoot?: boolean;
   onToggle: (id: number) => void;
 }) {
-  const kids = taxonomy.children.get(node.taxon.id) ?? [];
-  const canExpand =
-    node.status !== "pruned" &&
-    node.status !== "outside" &&
-    kids.length > 0;
+  const canExpand = node.expandable;
   const isOpen = expanded.has(node.taxon.id) || node.status === "constraint";
   const flashing = flashId === node.taxon.id;
   const shared = lastMrcaId === node.taxon.id;
+  const isGenus = node.taxon.rank === "genus";
+
+  const classes = [
+    "tax-node",
+    `is-${node.status}`,
+    isRoot ? "is-root" : "",
+    isOpen ? "is-open" : "",
+    flashing ? "is-flash" : "",
+    shared ? "is-shared" : "",
+    isGenus ? "is-genus" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <li
-      className={`phylo-node is-${node.status}${flashing ? " is-flash" : ""}${
-        shared ? " is-shared" : ""
-      }`}
+      className={classes}
       role="treeitem"
       aria-selected={node.status === "constraint"}
       aria-expanded={canExpand ? isOpen : undefined}
     >
-      {node.skipped ? <div className="phylo-skip">⋯</div> : null}
-      <button
-        type="button"
-        className="phylo-row"
-        disabled={!canExpand}
-        onClick={() => canExpand && onToggle(node.taxon.id)}
-      >
-        <span className="phylo-dot" aria-hidden="true" />
-        <span className="phylo-name">{node.taxon.name}</span>
-      </button>
+      {canExpand ? (
+        <button
+          type="button"
+          className="tax-item"
+          onClick={() => onToggle(node.taxon.id)}
+        >
+          <span className="tax-twist" aria-hidden="true">
+            {isOpen ? "▾" : "▸"}
+          </span>
+          {node.skipped ? <span className="tax-skip">⋯</span> : null}
+          <span className="tax-name">{node.taxon.name}</span>
+        </button>
+      ) : (
+        <div className="tax-item">
+          <span className="tax-twist is-leaf" aria-hidden="true" />
+          {node.skipped ? <span className="tax-skip">⋯</span> : null}
+          <span className="tax-name">{node.taxon.name}</span>
+        </div>
+      )}
       {isOpen && node.children.length > 0 && (
-        <ul className="phylo-children" role="group">
+        <ul className="tax-kids" role="group">
           {node.children.map((child) => (
             <TreeNode
               key={child.taxon.id}
               node={child}
-              taxonomy={taxonomy}
               expanded={expanded}
               flashId={flashId}
               lastMrcaId={lastMrcaId}
@@ -129,7 +144,7 @@ function TreeNode({
             />
           ))}
           {node.overflow ? (
-            <li className="phylo-overflow">{node.overflow} more</li>
+            <li className="tax-overflow">{node.overflow} more</li>
           ) : null}
         </ul>
       )}
@@ -139,23 +154,35 @@ function TreeNode({
 
 function TreeSkeleton() {
   return (
-    <ul className="phylo-tree is-loading" aria-hidden="true">
-      <li className="phylo-node is-constraint">
-        <div className="phylo-row">
-          <span className="phylo-dot" />
-          <span className="phylo-name">Animalia</span>
+    <ul className="tax-tree is-loading" aria-hidden="true">
+      <li className="tax-node is-constraint is-root is-open">
+        <div className="tax-item">
+          <span className="tax-twist">▾</span>
+          <span className="tax-name">Animalia</span>
         </div>
-        <ul className="phylo-children">
-          <li className="phylo-node is-remaining">
-            <div className="phylo-row">
-              <span className="phylo-dot" />
-              <span className="phylo-name">Bilateria</span>
+        <ul className="tax-kids">
+          <li className="tax-node is-remaining">
+            <div className="tax-item">
+              <span className="tax-twist is-leaf" />
+              <span className="tax-name">Porifera</span>
             </div>
-            <ul className="phylo-children">
-              <li className="phylo-node is-remaining">
-                <div className="phylo-row">
-                  <span className="phylo-dot" />
-                  <span className="phylo-name">Loading branches…</span>
+          </li>
+          <li className="tax-node is-remaining">
+            <div className="tax-item">
+              <span className="tax-twist">▸</span>
+              <span className="tax-name">Cnidaria</span>
+            </div>
+          </li>
+          <li className="tax-node is-remaining is-open">
+            <div className="tax-item">
+              <span className="tax-twist">▾</span>
+              <span className="tax-name">Bilateria</span>
+            </div>
+            <ul className="tax-kids">
+              <li className="tax-node is-remaining">
+                <div className="tax-item">
+                  <span className="tax-twist is-leaf" />
+                  <span className="tax-name">Loading branches…</span>
                 </div>
               </li>
             </ul>

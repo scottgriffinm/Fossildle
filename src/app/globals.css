@@ -14,6 +14,7 @@
   --bone: #e8dcc8;
   --shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
   --radius: 14px;
+  --tree-line: #8a7460;
   color-scheme: dark;
 }
 
@@ -428,133 +429,161 @@ input {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  padding: 2px 4px 8px 2px;
+  padding: 4px 8px 10px 6px;
 }
 
-.phylo-tree,
-.phylo-children {
+.tax-tree,
+.tax-kids {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.phylo-children {
-  margin-left: 9px;
-  padding-left: 12px;
-  border-left: 2px solid #4a3d30;
+.tax-kids {
+  position: relative;
+  margin-left: 0.55rem;
+  padding-left: 0.95rem;
 }
 
-.phylo-node {
+.tax-node {
   position: relative;
 }
 
-.phylo-node::before {
+.tax-node:not(.is-root)::before {
   content: "";
   position: absolute;
-  left: -13px;
-  top: 16px;
-  width: 11px;
-  border-top: 2px solid #4a3d30;
+  left: -0.95rem;
+  top: 0;
+  bottom: 0;
+  border-left: 1.5px solid var(--tree-line, #7a6854);
 }
 
-.phylo-tree > .phylo-node::before {
-  display: none;
+.tax-node:not(.is-root):last-child::before {
+  bottom: auto;
+  height: 0.95em;
 }
 
-.phylo-row {
+.tax-node:not(.is-root)::after {
+  content: "";
+  position: absolute;
+  left: -0.95rem;
+  top: 0.95em;
+  width: 0.9rem;
+  border-top: 1.5px solid var(--tree-line, #7a6854);
+}
+
+.tax-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   width: 100%;
-  min-height: 32px;
-  padding: 3px 8px;
+  min-height: 1.7em;
+  padding: 1px 6px 1px 2px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 3px;
   background: transparent;
   color: inherit;
   text-align: left;
-  cursor: pointer;
-}
-
-.phylo-row:disabled {
   cursor: default;
 }
 
-.phylo-row:hover:not(:disabled) {
+button.tax-item {
+  cursor: pointer;
+}
+
+button.tax-item:hover {
   background: rgba(208, 138, 74, 0.1);
 }
 
-.phylo-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--copper);
-  box-shadow: 0 0 0 3px rgba(208, 138, 74, 0.16);
-  flex: 0 0 auto;
+.tax-twist {
+  flex: 0 0 0.75rem;
+  width: 0.75rem;
+  color: var(--faint);
+  font-size: 0.62rem;
+  line-height: 1;
+  text-align: center;
 }
 
-.phylo-name {
+.tax-twist.is-leaf {
+  visibility: hidden;
+}
+
+.tax-name {
   font-family: var(--font-serif), serif;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  line-height: 1.25;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.phylo-skip {
-  color: var(--faint);
-  font-size: 0.72rem;
-  padding: 2px 8px 0 20px;
+.tax-node.is-genus > .tax-item .tax-name {
+  font-style: italic;
 }
 
-.phylo-overflow {
+.tax-skip {
+  color: var(--faint);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.tax-overflow {
+  position: relative;
   color: var(--faint);
   font-size: 0.75rem;
-  padding: 4px 8px 8px;
+  padding: 2px 8px 6px 2px;
 }
 
-.phylo-node.is-constraint > .phylo-row {
-  background: transparent;
+.tax-overflow::before {
+  content: "";
+  position: absolute;
+  left: -0.95rem;
+  top: 0;
+  height: 0.8em;
+  border-left: 1.5px solid var(--tree-line, #7a6854);
 }
 
-.phylo-node.is-constraint > .phylo-row .phylo-name {
+.tax-overflow::after {
+  content: "";
+  position: absolute;
+  left: -0.95rem;
+  top: 0.8em;
+  width: 0.9rem;
+  border-top: 1.5px solid var(--tree-line, #7a6854);
+}
+
+.tax-node.is-constraint > .tax-item .tax-name {
   color: var(--copper-2);
 }
 
-.phylo-node.is-constraint > .phylo-row .phylo-dot {
-  background: var(--copper-2);
-  box-shadow: 0 0 0 3px rgba(240, 195, 106, 0.28);
+.tax-node.is-shared > .tax-item {
+  background: rgba(240, 195, 106, 0.1);
+  box-shadow: inset 2px 0 0 var(--copper-2);
 }
 
-.phylo-node.is-shared > .phylo-row {
-  box-shadow: inset 0 0 0 1px var(--copper-2);
+.tax-node.is-pruned > .tax-item,
+.tax-node.is-outside > .tax-item {
+  opacity: 0.45;
 }
 
-.phylo-node.is-pruned > .phylo-row,
-.phylo-node.is-outside > .phylo-row {
-  opacity: 0.42;
-}
-
-.phylo-node.is-pruned .phylo-name {
+.tax-node.is-pruned > .tax-item .tax-name {
   text-decoration: line-through;
 }
 
-.phylo-node.is-pruned .phylo-dot {
-  background: var(--rust);
-  box-shadow: none;
+.tax-node.is-pruned:not(.is-root)::before,
+.tax-node.is-pruned:not(.is-root)::after,
+.tax-node.is-outside:not(.is-root)::before,
+.tax-node.is-outside:not(.is-root)::after {
+  border-color: #5c4e40;
 }
 
-.phylo-node.is-outside .phylo-dot {
-  background: var(--faint);
-  box-shadow: none;
-}
-
-.phylo-node.is-flash > .phylo-row {
+.tax-node.is-flash > .tax-item {
   animation: prune-flash 1.2s ease;
 }
 
-.phylo-tree.is-loading .phylo-name {
+.tax-tree.is-loading .tax-name {
   color: var(--muted);
 }
 
@@ -652,9 +681,13 @@ input {
     border-bottom: 1px solid var(--line);
   }
 
-  .phylo-row {
-    min-height: 30px;
-    padding: 2px 6px;
+  .tax-item {
+    min-height: 1.65em;
+    padding: 1px 4px 1px 0;
+  }
+
+  .tax-name {
+    font-size: 0.88rem;
   }
 
   .play-guesses {
@@ -689,8 +722,8 @@ input {
 }
 
 @media (max-width: 520px) {
-  .phylo-row {
-    min-height: 36px;
+  .tax-item {
+    min-height: 1.85em;
   }
 
   .attribution {
