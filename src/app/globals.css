@@ -16,8 +16,8 @@
   --radius: 14px;
   --tree-line: #8a7460;
   --tree-bg: #1a1611;
-  --label-h: 28px;
-  --rail: 14px;
+  --label-h: 24px;
+  --rail: 16px;
   --tree-stroke: 2px;
   color-scheme: dark;
 }
@@ -439,7 +439,8 @@ input {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  padding: 4px 2px 10px;
+  padding: 10px 12px 16px;
+  overscroll-behavior: contain;
 }
 
 .tax-tree,
@@ -449,22 +450,37 @@ input {
   padding: 0;
 }
 
-.tax-kids {
-  margin: 0;
-  padding: 0 0 0 var(--rail);
+/* Left-to-right cladogram: root on the left, tips to the right. */
+.tax-tree.is-ltr {
+  display: block;
+  width: max-content;
+  min-height: 100%;
 }
 
-.tax-node {
+.tax-tree.is-ltr .tax-node {
   position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: max-content;
+}
+
+.tax-tree.is-ltr .tax-kids {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0;
+  padding: 0 0 0 var(--rail);
 }
 
 .tax-item {
   position: relative;
   display: flex;
   align-items: center;
-  width: 100%;
+  flex: 0 0 auto;
+  width: auto;
   height: var(--label-h);
-  padding: 0 6px 0 8px;
+  padding: 0 8px 0 4px;
   border: 0;
   border-radius: 2px;
   background: transparent;
@@ -486,10 +502,10 @@ button.tax-item:focus-visible {
   outline-offset: -2px;
 }
 
-/* Tiny unboxed chevron: collapsed branches are clickable, not +/− boxes. */
+/* Chevron only when a branch is collapsed — default view is names only. */
 button.tax-item .tax-name::after {
   content: "";
-  display: inline-block;
+  display: none;
   width: 0.28em;
   height: 0.28em;
   margin-left: 0.38em;
@@ -500,11 +516,20 @@ button.tax-item .tax-name::after {
   vertical-align: 0.12em;
 }
 
-.tax-node.is-open > button.tax-item .tax-name::after {
-  transform: rotate(45deg) translateY(-0.12em);
+.tax-node.is-expandable:not(.is-open) > button.tax-item .tax-name::after {
+  display: inline-block;
 }
 
-.tax-kids > .tax-node::before {
+.tax-tree.is-ltr .tax-node:has(> .tax-kids) > .tax-item::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 8px;
+  border-top: var(--tree-stroke) solid var(--tree-line);
+}
+
+.tax-tree.is-ltr .tax-kids > .tax-node::before {
   content: "";
   position: absolute;
   left: calc(-1 * var(--rail));
@@ -513,16 +538,26 @@ button.tax-item .tax-name::after {
   border-left: var(--tree-stroke) solid var(--tree-line);
 }
 
-.tax-kids > .tax-node:last-child::before {
-  bottom: auto;
-  height: calc(var(--label-h) / 2);
+.tax-tree.is-ltr .tax-kids > .tax-node:first-child::before {
+  top: 50%;
 }
 
-.tax-kids > .tax-node::after {
+.tax-tree.is-ltr .tax-kids > .tax-node:last-child::before {
+  bottom: 50%;
+}
+
+.tax-tree.is-ltr .tax-kids > .tax-node:only-child::before {
+  top: 50%;
+  bottom: auto;
+  height: 0;
+  border-left: 0;
+}
+
+.tax-tree.is-ltr .tax-kids > .tax-node::after {
   content: "";
   position: absolute;
   left: calc(-1 * var(--rail));
-  top: calc(var(--label-h) / 2);
+  top: 50%;
   width: var(--rail);
   border-top: var(--tree-stroke) solid var(--tree-line);
 }
@@ -672,6 +707,10 @@ button.tax-item .tax-name::after {
 
   .tax-name {
     font-size: 0.95rem;
+  }
+
+  .tree-scroll {
+    padding: 12px 14px 18px;
   }
 }
 

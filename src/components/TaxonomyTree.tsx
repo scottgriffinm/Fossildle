@@ -75,7 +75,7 @@ export function TaxonomyTree({
         {loading || !tree || !taxonomy ? (
           <TreeSkeleton />
         ) : (
-          <ul className="tax-tree" role="tree" aria-label="Remaining taxonomic hierarchy">
+          <ul className="tax-tree is-ltr" role="tree" aria-label="Remaining taxonomic hierarchy">
             <TreeNode
               node={tree}
               flashId={flashId}
@@ -161,7 +161,7 @@ function TreeNode({
 
 function TreeSkeleton() {
   return (
-    <ul className="tax-tree is-loading" aria-hidden="true">
+    <ul className="tax-tree is-ltr is-loading" aria-hidden="true">
       <li className="tax-node is-constraint is-root is-open">
         <div className="tax-item">
           <span className="tax-name">Animalia</span>
@@ -172,7 +172,7 @@ function TreeSkeleton() {
               <span className="tax-name">Porifera</span>
             </div>
           </li>
-          <li className="tax-node is-remaining is-expandable">
+          <li className="tax-node is-remaining is-open">
             <div className="tax-item">
               <span className="tax-name">Cnidaria</span>
             </div>
