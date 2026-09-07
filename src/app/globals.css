@@ -16,7 +16,9 @@
   --radius: 14px;
   --tree-line: #8a7460;
   --tree-bg: #1a1611;
-  --row: 1.55em;
+  --label-h: 28px;
+  --rail: 14px;
+  --tree-stroke: 2px;
   color-scheme: dark;
 }
 
@@ -448,97 +450,62 @@ input {
 }
 
 .tax-kids {
-  position: relative;
-  margin: 0.08em 0 0.14em 0.55em;
+  margin: 0;
+  padding: 0 0 0 var(--rail);
 }
 
 .tax-node {
   position: relative;
 }
 
-.tax-kids > .tax-node {
-  padding-left: 1.2rem;
-}
-
-.tax-kids > .tax-node::before {
-  content: "";
-  position: absolute;
-  left: 0.42rem;
-  top: 0;
-  bottom: 0;
-  border-left: 1.5px solid var(--tree-line);
-}
-
-.tax-kids > .tax-node:last-child::before {
-  bottom: auto;
-  height: calc(var(--row) / 2);
-}
-
-.tax-kids > .tax-node::after {
-  content: "";
-  position: absolute;
-  left: 0.42rem;
-  top: calc(var(--row) / 2);
-  width: 0.78rem;
-  border-top: 1.5px solid var(--tree-line);
-}
-
 .tax-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.45rem;
   width: 100%;
-  min-height: var(--row);
-  padding: 0 6px 0 2px;
+  height: var(--label-h);
+  padding: 0 6px 0 8px;
   border: 0;
   border-radius: 2px;
   background: transparent;
   color: inherit;
   text-align: left;
-  cursor: default;
 }
 
-button.tax-item {
-  cursor: pointer;
+.tax-kids > .tax-node::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--rail));
+  top: 0;
+  bottom: 0;
+  border-left: var(--tree-stroke) solid var(--tree-line);
 }
 
-button.tax-item:hover .tax-name {
-  color: var(--copper-2);
+.tax-kids > .tax-node:last-child::before {
+  bottom: auto;
+  height: calc(var(--label-h) / 2);
 }
 
-.tax-twist {
-  flex: 0 0 1rem;
-  width: 1rem;
-  height: 1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #7a6856;
-  border-radius: 2px;
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  line-height: 1;
-  background: rgba(20, 16, 12, 0.4);
-}
-
-.tax-twist:empty {
-  border-color: transparent;
-  background: transparent;
+.tax-kids > .tax-node::after {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--rail));
+  top: calc(var(--label-h) / 2);
+  width: var(--rail);
+  border-top: var(--tree-stroke) solid var(--tree-line);
 }
 
 .tax-name {
   font-family: var(--font-serif), "Fraunces", serif;
   font-size: 0.98rem;
-  line-height: 1.25;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.2;
+  flex: 0 0 auto;
   white-space: nowrap;
 }
 
 .tax-rank {
-  margin-left: auto;
+  margin-left: 0.45rem;
   color: var(--faint);
   font-family: var(--font-sans), "Source Sans 3", sans-serif;
   font-size: 0.64rem;
@@ -551,67 +518,8 @@ button.tax-item:hover .tax-name {
   font-style: italic;
 }
 
-.tax-skip {
-  color: var(--faint);
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  line-height: 1;
-}
-
-.tax-overflow {
-  position: relative;
-  padding: 0 4px 6px 1.2rem;
-  color: var(--faint);
-  font-size: 0.72rem;
-}
-
-.tax-overflow::before {
-  content: "";
-  position: absolute;
-  left: 0.42rem;
-  top: 0;
-  height: 0.78em;
-  border-left: 1.5px solid var(--tree-line);
-}
-
-.tax-overflow::after {
-  content: "";
-  position: absolute;
-  left: 0.42rem;
-  top: 0.78em;
-  width: 0.78rem;
-  border-top: 1.5px solid var(--tree-line);
-}
-
 .tax-node.is-constraint > .tax-item .tax-name {
   color: var(--copper-2);
-}
-
-.tax-node.is-shared > .tax-item {
-  width: max-content;
-  max-width: 100%;
-  box-shadow: inset 2px 0 0 var(--copper-2);
-}
-
-.tax-node.is-pruned > .tax-item,
-.tax-node.is-outside > .tax-item {
-  opacity: 0.42;
-}
-
-.tax-node.is-pruned > .tax-item .tax-name {
-  text-decoration: line-through;
-}
-
-.tax-node.is-pruned > .tax-item .tax-twist,
-.tax-node.is-outside > .tax-item .tax-twist {
-  border-color: #5c4e40;
-}
-
-.tax-kids > .tax-node.is-pruned::before,
-.tax-kids > .tax-node.is-pruned::after,
-.tax-kids > .tax-node.is-outside::before,
-.tax-kids > .tax-node.is-outside::after {
-  border-color: #5c4e40;
 }
 
 .tax-node.is-flash > .tax-item {
@@ -624,7 +532,7 @@ button.tax-item:hover .tax-name {
 
 @keyframes prune-flash {
   0% {
-    background: rgba(196, 92, 74, 0.35);
+    background: rgba(240, 195, 106, 0.22);
   }
   100% {
     background: transparent;

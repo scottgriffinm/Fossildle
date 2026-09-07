@@ -62,9 +62,10 @@ Helpers (`src/lib/taxonomy.ts`):
 - `mrca(a, b)`
 - `pruneRemaining(answerId, guesses[])`
 
-The tree UI starts at Animalia (phyla and major clades visible) and visually
-narrows to the current constraint after each guess. Autocomplete uses the same
-remaining set.
+The tree UI starts at Animalia (phyla and major clades visible, always
+expanded) and after each miss shows only the remaining constraint subtree —
+pruned clades are removed from the view, not greyed. Autocomplete uses the
+same remaining set.
 
 ## Daily rotation
 
