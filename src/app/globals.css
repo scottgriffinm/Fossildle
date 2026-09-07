@@ -500,14 +500,12 @@ input {
   font-family: var(--font-serif), "Fraunces", serif;
   font-size: 0.98rem;
   line-height: 1.2;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex: 0 0 auto;
   white-space: nowrap;
 }
 
 .tax-rank {
-  margin-left: auto;
+  margin-left: 0.45rem;
   color: var(--faint);
   font-family: var(--font-sans), "Source Sans 3", sans-serif;
   font-size: 0.64rem;
