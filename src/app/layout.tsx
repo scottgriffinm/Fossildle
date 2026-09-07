@@ -22,7 +22,7 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Fossildle — daily fossil animal",
+  title: "Fossildle — daily fossil identification",
   description:
     "A Wordle-like daily puzzle for fossils. Guess the animal; the taxonomic tree prunes after every miss.",
   icons: { icon: "/favicon.svg" },
