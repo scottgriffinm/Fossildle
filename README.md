@@ -1,8 +1,8 @@
 # Fossildle
 
 Wordle for fossils. Each UTC day shows one specimen photograph. Guess the
-**animal**. After every miss the taxonomic tree prunes to the clade
-you still share with the answer.
+**animal**. After every miss the taxonomic path lights green as deep as
+the clade you still share with the answer.
 
 The game is fully client-side after load. Taxonomy and images are static
 assets. There is no gameplay API.
@@ -64,6 +64,6 @@ See `SPEC.md` for the prune rule and daily-seed math.
 npm test
 ```
 
-Covers `mrca`, `pathToRoot`, `pruneRemaining`, species→genus aliases,
-deterministic UTC daily rotation, and “all starter genera resolve on the
-shipped tree”.
+Covers `mrca`, `pathToRoot`, `pruneRemaining`, rank-path green depth,
+species→genus aliases, deterministic UTC daily rotation, and “all
+starter genera resolve on the shipped tree”.
