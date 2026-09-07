@@ -51,7 +51,7 @@ export default function AboutPage() {
 
         <h2>Daily puzzle</h2>
         <p>
-          The 17-specimen catalog is shuffled once with a constant seed
+          The 32-specimen catalog is shuffled once with a constant seed
           (<code>0xF05511DE</code>), then indexed by{" "}
           <code>utcDayIndex % poolLength</code>. Everyone on Earth gets the same
           fossil from 00:00 UTC to the next midnight.
