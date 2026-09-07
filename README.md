@@ -40,7 +40,7 @@ This is a standard Next.js App Router app.
 
 | Path | Role |
 | --- | --- |
-| `data/fossils.json` | Daily pool (17 verified PBDB genera + Commons images) |
+| `data/fossils.json` | Daily pool (32 verified PBDB genera + Commons images) |
 | `public/fossils/` | Local copies of the photographs + attribution manifest |
 | `public/data/taxonomy.json` | Offline Animalia tree used in the browser |
 | `scripts/build-taxonomy.mjs` | Rebuilds the tree from [PBDB data1.2](https://paleobiodb.org/data1.2/) |
