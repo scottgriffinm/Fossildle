@@ -22,7 +22,7 @@ today's guesses (`fossildle:v1:YYYY-MM-DD`).
 
 ## Guessing
 
-- Rank to guess: **genus** (six attempts). Player-facing copy says **animal**.
+- Rank to guess: **genus** (six attempts). Player-facing Identify/Guess copy says **Guess the fossil**.
 - Matching is case-insensitive and accent-insensitive.
 - A species or subspecies binomial that maps to a genus via shipped aliases
   (PBDB children of each starter genus, plus the genus name itself) is treated

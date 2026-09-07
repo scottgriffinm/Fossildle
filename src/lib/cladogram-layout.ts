@@ -18,23 +18,31 @@ export type CladogramMetrics = {
 };
 
 /**
- * Packed LTR crown. Internals sit above the incoming run; tips hang off the
- * line end — phylotree.js rectangular + textbook cladogram.
+ * Packed LTR crown sized so the opening Animalia radiation plus tip names
+ * fit a ~390px phone without clipping. Internals sit above the incoming run;
+ * tips hang off the line end — phylotree.js rectangular + textbook cladogram.
  */
 export const DEFAULT_METRICS: CladogramMetrics = {
-  rowHeight: 22,
-  charWidth: 6.6,
-  fontSize: 11,
-  labelPadX: 4,
-  labelInset: 5,
-  labelLift: 8,
+  rowHeight: 18,
+  charWidth: 6.0,
+  fontSize: 10,
+  labelPadX: 3,
+  labelInset: 3,
+  labelLift: 6,
   tipGap: 3,
-  branchPad: 10,
-  branchMin: 40,
-  stemMin: 44,
-  padX: 8,
-  padY: 18,
+  branchPad: 6,
+  branchMin: 26,
+  stemMin: 34,
+  padX: 4,
+  padY: 12,
 };
+
+/** Extra px after the rightmost tip so serif paint cannot clip. */
+export const TIP_SAFETY = 10;
+
+/** Allow the opening crown to shrink further on a 390px phone. */
+export const FIT_MIN = 0.5;
+export const FIT_PAD = 2;
 
 export type PlacedNode = {
   id: number;
@@ -282,7 +290,7 @@ export function layoutCladogram(
   }
 
   const height = Math.ceil(maxY - minY + metrics.padY * 2);
-  const width = Math.ceil(maxRight + metrics.padX);
+  const width = Math.ceil(maxRight + metrics.padX + TIP_SAFETY);
 
   return {
     root: placedRoot,
@@ -305,7 +313,7 @@ export function fitScale(
   options?: { min?: number; max?: number; pad?: number },
 ): number {
   const pad = options?.pad ?? 0;
-  const min = options?.min ?? 0.62;
+  const min = options?.min ?? FIT_MIN;
   const max = options?.max ?? 1;
   const viewW = Math.max(1, viewWidth - pad);
   const viewH = Math.max(1, viewHeight - pad);

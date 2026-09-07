@@ -496,6 +496,10 @@ input {
   overflow: visible;
 }
 
+.cladogram-fit.is-fit {
+  overflow: hidden;
+}
+
 .cladogram {
   display: block;
   overflow: visible;
@@ -531,7 +535,7 @@ input {
 .cladogram .tax-name {
   fill: var(--ink);
   font-family: var(--font-serif), "Fraunces", serif;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.01em;
   pointer-events: none;
 }
