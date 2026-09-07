@@ -63,18 +63,20 @@ Helpers (`src/lib/taxonomy.ts`):
 - `pruneRemaining(answerId, guesses[])`
 
 The play UI is a Wordle-like **taxonomic path**, not a tree. The chain
-is the answer’s real ranks from Animalia toward the genus — kingdom,
-phylum, class, order, family, genus (deepest taxon of each rank so
-PBDB stem duplicates drop out), plus named clades that matter for play
-(Bilateria, Eubilateria, Protostomia, Deuterostomia, Dinosauria,
-Trilobita, Ammonoidea, Mammalia, Avialae). No invented ranks.
+is a clean standard-rank ladder from the answer path: kingdom, phylum,
+class, order, family, genus — only ranks that actually exist, deepest
+taxon of each so PBDB stem duplicates drop out. Unranked stem wrappers
+(Bilateria, Eubilateria, Protostomia, Deuterostomia, and the like) are
+not padded in as empty CLADE tiles.
 
 Green = taxa on the shared path from Animalia down to the remaining
 constraint (the MRCA of the latest miss and the answer). Deeper
-divergence stays muted: rank label + ellipsis, never prune leftovers.
-A constraint that is a real taxon but not already a play rank is
-inserted on the chain. A hit greens the whole path, including genus.
-Autocomplete still uses the remaining set from `pruneRemaining`.
+standard ranks stay muted: rank label + ellipsis, never prune leftovers.
+If the current constraint is a named non-standard clade (Amniota,
+Dinosauria, Eubilateria, …) it is inserted **by that name** so green
+depth is visible; it is never shown as a blank CLADE slot. A hit greens
+the whole path, including genus. Autocomplete still uses the remaining
+set from `pruneRemaining`.
 
 ## Daily rotation
 

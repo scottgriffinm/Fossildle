@@ -1,7 +1,7 @@
 import type { TaxonomyIndex } from "./taxonomy";
 import type { GameStatus, PruneState, Taxon } from "./types";
 
-/** Linnaean ranks that stay on the play chain. Deeper duplicate ranks
+/** Standard Linnaean ranks on the play chain. Deeper duplicate ranks
  *  (Osteichthyes vs Reptilia) keep only the taxon closest to the answer. */
 export const PLAY_RANKS = [
   "kingdom",
@@ -12,18 +12,7 @@ export const PLAY_RANKS = [
   "genus",
 ] as const;
 
-/** Real clades that matter for play even when PBDB leaves them unranked. */
-export const PLAY_CLADES = new Set([
-  "Bilateria",
-  "Eubilateria",
-  "Protostomia",
-  "Deuterostomia",
-  "Dinosauria",
-  "Trilobita",
-  "Ammonoidea",
-  "Mammalia",
-  "Avialae",
-]);
+export type PlayRank = (typeof PLAY_RANKS)[number];
 
 export type PathSegmentState = "green" | "unknown" | "revealed";
 
@@ -33,12 +22,16 @@ export type RankSegment = {
   state: PathSegmentState;
 };
 
+export function isPlayRank(rank: string): rank is PlayRank {
+  return (PLAY_RANKS as readonly string[]).includes(rank);
+}
+
 export function rankLabel(taxon: Taxon): string {
   if (taxon.rank === "unranked" || taxon.rank === "informal") return "clade";
   return taxon.rank;
 }
 
-/** Readable Animalia → genus chain using real taxa from the answer path. */
+/** Readable Animalia → genus chain using only standard ranks on the answer path. */
 export function playRankPath(taxonomy: TaxonomyIndex, answerId: number): Taxon[] {
   const full = taxonomy
     .pathToRoot(answerId)
@@ -47,18 +40,17 @@ export function playRankPath(taxonomy: TaxonomyIndex, answerId: number): Taxon[]
 
   const deepestByRank = new Map<string, Taxon>();
   for (const taxon of full) {
-    if ((PLAY_RANKS as readonly string[]).includes(taxon.rank)) {
-      deepestByRank.set(taxon.rank, taxon);
-    }
+    if (isPlayRank(taxon.rank)) deepestByRank.set(taxon.rank, taxon);
   }
 
-  const keep = new Set<number>([full[0]!.id, answerId]);
-  for (const taxon of deepestByRank.values()) keep.add(taxon.id);
-  for (const taxon of full) {
-    if (PLAY_CLADES.has(taxon.name)) keep.add(taxon.id);
-  }
+  const path = PLAY_RANKS.map((rank) => deepestByRank.get(rank)).filter(
+    (taxon): taxon is Taxon => taxon != null,
+  );
 
-  return full.filter((taxon) => keep.has(taxon.id));
+  if (!path.some((taxon) => taxon.id === answerId)) {
+    path.push(taxonomy.require(answerId));
+  }
+  return path;
 }
 
 /**
@@ -109,13 +101,19 @@ export function colorRankPath(
   const path = withConstraint(taxonomy, playRankPath(taxonomy, answerId), sharedId);
   const revealRest = status === "lost";
 
-  return path.map((taxon) => {
+  return path.flatMap((taxon) => {
     const green = isOnSharedPath(taxonomy, taxon.id, sharedId);
     const state: PathSegmentState = green ? "green" : revealRest ? "revealed" : "unknown";
-    return {
-      taxon,
-      rankLabel: rankLabel(taxon),
-      state,
-    };
+    // Never pad with unlabeled clade slots (Bilateria / Eubilateria / …).
+    // A non-standard clade appears only when it is known: the current
+    // constraint (green) or a revealed leftover after a loss.
+    if (!isPlayRank(taxon.rank) && state === "unknown") return [];
+    return [
+      {
+        taxon,
+        rankLabel: rankLabel(taxon),
+        state,
+      },
+    ];
   });
 }

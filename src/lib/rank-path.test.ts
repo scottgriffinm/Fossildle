@@ -1,8 +1,10 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { fossils } from "./catalog";
 import {
   colorRankPath,
+  isPlayRank,
   playRankPath,
   rankLabel,
   sharedDepthId,
@@ -38,22 +40,25 @@ function states(segments: { state: string }[]): string[] {
   return segments.map((segment) => segment.state);
 }
 
+function labels(segments: { rankLabel: string }[]): string[] {
+  return segments.map((segment) => segment.rankLabel);
+}
+
+function unknownClades(segments: { rankLabel: string; state: string }[]) {
+  return segments.filter((segment) => segment.rankLabel === "clade" && segment.state === "unknown");
+}
+
 describe("play rank path", () => {
   const tax = new TaxonomyIndex(fixture());
 
-  it("keeps real play ranks and named clades, not every PBDB stem", () => {
-    expect(names(playRankPath(tax, 5))).toEqual([
-      "Animalia",
-      "Chordata",
-      "Dinosauria",
-      "Tyrannosaurus",
-    ]);
+  it("keeps the standard rank ladder, not unranked stem clades", () => {
+    expect(names(playRankPath(tax, 5))).toEqual(["Animalia", "Chordata", "Tyrannosaurus"]);
     expect(playRankPath(tax, 5).map((taxon) => taxon.rank)).toEqual([
       "kingdom",
       "phylum",
-      "unranked",
       "genus",
     ]);
+    expect(names(playRankPath(tax, 5))).not.toContain("Dinosauria");
     expect(names(playRankPath(tax, 5))).not.toContain("Theropoda");
   });
 
@@ -64,24 +69,24 @@ describe("play rank path", () => {
     expect(path.some((taxon) => taxon.rank === "order")).toBe(false);
   });
 
-  it("labels unranked play clades as clade, not a fake rank", () => {
+  it("labels unranked taxa as clade, not a fake rank", () => {
     expect(rankLabel(tax.require(3))).toBe("clade");
     expect(rankLabel(tax.require(2))).toBe("phylum");
+    expect(isPlayRank("unranked")).toBe(false);
   });
 });
 
 describe("green depth from MRCA / remaining constraint", () => {
   const tax = new TaxonomyIndex(fixture());
 
-  it("starts green only at Animalia", () => {
+  it("starts green only at Animalia on the standard ladder", () => {
     const open = tax.pruneRemaining(5, []);
     const path = colorRankPath(tax, 5, open);
     expect(sharedDepthId(tax, 5, open)).toBe(1);
-    expect(names(path)).toEqual(["Animalia", "Chordata", "Dinosauria", "Tyrannosaurus"]);
-    expect(states(path)).toEqual(["green", "unknown", "unknown", "unknown"]);
-    expect(path.find((seg) => seg.taxon.name === "Tyrannosaurus")?.taxon.name).toBe(
-      "Tyrannosaurus",
-    );
+    expect(names(path)).toEqual(["Animalia", "Chordata", "Tyrannosaurus"]);
+    expect(labels(path)).toEqual(["kingdom", "phylum", "genus"]);
+    expect(states(path)).toEqual(["green", "unknown", "unknown"]);
+    expect(unknownClades(path)).toEqual([]);
     expect(path.at(-1)?.state).toBe("unknown");
   });
 
@@ -89,17 +94,20 @@ describe("green depth from MRCA / remaining constraint", () => {
     const after = tax.pruneRemaining(5, [13]);
     expect(tax.require(after.constraintId).name).toBe("Animalia");
     const path = colorRankPath(tax, 5, after);
-    expect(states(path)).toEqual(["green", "unknown", "unknown", "unknown"]);
+    expect(states(path)).toEqual(["green", "unknown", "unknown"]);
     expect(names(path)).not.toContain("Arthropoda");
     expect(names(path)).not.toContain("Phacops");
+    expect(unknownClades(path)).toEqual([]);
   });
 
-  it("greens down to Dinosauria after a close miss", () => {
+  it("inserts Dinosauria by name after a close miss, not as a blank clade", () => {
     const after = tax.pruneRemaining(5, [13, 7]);
     expect(tax.require(after.constraintId).name).toBe("Dinosauria");
     const path = colorRankPath(tax, 5, after);
     expect(names(path)).toEqual(["Animalia", "Chordata", "Dinosauria", "Tyrannosaurus"]);
     expect(states(path)).toEqual(["green", "green", "green", "unknown"]);
+    expect(path.find((seg) => seg.taxon.name === "Dinosauria")?.rankLabel).toBe("clade");
+    expect(unknownClades(path)).toEqual([]);
     expect(names(path)).not.toContain("Ornithischia");
     expect(names(path)).not.toContain("Triceratops");
   });
@@ -115,7 +123,6 @@ describe("green depth from MRCA / remaining constraint", () => {
     expect(names(withConstraint(tax, playRankPath(tax, 5), 4))).toEqual([
       "Animalia",
       "Chordata",
-      "Dinosauria",
       "Theropoda",
       "Tyrannosaurus",
     ]);
@@ -123,6 +130,7 @@ describe("green depth from MRCA / remaining constraint", () => {
     expect(names(path)).toContain("Theropoda");
     expect(path.find((seg) => seg.taxon.name === "Theropoda")?.state).toBe("green");
     expect(path.find((seg) => seg.taxon.name === "Tyrannosaurus")?.state).toBe("unknown");
+    expect(unknownClades(path)).toEqual([]);
   });
 
   it("turns the whole path green on a hit", () => {
@@ -131,6 +139,7 @@ describe("green depth from MRCA / remaining constraint", () => {
     const path = colorRankPath(tax, 5, won, "won");
     expect(states(path).every((state) => state === "green")).toBe(true);
     expect(names(path).at(-1)).toBe("Tyrannosaurus");
+    expect(unknownClades(path)).toEqual([]);
   });
 
   it("reveals remaining names after a loss without calling them green", () => {
@@ -138,6 +147,7 @@ describe("green depth from MRCA / remaining constraint", () => {
     const path = colorRankPath(tax, 5, lost, "lost");
     expect(path.find((seg) => seg.taxon.name === "Dinosauria")?.state).toBe("green");
     expect(path.find((seg) => seg.taxon.name === "Tyrannosaurus")?.state).toBe("revealed");
+    expect(unknownClades(path)).toEqual([]);
   });
 });
 
@@ -150,69 +160,100 @@ describe("play path on the shipped Animalia artifact", () => {
   const phacops = parsePbdbOid("txn:21701");
   const triceratops = parsePbdbOid("txn:38862");
 
-  it("uses a short real-rank chain for Tyrannosaurus", () => {
+  it("uses a standard-rank chain for Tyrannosaurus, not clade padding", () => {
     const path = playRankPath(tax, answer);
     expect(names(path)).toEqual([
       "Animalia",
-      "Bilateria",
-      "Eubilateria",
-      "Deuterostomia",
       "Chordata",
       "Reptilia",
-      "Dinosauria",
       "Tyrannosauridae",
       "Tyrannosaurus",
     ]);
+    expect(path.every((taxon) => isPlayRank(taxon.rank))).toBe(true);
+    expect(names(path)).not.toContain("Bilateria");
+    expect(names(path)).not.toContain("Eubilateria");
+    expect(names(path)).not.toContain("Deuterostomia");
+    expect(names(path)).not.toContain("Dinosauria");
     expect(names(path)).not.toContain("Osteichthyes");
     expect(names(path)).not.toContain("Dipnotetrapodomorpha");
-    expect(names(path)).not.toContain("Amphibiosauria");
     expect(path.some((taxon) => taxon.rank === "subclass")).toBe(false);
   });
 
-  it("greens through Eubilateria after an arthropod miss", () => {
+  it("opens with Animalia green and no blank CLADE tiles", () => {
+    const open = colorRankPath(tax, answer, tax.pruneRemaining(answer, []));
+    expect(open[0]).toMatchObject({
+      taxon: { name: "Animalia" },
+      rankLabel: "kingdom",
+      state: "green",
+    });
+    expect(labels(open)).toEqual(["kingdom", "phylum", "class", "family", "genus"]);
+    expect(states(open)).toEqual(["green", "unknown", "unknown", "unknown", "unknown"]);
+    expect(unknownClades(open)).toEqual([]);
+  });
+
+  it("inserts Eubilateria by name after an arthropod miss", () => {
     const after = tax.pruneRemaining(answer, [phacops]);
     expect(tax.require(after.constraintId).name).toBe("Eubilateria");
     const path = colorRankPath(tax, answer, after);
     expect(path.filter((seg) => seg.state === "green").map((seg) => seg.taxon.name)).toEqual([
       "Animalia",
-      "Bilateria",
       "Eubilateria",
     ]);
+    expect(path.find((seg) => seg.taxon.name === "Eubilateria")?.rankLabel).toBe("clade");
     expect(path.find((seg) => seg.taxon.name === "Chordata")?.state).toBe("unknown");
-    expect(path.find((seg) => seg.taxon.name === "Dinosauria")?.state).toBe("unknown");
     expect(path.find((seg) => seg.taxon.name === "Tyrannosaurus")?.state).toBe("unknown");
+    expect(names(path)).not.toContain("Bilateria");
+    expect(names(path)).not.toContain("Deuterostomia");
     expect(names(path)).not.toContain("Protostomia");
     expect(names(path)).not.toContain("Arthropoda");
     expect(names(path)).not.toContain("Phacops");
+    expect(unknownClades(path)).toEqual([]);
   });
 
-  it("greens through Dinosauria after a close miss", () => {
+  it("inserts Dinosauria by name after a close miss", () => {
     const after = tax.pruneRemaining(answer, [phacops, triceratops]);
     expect(tax.require(after.constraintId).name).toBe("Dinosauria");
     const path = colorRankPath(tax, answer, after);
     expect(path.filter((seg) => seg.state === "green").map((seg) => seg.taxon.name)).toEqual([
       "Animalia",
-      "Bilateria",
-      "Eubilateria",
-      "Deuterostomia",
       "Chordata",
       "Reptilia",
       "Dinosauria",
     ]);
+    expect(path.find((seg) => seg.taxon.name === "Dinosauria")?.rankLabel).toBe("clade");
     expect(path.find((seg) => seg.taxon.name === "Tyrannosauridae")?.state).toBe("unknown");
+    expect(names(path)).not.toContain("Bilateria");
+    expect(names(path)).not.toContain("Eubilateria");
     expect(names(path)).not.toContain("Ornithischia");
     expect(names(path)).not.toContain("Triceratops");
+    expect(unknownClades(path)).toEqual([]);
   });
 
-  it("inserts Amniota when that is the remaining constraint", () => {
+  it("inserts Amniota by name when that is the remaining constraint", () => {
     const mammoth = parsePbdbOid("txn:43266");
     const after = tax.pruneRemaining(mammoth, [phacops, triceratops]);
     expect(tax.require(after.constraintId).name).toBe("Amniota");
     const path = colorRankPath(tax, mammoth, after);
     expect(names(path)).toContain("Amniota");
     expect(path.find((seg) => seg.taxon.name === "Amniota")?.state).toBe("green");
+    expect(path.find((seg) => seg.taxon.name === "Amniota")?.rankLabel).toBe("clade");
     expect(path.find((seg) => seg.taxon.name === "Mammalia")?.state).toBe("unknown");
     expect(names(path)).not.toContain("Porifera");
     expect(names(path)).not.toContain("Phacops");
+    expect(unknownClades(path)).toEqual([]);
+  });
+
+  it("never pads catalog opening paths with unlabeled clade tiles", () => {
+    for (const fossil of fossils) {
+      const path = colorRankPath(tax, fossil.taxonId, tax.pruneRemaining(fossil.taxonId, []));
+      expect(unknownClades(path), fossil.id).toEqual([]);
+      expect(
+        path.filter((seg) => !isPlayRank(seg.taxon.rank)),
+        fossil.id,
+      ).toEqual([]);
+      expect(path[0]?.taxon.name, fossil.id).toBe("Animalia");
+      expect(path[0]?.state, fossil.id).toBe("green");
+      expect(path.every((seg) => isPlayRank(seg.taxon.rank)), fossil.id).toBe(true);
+    }
   });
 });

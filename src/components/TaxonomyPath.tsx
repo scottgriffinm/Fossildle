@@ -80,6 +80,8 @@ export function TaxonomyPath({
   );
 }
 
+const SKELETON_RANKS = ["phylum", "class", "order", "family", "genus"] as const;
+
 function PathSkeleton() {
   return (
     <ol className="rank-path is-loading" aria-hidden="true">
@@ -92,21 +94,19 @@ function PathSkeleton() {
           →
         </span>
       </li>
-      <li className="rank-step">
-        <span className="rank-chip is-unknown">
-          <span className="rank-label">phylum</span>
-          <span className="rank-name">…</span>
-        </span>
-        <span className="rank-arrow" aria-hidden="true">
-          →
-        </span>
-      </li>
-      <li className="rank-step">
-        <span className="rank-chip is-unknown">
-          <span className="rank-label">genus</span>
-          <span className="rank-name">…</span>
-        </span>
-      </li>
+      {SKELETON_RANKS.map((rank, index) => (
+        <li key={rank} className="rank-step">
+          <span className="rank-chip is-unknown">
+            <span className="rank-label">{rank}</span>
+            <span className="rank-name">…</span>
+          </span>
+          {index < SKELETON_RANKS.length - 1 ? (
+            <span className="rank-arrow" aria-hidden="true">
+              →
+            </span>
+          ) : null}
+        </li>
+      ))}
     </ol>
   );
 }

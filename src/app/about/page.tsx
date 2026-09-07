@@ -15,9 +15,9 @@ export default function AboutPage() {
           Each UTC day shows one fossil photograph. You have six guesses to name
           the <em>animal</em> — the creature that fossil came from. Common names
           work when we have them (mammoth, T. rex), and so do scientific names.
-          After every miss, matching ranks on the taxonomic path turn green
-          down to the clade you still share with the answer. Search only
-          offers animals that are still possible.
+          After every miss, matching standard ranks on the taxonomic path
+          turn green down to the clade you still share with the answer.
+          Search only offers animals that are still possible.
         </p>
 
         <h2>Prune rule</h2>
