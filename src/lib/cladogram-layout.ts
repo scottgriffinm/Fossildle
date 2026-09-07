@@ -30,7 +30,13 @@ export type PlacedNode = {
 
 export type CladogramEdge = {
   d: string;
+  kind: "stem" | "spine" | "twig";
 };
+
+/** Horizontal run from the right edge of a parent label to the child elbow. */
+export function parentStemX(parentRight: number, metrics: CladogramMetrics = DEFAULT_METRICS): number {
+  return parentRight + metrics.rail;
+}
 
 export type CladogramLayout = {
   root: PlacedNode;
@@ -106,21 +112,34 @@ export function layoutCladogram(
     if (node.children.length === 0) return;
 
     const parentRight = node.x + node.labelWidth;
-    const elbowX = parentRight + metrics.rail * 0.45;
+    const elbowX = parentStemX(parentRight, metrics);
     const first = node.children[0]!;
     const last = node.children[node.children.length - 1]!;
 
+    // Separate path elements: compound H/V subpaths drop segments on some
+    // mobile WebKit compositors after a CSS scale transform.
     if (node.children.length === 1 && Math.abs(first.y - node.y) < 0.5) {
-      edges.push({ d: `M ${parentRight} ${node.y} H ${first.x}` });
+      edges.push({
+        kind: "stem",
+        d: `M ${fmt(parentRight)} ${fmt(node.y)} L ${fmt(first.x)} ${fmt(first.y)}`,
+      });
     } else {
-      const parts = [`M ${parentRight} ${node.y} H ${elbowX}`];
+      edges.push({
+        kind: "stem",
+        d: `M ${fmt(parentRight)} ${fmt(node.y)} L ${fmt(elbowX)} ${fmt(node.y)}`,
+      });
       if (Math.abs(first.y - last.y) > 0.5) {
-        parts.push(`M ${elbowX} ${first.y} V ${last.y}`);
+        edges.push({
+          kind: "spine",
+          d: `M ${fmt(elbowX)} ${fmt(first.y)} L ${fmt(elbowX)} ${fmt(last.y)}`,
+        });
       }
       for (const child of node.children) {
-        parts.push(`M ${elbowX} ${child.y} H ${child.x}`);
+        edges.push({
+          kind: "twig",
+          d: `M ${fmt(elbowX)} ${fmt(child.y)} L ${fmt(child.x)} ${fmt(child.y)}`,
+        });
       }
-      edges.push({ d: parts.join(" ") });
     }
 
     for (const child of node.children) walk(child);
@@ -131,11 +150,15 @@ export function layoutCladogram(
     root,
     nodes,
     edges,
-    width: Math.ceil(maxRight + 4),
+    width: Math.ceil(maxRight + metrics.rail),
     height: Math.ceil(nextLeaf * metrics.rowHeight),
     leafCount: nextLeaf,
     depth: maxDepth,
   };
+}
+
+function fmt(value: number): string {
+  return value.toFixed(2);
 }
 
 export function fitScale(

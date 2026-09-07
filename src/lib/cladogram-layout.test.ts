@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { TaxonomyIndex, parsePbdbOid } from "./taxonomy";
 import type { TaxonomyData } from "./types";
 import { buildCabinetTree } from "./tree-view";
-import { DEFAULT_METRICS, fitScale, layoutCladogram } from "./cladogram-layout";
+import { DEFAULT_METRICS, fitScale, layoutCladogram, parentStemX } from "./cladogram-layout";
 
 describe("packed LTR cladogram layout", () => {
   const data = JSON.parse(
@@ -45,6 +45,28 @@ describe("packed LTR cladogram layout", () => {
     expect(animalia!.y).toBeCloseTo((first.y + last.y) / 2, 5);
   });
 
+  it("draws a parent stem from the right edge of each label to the child elbow", () => {
+    const open = tax.pruneRemaining(answer, []);
+    const layout = layoutCladogram(buildCabinetTree(tax, open));
+    const parents = layout.nodes.filter((node) => node.children.length > 0);
+    expect(parents.length).toBeGreaterThan(0);
+
+    for (const parent of parents) {
+      const parentRight = parent.x + parent.labelWidth;
+      const elbowX = parentStemX(parentRight);
+      expect(elbowX).toBeGreaterThan(parentRight);
+      const stem = layout.edges.find(
+        (edge) =>
+          edge.kind === "stem" &&
+          edge.d.startsWith(`M ${parentRight.toFixed(2)} ${parent.y.toFixed(2)}`),
+      );
+      expect(stem).toBeTruthy();
+      expect(stem!.d.includes(`${elbowX.toFixed(2)}`) || stem!.d.includes(`${parent.children[0]!.x.toFixed(2)}`)).toBe(
+        true,
+      );
+    }
+  });
+
   it("fits the opening Animalia radiation in a 390×844 tree panel without shrinking below readable", () => {
     const open = tax.pruneRemaining(answer, []);
     const layout = layoutCladogram(buildCabinetTree(tax, open));
@@ -60,11 +82,11 @@ describe("packed LTR cladogram layout", () => {
       ]),
     );
 
-    // Header + fossil + composer leave ~400×332 for the tree on a 390×844 phone.
-    const scale = fitScale(layout.width, layout.height, 332, 400, { min: 0.62, pad: 4 });
-    expect(scale).toBeGreaterThanOrEqual(0.85);
+    // Header + taller fossil + composer leave ~332×360 for the shorter tree panel.
+    const scale = fitScale(layout.width, layout.height, 332, 360, { min: 0.62, pad: 4 });
+    expect(scale).toBeGreaterThanOrEqual(0.82);
     expect(layout.width * scale).toBeLessThanOrEqual(332);
-    expect(layout.height * scale).toBeLessThanOrEqual(400);
+    expect(layout.height * scale).toBeLessThanOrEqual(360);
   });
 
   it("does not invent extra vertical space beyond packed leaves", () => {
