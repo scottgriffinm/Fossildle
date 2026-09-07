@@ -47,10 +47,17 @@ const SCAFFOLD_TAXA = new Set([
   "Avialae",
 ]);
 
-/** Unranked wrappers skipped so phyla hang on the named spine (textbook crown). */
+/**
+ * Unranked wrappers skipped so phyla radiate from Animalia (or the current
+ * constraint) instead of a long Bilateria → Eubilateria spine.
+ */
 const CROWN_WRAPPERS = new Set([
   "Eumetazoa",
   "Triploblastica",
+  "Bilateria",
+  "Eubilateria",
+  "Protostomia",
+  "Deuterostomia",
   "Ecdysozoa",
   "Spiralia",
   "Lophotrochozoa",
@@ -71,6 +78,7 @@ const SCAFFOLD_ORDER = [
   "Ecdysozoa",
   "Panarthropoda",
   "Arthropoda",
+  "Onychophora",
   "Spiralia",
   "Lophotrochozoa",
   "Mollusca",
@@ -304,19 +312,36 @@ export function expandBranchIds(
   return ids;
 }
 
-/** Every remaining visible node with children — full tree, sparse tips. */
+/** Keep the opening crown shallow: expand ranks, not every unranked tip. */
+function shouldAutoExpand(
+  taxon: Taxon,
+  kids: TreeBranch[],
+  compact: boolean,
+): boolean {
+  if (kids.length === 0 || taxon.rank === "genus") return false;
+  if (!compact) return true;
+  return (
+    taxon.rank === "kingdom" ||
+    taxon.rank === "phylum" ||
+    taxon.rank === "subphylum" ||
+    taxon.rank === "class" ||
+    taxon.rank === "subclass"
+  );
+}
+
+/** Remaining visible nodes that should start open. */
 export function autoExpandIds(taxonomy: TaxonomyIndex, state: PruneState): number[] {
   const expanded = new Set<number>();
   const counts = remainingGenusCounts(taxonomy, state);
   const fullCounts = allGenusCounts(taxonomy);
+  const compact = isCompactCrown(taxonomy, state, counts);
 
   const walk = (id: number) => {
     const taxon = taxonomy.require(id);
     const status = nodeStatus(taxonomy, id, state);
     if (!VISIBLE_STATUSES.has(status)) return;
-    if (taxon.rank === "genus") return;
     const kids = viewChildren(taxonomy, state, id, counts, fullCounts);
-    if (kids.length === 0) return;
+    if (id !== state.constraintId && !shouldAutoExpand(taxon, kids, compact)) return;
     expanded.add(id);
     for (const kid of kids) walk(kid.taxon.id);
   };

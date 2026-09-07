@@ -177,12 +177,12 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     expect(tree.taxon.name).toBe("Animalia");
     expect(tree.status).toBe("constraint");
     expect(names(tree.children)).toEqual(
-      expect.arrayContaining(["Porifera", "Cnidaria", "Bilateria"]),
+      expect.arrayContaining(["Porifera", "Cnidaria", "Arthropoda", "Mollusca", "Chordata"]),
     );
-    expect(findNode(tree, "Bilateria")).toBeTruthy();
-    expect(findNode(tree, "Eubilateria")).toBeTruthy();
-    expect(findNode(tree, "Deuterostomia")).toBeTruthy();
-    expect(findNode(tree, "Protostomia")).toBeTruthy();
+    expect(findNode(tree, "Bilateria")).toBeNull();
+    expect(findNode(tree, "Eubilateria")).toBeNull();
+    expect(findNode(tree, "Deuterostomia")).toBeNull();
+    expect(findNode(tree, "Protostomia")).toBeNull();
     expect(findNode(tree, "Chordata")).toBeTruthy();
     expect(findNode(tree, "Arthropoda")).toBeTruthy();
     expect(findNode(tree, "Mollusca")).toBeTruthy();
@@ -225,8 +225,9 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
       node.children.length === 0
         ? 1
         : 1 + Math.max(...node.children.map(depthOf));
-    expect(leafCount(tree)).toBeLessThan(36);
-    expect(depthOf(tree)).toBeLessThan(10);
+    expect(leafCount(tree)).toBeLessThan(28);
+    expect(depthOf(tree)).toBeLessThan(6);
+    expect(tree.children.length).toBeGreaterThanOrEqual(8);
     expect(allNames(tree).every((name) => findNode(tree, name)?.taxon.rank !== "genus")).toBe(true);
   });
 
@@ -264,7 +265,10 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     expect(findNode(tree, "Porifera")).toBeNull();
     expect(findNode(tree, "Cnidaria")).toBeNull();
     expect(findNode(tree, "Animalia")).toBeNull();
-    expect(findNode(tree, "Deuterostomia")?.status).toBe("remaining");
+    expect(findNode(tree, "Deuterostomia")).toBeNull();
+    expect(names(tree.children)).toEqual(
+      expect.arrayContaining(["Echinodermata", "Chordata"]),
+    );
     expect(findNode(tree, "Chordata")?.status).toBe("remaining");
     expect(findNode(tree, "Chordata")?.expandable).toBe(true);
     expect(findNode(tree, "Chordata")?.children.length).toBeGreaterThan(0);
