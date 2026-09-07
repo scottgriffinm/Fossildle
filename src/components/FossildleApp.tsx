@@ -154,40 +154,40 @@ export function FossildleApp() {
               revealed={status !== "playing"}
               dateKey={puzzle.dateKey}
             />
+            {showGuesses && (
+              <div className="play-guesses">
+                <GuessBoard
+                  taxonomy={taxonomy}
+                  guesses={guesses}
+                  prune={prune}
+                  answerId={puzzle.fossil.taxonId}
+                  status={status}
+                />
+                {status !== "playing" && (
+                  <div className="result">
+                    <h3>
+                      {status === "won"
+                        ? `Yes — that's ${animal}`
+                        : `It was ${animal}`}
+                    </h3>
+                    <p className="guess-note">
+                      Puzzle {puzzle.dateKey}. Same specimen worldwide until the next UTC midnight.
+                    </p>
+                    <div className="actions">
+                      <button type="button" onClick={() => void share()}>
+                        Copy result
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <TaxonomyTree
             taxonomy={taxonomy}
             prune={prune}
             loading={!taxonomy || !prune}
           />
-          {showGuesses && (
-            <div className="play-guesses">
-              <GuessBoard
-                taxonomy={taxonomy}
-                guesses={guesses}
-                prune={prune}
-                answerId={puzzle.fossil.taxonId}
-                status={status}
-              />
-              {status !== "playing" && (
-                <div className="result">
-                  <h3>
-                    {status === "won"
-                      ? `Yes — that's ${animal}`
-                      : `It was ${animal}`}
-                  </h3>
-                  <p className="guess-note">
-                    Puzzle {puzzle.dateKey}. Same specimen worldwide until the next UTC midnight.
-                  </p>
-                  <div className="actions">
-                    <button type="button" onClick={() => void share()}>
-                      Copy result
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
         <div className="play-compose">
           {loadError ? (
@@ -216,7 +216,7 @@ export function FossildleApp() {
             {message ||
               (status === "playing"
                 ? remaining != null
-                  ? `${remaining.toLocaleString()} still possible · ${guessesLeft} left`
+                  ? `${remaining.toLocaleString()} animals still possible`
                   : "Loading the taxonomic tree…"
                 : "")}
           </p>

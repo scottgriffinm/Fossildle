@@ -16,7 +16,7 @@
   --radius: 14px;
   --tree-line: #8a7460;
   --tree-bg: #1a1611;
-  --row: 1.4em;
+  --row: 1.28em;
   color-scheme: dark;
 }
 
@@ -164,15 +164,17 @@ input {
 .play-hero {
   flex: 0 0 auto;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .play-guesses {
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
-  max-height: 30%;
+  max-height: 34%;
   overflow: auto;
   border-top: 1px solid var(--line);
 }
@@ -433,7 +435,7 @@ input {
 
 .tax-kids {
   position: relative;
-  margin: 0.05em 0 0.12em 0.42em;
+  margin: 0 0 0.06em 0.38em;
 }
 
 .tax-node {
@@ -491,19 +493,19 @@ button.tax-item:hover .tax-name {
 }
 
 .tax-twist {
-  flex: 0 0 0.85rem;
-  width: 0.85rem;
-  height: 0.85rem;
+  flex: 0 0 0.72rem;
+  width: 0.72rem;
+  height: 0.72rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--faint);
+  border: 1px solid #6d5c4b;
   border-radius: 1px;
   color: var(--muted);
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-family: var(--font-mono), ui-monospace, monospace;
   line-height: 1;
-  background: rgba(20, 16, 12, 0.65);
+  background: transparent;
 }
 
 .tax-twist:empty {
@@ -689,12 +691,12 @@ button.tax-item:hover .tax-name {
   .play-stage {
     display: grid;
     grid-template-columns: minmax(260px, 0.88fr) minmax(320px, 1.12fr);
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr);
   }
 
   .play-hero {
     grid-column: 1;
-    grid-row: 1;
+    grid-row: 1 / -1;
     min-height: 0;
     display: flex;
     flex-direction: column;
@@ -715,15 +717,14 @@ button.tax-item:hover .tax-name {
 
   .tree-panel {
     grid-column: 2;
-    grid-row: 1 / -1;
+    grid-row: 1;
     border-top: 0;
     border-left: 1px solid var(--line);
   }
 
   .play-guesses {
-    grid-column: 1;
-    grid-row: 2;
     max-height: none;
+    border-top: 1px solid var(--line);
   }
 
   .tax-name {
