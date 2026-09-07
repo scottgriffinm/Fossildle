@@ -2,7 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { TaxonomyIndex } from "@/lib/taxonomy";
-import { buildCabinetTree, type TreeNodeView } from "@/lib/tree-view";
+import {
+  autoExpandIds,
+  buildCabinetTree,
+  expandBranchIds,
+  type TreeNodeView,
+} from "@/lib/tree-view";
 import type { GameStatus, PruneState } from "@/lib/types";
 
 export function TaxonomyTree({
@@ -21,7 +26,18 @@ export function TaxonomyTree({
   const [flashId, setFlashId] = useState<number | null>(null);
   const stepCount = prune?.steps.length ?? 0;
   const constraintId = prune?.constraintId;
-  const last = prune?.steps.at(-1);
+  const pruneKey = `${constraintId ?? "none"}:${stepCount}`;
+
+  const autoExpanded = useMemo(() => {
+    if (!taxonomy || !prune || status === "won") return new Set<number>();
+    return new Set(autoExpandIds(taxonomy, prune));
+  }, [taxonomy, prune, status]);
+
+  const [browseExpanded, setBrowseExpanded] = useState<Set<number> | null>(null);
+
+  useEffect(() => {
+    setBrowseExpanded(null);
+  }, [pruneKey]);
 
   useEffect(() => {
     if (constraintId == null || stepCount === 0 || status !== "playing") return;
@@ -30,14 +46,28 @@ export function TaxonomyTree({
     return () => window.clearTimeout(timer);
   }, [constraintId, stepCount, status]);
 
+  const expanded = browseExpanded ?? autoExpanded;
+
   const tree = useMemo(() => {
     if (!taxonomy || !prune) return null;
-    return buildCabinetTree(
-      taxonomy,
-      prune,
-      status === "won" && answerId != null ? { revealId: answerId } : undefined,
-    );
-  }, [taxonomy, prune, status, answerId]);
+    return buildCabinetTree(taxonomy, prune, {
+      revealId: status === "won" && answerId != null ? answerId : undefined,
+      expandedIds: expanded,
+    });
+  }, [taxonomy, prune, status, answerId, expanded]);
+
+  function toggle(id: number) {
+    if (id === constraintId || !taxonomy || !prune) return;
+    setBrowseExpanded((current) => {
+      const next = new Set(current ?? autoExpanded);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        for (const extra of expandBranchIds(taxonomy, prune, id)) next.add(extra);
+      }
+      return next;
+    });
+  }
 
   return (
     <section className="tree-panel" aria-label="Taxonomic tree">
@@ -45,8 +75,14 @@ export function TaxonomyTree({
         {loading || !tree || !taxonomy ? (
           <TreeSkeleton />
         ) : (
-          <ul className="tax-tree" aria-label="Remaining taxonomic hierarchy">
-            <TreeNode node={tree} flashId={flashId} isRoot />
+          <ul className="tax-tree" role="tree" aria-label="Remaining taxonomic hierarchy">
+            <TreeNode
+              node={tree}
+              flashId={flashId}
+              expanded={expanded}
+              isRoot
+              onToggle={toggle}
+            />
           </ul>
         )}
       </div>
@@ -57,34 +93,72 @@ export function TaxonomyTree({
 function TreeNode({
   node,
   flashId,
+  expanded,
   isRoot = false,
+  onToggle,
 }: {
   node: TreeNodeView;
   flashId: number | null;
+  expanded: Set<number>;
   isRoot?: boolean;
+  onToggle: (id: number) => void;
 }) {
   const flashing = flashId === node.taxon.id;
   const isGenus = node.taxon.rank === "genus";
+  const canExpand = node.expandable;
+  const isOpen = !canExpand || expanded.has(node.taxon.id) || node.status === "constraint";
+  const canToggle = canExpand && node.status !== "constraint";
 
   const classes = [
     "tax-node",
     `is-${node.status}`,
     isRoot ? "is-root" : "",
+    canExpand ? "is-expandable" : "",
+    isOpen ? "is-open" : "",
     flashing ? "is-flash" : "",
     isGenus ? "is-genus" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
+  const label = (
+    <>
+      <span className="tax-twist" aria-hidden="true">
+        {canExpand ? (isOpen ? "−" : "+") : ""}
+      </span>
+      <span className="tax-name">{node.taxon.name}</span>
+    </>
+  );
+
   return (
-    <li className={classes}>
-      <div className="tax-item">
-        <span className="tax-name">{node.taxon.name}</span>
-      </div>
-      {node.children.length > 0 && (
-        <ul className="tax-kids">
+    <li
+      className={classes}
+      role="treeitem"
+      aria-selected={node.status === "constraint"}
+      aria-expanded={canExpand ? isOpen : undefined}
+    >
+      {canToggle ? (
+        <button
+          type="button"
+          className="tax-item"
+          onClick={() => onToggle(node.taxon.id)}
+          aria-label={`${isOpen ? "Collapse" : "Expand"} ${node.taxon.name}`}
+        >
+          {label}
+        </button>
+      ) : (
+        <div className="tax-item">{label}</div>
+      )}
+      {isOpen && node.children.length > 0 && (
+        <ul className="tax-kids" role="group">
           {node.children.map((child) => (
-            <TreeNode key={child.taxon.id} node={child} flashId={flashId} />
+            <TreeNode
+              key={child.taxon.id}
+              node={child}
+              flashId={flashId}
+              expanded={expanded}
+              onToggle={onToggle}
+            />
           ))}
         </ul>
       )}
@@ -95,28 +169,33 @@ function TreeNode({
 function TreeSkeleton() {
   return (
     <ul className="tax-tree is-loading" aria-hidden="true">
-      <li className="tax-node is-constraint is-root">
+      <li className="tax-node is-constraint is-root is-open">
         <div className="tax-item">
+          <span className="tax-twist">−</span>
           <span className="tax-name">Animalia</span>
         </div>
         <ul className="tax-kids">
           <li className="tax-node is-remaining">
             <div className="tax-item">
+              <span className="tax-twist" />
               <span className="tax-name">Porifera</span>
             </div>
           </li>
-          <li className="tax-node is-remaining">
+          <li className="tax-node is-remaining is-expandable">
             <div className="tax-item">
+              <span className="tax-twist">+</span>
               <span className="tax-name">Cnidaria</span>
             </div>
           </li>
-          <li className="tax-node is-remaining">
+          <li className="tax-node is-remaining is-open">
             <div className="tax-item">
+              <span className="tax-twist">−</span>
               <span className="tax-name">Bilateria</span>
             </div>
             <ul className="tax-kids">
               <li className="tax-node is-remaining">
                 <div className="tax-item">
+                  <span className="tax-twist" />
                   <span className="tax-name">Loading branches…</span>
                 </div>
               </li>
