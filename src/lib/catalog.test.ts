@@ -14,11 +14,29 @@ const NEW_STARTERS = [
   { id: "calymene-blumenbachii", taxon: "Calymene", taxonId: 21478 },
 ] as const;
 
+const SCOUT_BATCH = [
+  { id: "isotelus-maximus", taxon: "Isotelus", taxonId: 20000 },
+  { id: "olenellus-thompsoni", taxon: "Olenellus", taxonId: 19149 },
+  { id: "asaphus-lepidurus", taxon: "Asaphus", taxonId: 19864 },
+  { id: "flexicalymene-meeki", taxon: "Flexicalymene", taxonId: 21574 },
+  { id: "paradoxides-bohemicus", taxon: "Paradoxides", taxonId: 19422 },
+  { id: "dactylioceras-sp", taxon: "Dactylioceras", taxonId: 14749 },
+  { id: "goniatites-sp", taxon: "Goniatites", taxonId: 13727 },
+  { id: "heliophyllum-halli", taxon: "Heliophyllum", taxonId: 5489 },
+  { id: "favosites-dundee", taxon: "Favosites", taxonId: 4880 },
+  { id: "encrinus-liliiformis", taxon: "Encrinus", taxonId: 32698 },
+  { id: "opabinia-regalis", taxon: "Opabinia", taxonId: 7377 },
+  { id: "hallucigenia-sparsa", taxon: "Hallucigenia", taxonId: 18884 },
+  { id: "dimetrodon-limbatus", taxon: "Dimetrodon", taxonId: 38904 },
+  { id: "coelophysis-bauri", taxon: "Coelophysis", taxonId: 38520 },
+  { id: "basilosaurus-cetoides", taxon: "Basilosaurus", taxonId: 36681 },
+] as const;
+
 describe("starter catalog", () => {
-  it("ships 17 attributed fossils with local images", () => {
-    expect(fossils).toHaveLength(17);
+  it("ships 32 attributed fossils with local images", () => {
+    expect(fossils).toHaveLength(32);
     const ids = new Set(fossils.map((fossil) => fossil.id));
-    expect(ids.size).toBe(17);
+    expect(ids.size).toBe(32);
 
     for (const fossil of fossils) {
       expect(fossil.attribution.length).toBeGreaterThan(0);
@@ -40,6 +58,23 @@ describe("starter catalog", () => {
     }
   });
 
+  it("skips KEEP-list genera missing from shipped taxonomy.json", () => {
+    const skipped = ["Eurypterus", "Halysites", "Marrella", "Wiwaxia", "Megaloceros"];
+    const taxa = new Set(fossils.map((fossil) => fossil.taxon));
+    for (const name of skipped) {
+      expect(taxa.has(name)).toBe(false);
+    }
+  });
+
+  it("includes the Fossil Scout batch on shipped PBDB ids", () => {
+    for (const expected of SCOUT_BATCH) {
+      const fossil = fossils.find((row) => row.id === expected.id);
+      expect(fossil, expected.id).toBeTruthy();
+      expect(fossil?.taxon).toBe(expected.taxon);
+      expect(fossil?.taxonId).toBe(expected.taxonId);
+    }
+  });
+
   it("keeps the expanded pool in the daily cycle", () => {
     const start = utcDayIndex(new Date("2026-01-01T00:00:00Z"));
     const seen = new Set<string>();
@@ -47,9 +82,9 @@ describe("starter catalog", () => {
       const date = new Date((start + i) * 86_400_000);
       seen.add(puzzleForDay(fossils, date).fossil.id);
     }
-    expect(seen.size).toBe(17);
-    expect(seededShuffle(fossils, CATALOG_SEED)).toHaveLength(17);
-    for (const expected of NEW_STARTERS) {
+    expect(seen.size).toBe(32);
+    expect(seededShuffle(fossils, CATALOG_SEED)).toHaveLength(32);
+    for (const expected of [...NEW_STARTERS, ...SCOUT_BATCH]) {
       expect(seen.has(expected.id)).toBe(true);
     }
   });

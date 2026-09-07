@@ -1,9 +1,9 @@
 {
   "taxonCount": 19050,
   "genusCount": 13293,
-  "aliasCount": 488,
+  "aliasCount": 848,
   "rootId": 67091,
-  "bytes": 1322142,
+  "bytes": 1338023,
   "clades": [
     "Dinosauria",
     "Trilobita",
@@ -31,7 +31,22 @@
     "Mucrospirifer",
     "Bothriolepis",
     "Allosaurus",
-    "Calymene"
+    "Calymene",
+    "Isotelus",
+    "Olenellus",
+    "Asaphus",
+    "Flexicalymene",
+    "Paradoxides",
+    "Dactylioceras",
+    "Goniatites",
+    "Heliophyllum",
+    "Favosites",
+    "Encrinus",
+    "Opabinia",
+    "Hallucigenia",
+    "Dimetrodon",
+    "Coelophysis",
+    "Basilosaurus"
   ],
   "generatedAt": "2026-09-06T23:11:10.749Z"
 }

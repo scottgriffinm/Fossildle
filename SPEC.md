@@ -71,7 +71,7 @@ left. Autocomplete uses the same remaining set.
 
 ## Daily rotation
 
-1. Take the committed catalog `data/fossils.json` (17 specimens).
+1. Take the committed catalog `data/fossils.json` (32 specimens).
 2. Fisher–Yates shuffle with Mulberry32, seed `CATALOG_SEED = 0xF05511DE`.
 3. `dayIndex = floor(UTC-midnight(date) / 86400000)` (Unix UTC days).
 4. Today's fossil is `shuffled[dayIndex % poolLength]`.
