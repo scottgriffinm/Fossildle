@@ -160,13 +160,15 @@ function Cladogram({
     >
       <svg
         className="cladogram"
-        width={fittedW}
-        height={fittedH}
-        viewBox={`0 0 ${layout.width} ${layout.height}`}
-        preserveAspectRatio="xMinYMin meet"
+        width={layout.width}
+        height={layout.height}
         overflow="visible"
         role="tree"
         aria-label="Remaining taxonomic hierarchy"
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: "0 0",
+        }}
       >
         <g className="cladogram-links" aria-hidden="true">
           <path d={layout.stem.d} />
@@ -241,6 +243,7 @@ function CladeLabel({
       className={classes}
       role="treeitem"
       data-tree-root={isRoot ? "true" : undefined}
+      data-tip={node.isTip ? "true" : "false"}
       aria-level={node.depth + 1}
       aria-selected={node.status === "constraint"}
       aria-expanded={canExpand ? isOpen : undefined}
@@ -251,14 +254,15 @@ function CladeLabel({
       <rect
         className="tax-hit"
         x={node.labelX - 2}
-        y={node.labelY - DEFAULT_METRICS.fontSize}
+        y={node.isTip ? node.y - hitH / 2 : node.labelY - DEFAULT_METRICS.fontSize}
         width={node.labelWidth + 4}
         height={hitH}
       />
       <text
         className="tax-name"
         x={node.labelX}
-        y={node.labelY}
+        y={node.isTip ? node.y : node.labelY}
+        dominantBaseline={node.isTip ? "central" : "auto"}
         fontSize={DEFAULT_METRICS.fontSize}
       >
         {node.name}

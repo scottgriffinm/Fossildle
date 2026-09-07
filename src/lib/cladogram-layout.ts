@@ -9,6 +9,7 @@ export type CladogramMetrics = {
   labelPadX: number;
   labelInset: number;
   labelLift: number;
+  tipGap: number;
   branchPad: number;
   branchMin: number;
   stemMin: number;
@@ -17,21 +18,22 @@ export type CladogramMetrics = {
 };
 
 /**
- * Tight leaf packing. Horizontal run at each depth is sized to the child
- * name that sits on that incoming branch (phylotree / textbook cladogram).
+ * Packed LTR crown. Internals sit above the incoming run; tips hang off the
+ * line end — phylotree.js rectangular + textbook cladogram.
  */
 export const DEFAULT_METRICS: CladogramMetrics = {
-  rowHeight: 18,
-  charWidth: 6.5,
+  rowHeight: 22,
+  charWidth: 6.6,
   fontSize: 11,
-  labelPadX: 6,
-  labelInset: 6,
-  labelLift: 3.2,
+  labelPadX: 4,
+  labelInset: 5,
+  labelLift: 8,
+  tipGap: 3,
   branchPad: 10,
-  branchMin: 28,
-  stemMin: 36,
+  branchMin: 40,
+  stemMin: 44,
   padX: 8,
-  padY: 16,
+  padY: 18,
 };
 
 export type PlacedNode = {
@@ -47,11 +49,12 @@ export type PlacedNode = {
   y: number;
   /** Left end of the incoming horizontal (parent.x, or root stem start). */
   incomingX: number;
-  /** Left edge of the name, on the incoming branch. */
+  /** Left edge of the name. */
   labelX: number;
-  /** Text baseline, above the branch. */
+  /** Text baseline. Internals sit above the stroke; tips sit on the tip. */
   labelY: number;
   labelWidth: number;
+  isTip: boolean;
   children: PlacedNode[];
 };
 
@@ -67,7 +70,7 @@ export type CladogramLayout = {
   root: PlacedNode;
   nodes: PlacedNode[];
   links: CladogramLink[];
-  /** Root stem so Animalia sits on a branch, not a floating point. */
+  /** Root stem so the constraint sits on a branch, not a floating point. */
   stem: CladogramLink;
   width: number;
   height: number;
@@ -113,8 +116,8 @@ export function treeDepth(node: TreeNodeView): number {
 /**
  * veg/phylotree.js `src/render/cartesian.js`:
  * `d3.line().curve(d3.curveStepBefore)` — vertical at the parent, then a
- * continuous horizontal into the child. Node coordinates are the joins;
- * labels never break the path.
+ * continuous horizontal into the child. Joins are node coordinates; labels
+ * are never part of the path.
  */
 const stepLink = line<[number, number]>()
   .x((point) => point[0])
@@ -125,12 +128,13 @@ export function cladogramLink(source: [number, number], target: [number, number]
   return stepLink([source, target]) ?? "";
 }
 
-/** Space from parent.x → child.x must fit the child's name on that run. */
+/** Incoming run must fit internal names that sit on that branch. */
 function columnWidths(root: HierarchyNode<CladeDatum>, metrics: CladogramMetrics): number[] {
   const height = Math.max(root.height, 1);
   const cols = Array.from({ length: height }, () => metrics.branchMin);
   root.each((node) => {
-    if (node.depth === 0) return;
+    const isTip = !node.children?.length;
+    if (node.depth === 0 || isTip) return;
     const needed =
       metrics.labelInset + estimateLabelWidth(node.data.name, metrics) + metrics.branchPad;
     cols[node.depth - 1] = Math.max(cols[node.depth - 1]!, needed);
@@ -139,6 +143,8 @@ function columnWidths(root: HierarchyNode<CladeDatum>, metrics: CladogramMetrics
 }
 
 function rootStemWidth(root: HierarchyNode<CladeDatum>, metrics: CladogramMetrics): number {
+  const isTip = !root.children?.length;
+  if (isTip) return metrics.stemMin;
   return Math.max(
     metrics.stemMin,
     metrics.labelInset + estimateLabelWidth(root.data.name, metrics) + metrics.branchPad,
@@ -151,11 +157,32 @@ function cumulative(stem: number, cols: number[], padX: number): number[] {
   return xs;
 }
 
+function placeLabel(
+  node: { x: number; y: number; incomingX: number; name: string; isTip: boolean },
+  metrics: CladogramMetrics,
+): { labelX: number; labelY: number; labelWidth: number } {
+  const labelWidth = estimateLabelWidth(node.name, metrics);
+  if (node.isTip) {
+    return {
+      labelX: node.x + metrics.tipGap,
+      labelY: node.y + metrics.fontSize * 0.32,
+      labelWidth,
+    };
+  }
+  // Left-aligned at the start of the incoming run so the stroke stays
+  // visible after the name all the way to the join (textbook / phylotree).
+  return {
+    labelX: node.incomingX + metrics.labelInset,
+    labelY: node.y - metrics.labelLift,
+    labelWidth,
+  };
+}
+
 /**
  * Left-to-right rectangular cladogram:
  * - d3-hierarchy cluster (equal leaf spacing, parents on midpoints)
  * - phylotree.js curveStepBefore elbows from parent join → child join
- * - taxon names sit above the incoming horizontal (textbook + Scott)
+ * - internal names above the incoming horizontal; tip names flush right of the tip
  */
 export function layoutCladogram(
   tree: TreeNodeView,
@@ -194,7 +221,8 @@ export function layoutCladogram(
   laid.each((node) => {
     const { x, y } = screenOf(node);
     const incomingX = node.parent ? screenOf(node.parent).x : metrics.padX;
-    const labelWidth = estimateLabelWidth(node.data.name, metrics);
+    const isTip = !node.children?.length;
+    const label = placeLabel({ x, y, incomingX, name: node.data.name, isTip }, metrics);
     const placed: PlacedNode = {
       id: node.data.id,
       name: node.data.name,
@@ -205,9 +233,10 @@ export function layoutCladogram(
       x,
       y,
       incomingX,
-      labelX: incomingX + metrics.labelInset,
-      labelY: y - metrics.labelLift,
-      labelWidth,
+      labelX: label.labelX,
+      labelY: label.labelY,
+      labelWidth: label.labelWidth,
+      isTip,
       children: [],
     };
     placedById.set(placed.id, placed);
@@ -247,8 +276,13 @@ export function layoutCladogram(
     d: cladogramLink(stemSource, stemTarget),
   };
 
+  let maxRight = placedRoot.x;
+  for (const node of nodes) {
+    maxRight = Math.max(maxRight, node.isTip ? node.labelX + node.labelWidth : node.x);
+  }
+
   const height = Math.ceil(maxY - minY + metrics.padY * 2);
-  const width = Math.ceil((xAt[xAt.length - 1] ?? placedRoot.x) + metrics.padX);
+  const width = Math.ceil(maxRight + metrics.padX);
 
   return {
     root: placedRoot,
@@ -280,19 +314,17 @@ export function fitScale(
   return Math.min(max, Math.max(min, raw));
 }
 
-/** True when the child's name sits on the incoming horizontal, not in a gap. */
-export function labelSitsOnIncomingBranch(
+/** Names never sit in a hole in the path. */
+export function labelIsAttached(
   node: PlacedNode,
   metrics: CladogramMetrics = DEFAULT_METRICS,
 ): boolean {
-  const left = node.incomingX;
-  const right = node.x;
-  const nameLeft = node.labelX;
-  const nameRight = node.labelX + node.labelWidth;
+  if (node.isTip) {
+    return node.labelX >= node.x && node.labelX <= node.x + metrics.tipGap + 1;
+  }
   return (
-    node.labelY < node.y &&
-    nameLeft >= left - 0.01 &&
-    nameRight <= right + metrics.branchPad + 0.01 &&
-    right - left >= node.labelWidth
+    node.labelY <= node.y - metrics.labelLift + 0.01 &&
+    node.labelX >= node.incomingX - 0.01 &&
+    node.labelX + node.labelWidth <= node.x + metrics.branchPad + 0.01
   );
 }

@@ -9,7 +9,7 @@ import {
   DEFAULT_METRICS,
   cladogramLink,
   fitScale,
-  labelSitsOnIncomingBranch,
+  labelIsAttached,
   layoutCladogram,
 } from "./cladogram-layout";
 
@@ -60,7 +60,7 @@ describe("phylotree.js curveStepBefore rectangular cladogram", () => {
   const tax = new TaxonomyIndex(data);
   const answer = parsePbdbOid("txn:38613");
 
-  it("uses phylotree step-before elbows and sits names above the incoming branch", () => {
+  it("uses phylotree step-before elbows; internals above the branch, tips on the tip", () => {
     const layout = layoutCladogram(miniTree());
     expect(layout.engine).toBe("phylotree-curveStepBefore");
     expect(layout.links).toHaveLength(4);
@@ -73,17 +73,24 @@ describe("phylotree.js curveStepBefore rectangular cladogram", () => {
     const chordata = byName.get("Chordata")!;
     const mammalia = byName.get("Mammalia")!;
 
+    expect(animalia.isTip).toBe(false);
+    expect(chordata.isTip).toBe(false);
+    expect(porifera.isTip).toBe(true);
+    expect(mammalia.isTip).toBe(true);
+
     expect(porifera.x).toBeGreaterThan(animalia.x);
     expect(chordata.x).toBe(porifera.x);
     expect(mammalia.x).toBeGreaterThan(chordata.x);
     expect(animalia.y).toBeGreaterThan(porifera.y);
     expect(animalia.y).toBeLessThan(chordata.y);
 
+    expect(animalia.labelY).toBeLessThan(animalia.y);
+    expect(chordata.labelY).toBeLessThan(chordata.y);
+    expect(porifera.labelX).toBeGreaterThanOrEqual(porifera.x);
+    expect(porifera.labelX).toBeLessThanOrEqual(porifera.x + DEFAULT_METRICS.tipGap + 1);
+
     for (const node of layout.nodes) {
-      expect(labelSitsOnIncomingBranch(node)).toBe(true);
-      expect(node.labelY).toBeLessThan(node.y);
-      expect(node.labelX).toBeGreaterThanOrEqual(node.incomingX);
-      expect(node.labelX + node.labelWidth).toBeLessThanOrEqual(node.x + DEFAULT_METRICS.branchPad);
+      expect(labelIsAttached(node)).toBe(true);
     }
   });
 
@@ -100,16 +107,9 @@ describe("phylotree.js curveStepBefore rectangular cladogram", () => {
     expect(link.d).toBe(cladogramLink(link.source, link.target));
     expect(link.d.includes("C")).toBe(false);
     expect(link.source[0]).toBe(chordata.x);
-    expect(link.source[0]).toBeLessThan(chordata.x + chordata.labelWidth);
-
-    const cornerX = link.source[0];
-    const cornerY = link.target[1];
-    expect(link.d).toContain(`${cornerX}`);
-    expect(link.d).toContain(`${cornerY}`);
 
     expect(mammalia.incomingX).toBe(chordata.x);
-    expect(mammalia.labelX).toBeGreaterThanOrEqual(chordata.x);
-    expect(mammalia.labelX + mammalia.labelWidth).toBeLessThanOrEqual(mammalia.x + DEFAULT_METRICS.branchPad);
+    expect(mammalia.labelX).toBeGreaterThanOrEqual(mammalia.x);
   });
 
   it("lays out the remaining Animalia crown with cluster midpoints and no wrapper spine", () => {
@@ -120,8 +120,8 @@ describe("phylotree.js curveStepBefore rectangular cladogram", () => {
     expect(layout.engine).toBe("phylotree-curveStepBefore");
     expect(layout.leafCount).toBeGreaterThanOrEqual(8);
     expect(layout.leafCount).toBeLessThan(28);
-    expect(layout.height).toBeLessThan(420);
-    expect(layout.width).toBeLessThan(460);
+    expect(layout.height).toBeLessThan(520);
+    expect(layout.width).toBeLessThan(560);
     expect(layout.depth).toBeLessThan(6);
 
     const byName = new Map(layout.nodes.map((node) => [node.name, node]));
@@ -144,8 +144,13 @@ describe("phylotree.js curveStepBefore rectangular cladogram", () => {
     expect(animalia!.y).toBeLessThan(last.y);
     expect(Math.abs(porifera!.y - animalia!.y)).toBeLessThan(220);
 
+    expect(animalia!.isTip).toBe(false);
+    expect(animalia!.labelY).toBeLessThan(animalia!.y);
+    expect(porifera!.isTip).toBe(true);
+    expect(porifera!.labelX).toBeGreaterThanOrEqual(porifera!.x);
+
     for (const node of layout.nodes) {
-      expect(labelSitsOnIncomingBranch(node)).toBe(true);
+      expect(labelIsAttached(node)).toBe(true);
     }
   });
 
@@ -171,7 +176,6 @@ describe("phylotree.js curveStepBefore rectangular cladogram", () => {
         expect(link!.target[0]).toBe(child.x);
         expect(link!.target[1]).toBeCloseTo(child.y, 5);
         expect(child.incomingX).toBe(parent.x);
-        expect(child.labelY).toBeLessThan(child.y);
       }
     }
   });
@@ -192,7 +196,7 @@ describe("phylotree.js curveStepBefore rectangular cladogram", () => {
     );
 
     const scale = fitScale(layout.width, layout.height, 332, 360, { min: 0.62, pad: 4 });
-    expect(scale).toBeGreaterThanOrEqual(0.72);
+    expect(scale).toBeGreaterThanOrEqual(0.62);
     expect(layout.width * scale).toBeLessThanOrEqual(332);
     expect(layout.height * scale).toBeLessThanOrEqual(360);
   });
@@ -202,5 +206,7 @@ describe("phylotree.js curveStepBefore rectangular cladogram", () => {
     expect(scale).toBe(0.62);
     expect(fitScale(200, 200, 332, 400)).toBe(1);
     expect(DEFAULT_METRICS.rowHeight).toBeGreaterThan(12);
+    expect(DEFAULT_METRICS.labelLift).toBeGreaterThanOrEqual(5);
+    expect(DEFAULT_METRICS.tipGap).toBeLessThanOrEqual(5);
   });
 });

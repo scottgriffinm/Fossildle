@@ -504,11 +504,10 @@ input {
 .cladogram-links path {
   fill: none;
   stroke: var(--tree-line);
-  stroke-width: 1.6px;
+  stroke-width: 1.7px;
   stroke-linecap: square;
   stroke-linejoin: miter;
-  stroke-opacity: 0.95;
-  vector-effect: non-scaling-stroke;
+  stroke-opacity: 1;
 }
 
 .cladogram .tax-hit {
