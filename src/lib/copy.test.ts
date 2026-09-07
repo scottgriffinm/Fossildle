@@ -35,4 +35,10 @@ describe("player-facing guess copy", () => {
       expect(src, file).not.toMatch(/buildCabinetTree/);
     }
   });
+
+  it("does not pad the path skeleton with clade placeholders", () => {
+    const src = readFileSync(path.join(process.cwd(), "src/components/TaxonomyPath.tsx"), "utf8");
+    expect(src).not.toMatch(/rank-label">clade</);
+    expect(src).toMatch(/SKELETON_RANKS/);
+  });
 });
