@@ -97,7 +97,35 @@ const CROWN_HIDE_RANKS = new Set([
 /** Show genera only when a parent has a small remaining set. */
 const SMALL_REMAINING = 16;
 
+/** Ranks that stay as named columns in the opening crown cladogram. */
+const TEXTBOOK_RANKS = new Set(["kingdom", "phylum", "class"]);
+
+/** High Animalia radiation — compact here; keep stem detail after a close prune. */
+const COMPACT_CONSTRAINTS = new Set([
+  "Animalia",
+  "Bilateria",
+  "Eubilateria",
+  "Protostomia",
+  "Deuterostomia",
+]);
+
 const VISIBLE_STATUSES = new Set<NodeStatus>(["lineage", "constraint", "remaining"]);
+
+function isTextbookClade(taxon: Taxon, state: PruneState): boolean {
+  if (taxon.id === state.constraintId) return true;
+  if (SCAFFOLD_TAXA.has(taxon.name)) return true;
+  return TEXTBOOK_RANKS.has(taxon.rank);
+}
+
+function isCompactCrown(
+  taxonomy: TaxonomyIndex,
+  state: PruneState,
+  counts: Map<number, number>,
+): boolean {
+  if ((counts.get(state.constraintId) ?? 0) <= SMALL_REMAINING) return false;
+  const constraint = taxonomy.require(state.constraintId);
+  return constraint.rank === "kingdom" || COMPACT_CONSTRAINTS.has(constraint.name);
+}
 
 export function isScaffoldTaxon(
   taxon: Taxon,
@@ -142,6 +170,18 @@ export function allGenusCounts(taxonomy: TaxonomyIndex): Map<number, number> {
   });
 }
 
+function shouldPromoteRow(
+  row: TreeBranch,
+  state: PruneState,
+  compact: boolean,
+): boolean {
+  if (row.taxon.id === state.constraintId) return false;
+  if (!VISIBLE_STATUSES.has(row.status)) return false;
+  if (CROWN_WRAPPERS.has(row.taxon.name)) return true;
+  if (!compact) return false;
+  return !isTextbookClade(row.taxon, state);
+}
+
 function flattenCrownWrappers(
   taxonomy: TaxonomyIndex,
   state: PruneState,
@@ -149,41 +189,41 @@ function flattenCrownWrappers(
   counts: Map<number, number>,
   fullCounts: Map<number, number>,
 ): TreeBranch[] {
+  const compact = isCompactCrown(taxonomy, state, counts);
   const out: TreeBranch[] = [];
   for (const row of rows) {
-    if (
-      CROWN_WRAPPERS.has(row.taxon.name) &&
-      VISIBLE_STATUSES.has(row.status) &&
-      row.taxon.id !== state.constraintId
-    ) {
+    if (shouldPromoteRow(row, state, compact)) {
       const nested = viewChildren(taxonomy, state, row.taxon.id, counts, fullCounts);
       out.push(...flattenCrownWrappers(taxonomy, state, nested, counts, fullCounts));
       continue;
     }
     out.push(row);
   }
-  return flattenUnaryUnranked(taxonomy, state, out, counts, fullCounts);
+  return flattenUnaryStems(taxonomy, state, out, counts, fullCounts, compact);
 }
 
-/** Skip unary unranked PBDB intermediates so the cladogram stays textbook-wide. */
-function flattenUnaryUnranked(
+/** Skip unary PBDB stems so the cladogram stays textbook-wide, not 30 columns deep. */
+function flattenUnaryStems(
   taxonomy: TaxonomyIndex,
   state: PruneState,
   rows: TreeBranch[],
   counts: Map<number, number>,
   fullCounts: Map<number, number>,
+  compact: boolean,
 ): TreeBranch[] {
   const out: TreeBranch[] = [];
   for (const row of rows) {
     const skipUnary =
-      (row.taxon.rank === "unranked" || row.taxon.rank === "informal") &&
-      !SCAFFOLD_TAXA.has(row.taxon.name) &&
       row.taxon.id !== state.constraintId &&
-      VISIBLE_STATUSES.has(row.status);
+      VISIBLE_STATUSES.has(row.status) &&
+      !SCAFFOLD_TAXA.has(row.taxon.name) &&
+      (row.taxon.rank === "unranked" ||
+        row.taxon.rank === "informal" ||
+        (compact && row.taxon.rank !== "kingdom" && row.taxon.rank !== "phylum"));
     if (skipUnary) {
       const nested = viewChildren(taxonomy, state, row.taxon.id, counts, fullCounts);
       if (nested.length === 1) {
-        out.push(...flattenUnaryUnranked(taxonomy, state, nested, counts, fullCounts));
+        out.push(...flattenUnaryStems(taxonomy, state, nested, counts, fullCounts, compact));
         continue;
       }
     }

@@ -203,8 +203,30 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     expect(findNode(tree, "Tyrannosaurus")).toBeNull();
     expect(auto).toEqual(expect.arrayContaining([tree.taxon.id]));
     const rendered = allNames(tree);
-    expect(rendered.length).toBeGreaterThanOrEqual(100);
-    expect(rendered.length).toBeLessThan(800);
+    expect(rendered.length).toBeGreaterThanOrEqual(12);
+    expect(rendered.length).toBeLessThan(80);
+    expect(rendered).toEqual(
+      expect.arrayContaining([
+        "Porifera",
+        "Cnidaria",
+        "Arthropoda",
+        "Mollusca",
+        "Annelida",
+        "Brachiopoda",
+        "Echinodermata",
+        "Chordata",
+      ]),
+    );
+    const leafCount = (node: ReturnType<typeof buildCabinetTree>): number =>
+      node.children.length === 0
+        ? 1
+        : node.children.reduce((sum, child) => sum + leafCount(child), 0);
+    const depthOf = (node: ReturnType<typeof buildCabinetTree>): number =>
+      node.children.length === 0
+        ? 1
+        : 1 + Math.max(...node.children.map(depthOf));
+    expect(leafCount(tree)).toBeLessThan(36);
+    expect(depthOf(tree)).toBeLessThan(10);
     expect(allNames(tree).every((name) => findNode(tree, name)?.taxon.rank !== "genus")).toBe(true);
   });
 
@@ -222,10 +244,7 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     const opened = buildCabinetTree(tax, open, {
       expandedIds: [...ancestors, ...expandBranchIds(tax, open, chordata!.taxon.id)],
     });
-    expect(names(findNode(opened, "Chordata")!.children)).toEqual(["Vertebrata"]);
-    expect(findNode(opened, "Vertebrata")?.status).toBe("remaining");
-    expect(findNode(opened, "Gnathostomata")).toBeTruthy();
-    expect(names(findNode(opened, "Gnathostomata")!.children)).toEqual(
+    expect(names(findNode(opened, "Chordata")!.children)).toEqual(
       expect.arrayContaining(["Osteichthyes", "Placodermi", "Chondrichthyes"]),
     );
     expect(findNode(opened, "Dinosauria")).toBeNull();
@@ -249,13 +268,14 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     expect(findNode(tree, "Chordata")?.status).toBe("remaining");
     expect(findNode(tree, "Chordata")?.expandable).toBe(true);
     expect(findNode(tree, "Chordata")?.children.length).toBeGreaterThan(0);
-    expect(findNode(tree, "Gnathostomata")).toBeTruthy();
+    expect(findNode(tree, "Osteichthyes")).toBeTruthy();
     expect(findNode(tree, "Dinosauria")).toBeTruthy();
     expect(allStatuses(tree).every((status) => status !== "pruned" && status !== "outside")).toBe(
       true,
     );
-    expect(names(findNode(tree, "Chordata")!.children)).toEqual(["Vertebrata"]);
-    expect(findNode(tree, "Vertebrata")?.status).toBe("remaining");
+    expect(names(findNode(tree, "Chordata")!.children)).toEqual(
+      expect.arrayContaining(["Osteichthyes", "Placodermi", "Chondrichthyes"]),
+    );
   });
 
   it("roots at Dinosauria after a close miss and deletes Ornithischia", () => {

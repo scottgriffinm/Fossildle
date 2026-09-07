@@ -70,27 +70,18 @@ export function TaxonomyTree({
     });
   }
 
+  const treeReady = Boolean(tree);
+
   useEffect(() => {
     const scroller = scrollRef.current;
-    if (!scroller || !tree) return;
-    const rootItem = scroller.querySelector("[data-tree-root] > .tax-item");
-    if (!(rootItem instanceof HTMLElement)) return;
+    if (!scroller || !treeReady) return;
     const frame = window.requestAnimationFrame(() => {
-      const itemRect = rootItem.getBoundingClientRect();
-      const scrollerRect = scroller.getBoundingClientRect();
-      const top =
-        scroller.scrollTop +
-        (itemRect.top - scrollerRect.top) -
-        scroller.clientHeight / 2 +
-        itemRect.height / 2;
-      const left = scroller.scrollLeft + (itemRect.left - scrollerRect.left) - 12;
-      scroller.scrollTo({
-        top: Math.max(0, top),
-        left: Math.max(0, left),
-      });
+      // Origin, not spine-center: the LTR root sits mid-subtree, and
+      // centering it hid every crown phylum behind empty rails.
+      scroller.scrollTo({ top: 0, left: 0 });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [tree, pruneKey]);
+  }, [pruneKey, treeReady]);
 
   return (
     <section className="tree-panel" aria-label="Taxonomic tree">
