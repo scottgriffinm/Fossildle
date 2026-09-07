@@ -16,10 +16,9 @@
   --radius: 14px;
   --tree-line: #8a7460;
   --tree-bg: #1a1611;
-  --label-h: 15px;
-  --rail: 9px;
-  --rail-unary: 7px;
-  --tree-stroke: 1.6px;
+  --label-h: 18px;
+  --rail: 12px;
+  --tree-stroke: 1.5px;
   color-scheme: dark;
 }
 
@@ -216,13 +215,13 @@ input {
 
 .tree-panel {
   flex: 0 1 auto;
-  flex-basis: min(44vh, 390px);
-  max-height: min(44vh, 390px);
-  min-height: 228px;
+  flex-basis: min(36vh, 272px);
+  max-height: min(36vh, 272px);
+  min-height: 176px;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 6px 10px 4px;
+  padding: 4px 10px 2px;
   border: 0;
   border-top: 1px solid var(--line);
   background: var(--tree-bg);
@@ -466,14 +465,11 @@ input {
 .tree-scroll {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: hidden;
-  padding: 8px 10px;
+  overflow: auto;
+  padding: 4px 8px 8px;
   overscroll-behavior: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
 }
 
 .tree-scroll::-webkit-scrollbar,
@@ -485,83 +481,6 @@ input {
   background: transparent;
 }
 
-.tree-scroll:has(.cladogram-fit:not(.is-fit)) {
-  overflow: auto;
-  align-items: flex-start;
-}
-
-.cladogram-fit {
-  position: relative;
-  flex: 0 0 auto;
-  overflow: visible;
-}
-
-.cladogram-fit.is-fit {
-  overflow: hidden;
-}
-
-.cladogram {
-  display: block;
-  overflow: visible;
-}
-
-.cladogram-links path {
-  fill: none;
-  stroke: var(--tree-line);
-  stroke-width: 1.7px;
-  stroke-linecap: square;
-  stroke-linejoin: miter;
-  stroke-opacity: 1;
-}
-
-.cladogram .tax-hit {
-  fill: transparent;
-}
-
-.cladogram .tax-node.is-expandable {
-  cursor: pointer;
-}
-
-.cladogram .tax-node:focus,
-.cladogram .tax-node:focus-visible {
-  outline: none;
-}
-
-.cladogram .tax-node:focus-visible .tax-hit {
-  stroke: var(--copper);
-  stroke-width: 1.2px;
-}
-
-.cladogram .tax-name {
-  fill: var(--ink);
-  font-family: var(--font-serif), "Fraunces", serif;
-  font-size: 10px;
-  letter-spacing: 0.01em;
-  pointer-events: none;
-}
-
-.cladogram .tax-node.is-genus .tax-name {
-  font-style: italic;
-}
-
-.cladogram .tax-node.is-constraint .tax-name {
-  fill: var(--copper-2);
-}
-
-.cladogram .tax-node.is-expandable:hover .tax-name,
-.cladogram .tax-node.is-expandable:focus-visible .tax-name {
-  fill: var(--copper-2);
-}
-
-.cladogram .tax-more {
-  fill: var(--faint);
-  font-style: normal;
-}
-
-.cladogram .tax-node.is-flash .tax-name {
-  animation: prune-flash-fill 1.2s ease;
-}
-
 .tax-tree,
 .tax-kids {
   list-style: none;
@@ -569,22 +488,48 @@ input {
   padding: 0;
 }
 
-.tax-tree.is-loading {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 4px 0;
+.tax-tree {
+  min-width: min-content;
+}
+
+.tax-kids {
+  padding: 0 0 0 var(--rail);
+}
+
+.tax-node {
+  position: relative;
+}
+
+.tax-kids > .tax-node::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--rail));
+  top: 0;
+  bottom: 0;
+  border-left: var(--tree-stroke) solid var(--tree-line);
+}
+
+.tax-kids > .tax-node:last-child::before {
+  bottom: auto;
+  height: calc(var(--label-h) / 2);
+}
+
+.tax-kids > .tax-node::after {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--rail));
+  top: calc(var(--label-h) / 2);
+  width: var(--rail);
+  border-top: var(--tree-stroke) solid var(--tree-line);
 }
 
 .tax-item {
   position: relative;
   display: flex;
   align-items: center;
-  flex: 0 0 auto;
   width: 100%;
-  height: 100%;
-  min-height: var(--label-h);
-  padding: 0 4px 0 2px;
+  height: var(--label-h);
+  padding: 0 6px 0 4px;
   border: 0;
   border-radius: 2px;
   background: transparent;
@@ -608,11 +553,16 @@ button.tax-item:focus-visible {
 
 .tax-name {
   font-family: var(--font-serif), "Fraunces", serif;
-  font-size: 0.68rem;
-  line-height: 1.15;
+  font-size: 0.78rem;
+  line-height: 1.2;
   letter-spacing: 0.01em;
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+.tax-more {
+  color: var(--faint);
+  font-style: normal;
 }
 
 .tax-node.is-genus > .tax-item .tax-name {
@@ -637,12 +587,6 @@ button.tax-item:focus-visible {
   }
   100% {
     background: transparent;
-  }
-}
-
-@keyframes prune-flash-fill {
-  0% {
-    fill: var(--copper-2);
   }
 }
 
@@ -761,13 +705,12 @@ button.tax-item:focus-visible {
   }
 
   :root {
-    --label-h: 16px;
-    --rail: 10px;
-    --rail-unary: 8px;
+    --label-h: 20px;
+    --rail: 14px;
   }
 
   .tax-name {
-    font-size: 0.72rem;
+    font-size: 0.84rem;
   }
 
   .tree-scroll {
@@ -777,9 +720,8 @@ button.tax-item:focus-visible {
 
 @media (max-width: 520px) {
   :root {
-    --label-h: 14px;
-    --rail: 8px;
-    --rail-unary: 6px;
+    --label-h: 17px;
+    --rail: 11px;
   }
 
   .shell-play {
@@ -796,6 +738,6 @@ button.tax-item:focus-visible {
   }
 
   .tax-name {
-    font-size: 0.64rem;
+    font-size: 0.74rem;
   }
 }

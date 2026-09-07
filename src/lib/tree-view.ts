@@ -105,7 +105,7 @@ const CROWN_HIDE_RANKS = new Set([
 /** Show genera only when a parent has a small remaining set. */
 const SMALL_REMAINING = 16;
 
-/** Ranks that stay as named columns in the opening crown cladogram. */
+/** Ranks that stay named on the opening crown outline. */
 const TEXTBOOK_RANKS = new Set(["kingdom", "phylum", "class"]);
 
 /** High Animalia radiation — compact here; keep stem detail after a close prune. */
@@ -210,7 +210,7 @@ function flattenCrownWrappers(
   return flattenUnaryStems(taxonomy, state, out, counts, fullCounts, compact);
 }
 
-/** Skip unary PBDB stems so the cladogram stays textbook-wide, not 30 columns deep. */
+/** Skip unary PBDB stems so the outline stays readable, not 30 levels deep. */
 function flattenUnaryStems(
   taxonomy: TaxonomyIndex,
   state: PruneState,

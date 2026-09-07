@@ -62,32 +62,24 @@ Helpers (`src/lib/taxonomy.ts`):
 - `mrca(a, b)`
 - `pruneRemaining(answerId, guesses[])`
 
-The tree UI is a left-to-right cladogram: Animalia (or the current
-constraint) sits on the left, and lineages branch to the right toward
-sparse tips. A fresh game shows the remaining Animalia radiation —
-phyla and classes packed so Porifera, Cnidaria, arthropods/molluscs,
-and Chordata are visible together — not a collapsed top slice and not
-every PBDB stem rank. Unranked spine wrappers (Bilateria, Eubilateria,
-Protostomia, Deuterostomia, and similar comb nodes) are flattened on
-the high crown so those phyla hang near the root. Genera and other deep
-ranks stay hidden until the remaining set is small. The remaining
-subtree is drawn as a textbook left-to-right rectangular cladogram
-following [phylotree.js](https://github.com/veg/phylotree.js)
-(`src/render/cartesian.js`): `d3-hierarchy` cluster for equal leaf
-spacing and parent midpoints, and `d3-shape` `curveStepBefore`
-orthogonal elbows from parent join to child join. Internal names sit
-**above** the incoming horizontal (printed-cladogram /
-`lineSegmentPlacer` geometry). Tip names sit flush to the **right of
-the line end**, like phylotree’s default rectangular tip labels.
-Links are continuous join→join — never “right of a label box → left
-of the next box” with a visible gap. No +/− twisties.
-The finished crown is scaled to the panel so the opening view does not
-require panning. Scrollbar chrome stays hidden; wheel/touch pan still
-works if a later expansion overflows. Nodes with remaining children can
-still expand or collapse when the taxon name is clicked — no +/− twisty
-controls. After each miss the view is only the remaining constraint
-subtree — pruned clades are removed, not greyed — and the leftover tree
-is again packed to fit. Autocomplete uses the same remaining set.
+The tree UI is a nested outline: Animalia (or the current constraint)
+sits at the top, and children indent below it with filesystem / ITIS
+connector rails (`│ ├─ └─`). A fresh game shows the remaining Animalia
+radiation — phyla and classes open enough that Porifera, Cnidaria,
+arthropods/molluscs, and Chordata are visible together — not a
+collapsed top slice and not every PBDB stem rank. Unranked spine
+wrappers (Bilateria, Eubilateria, Protostomia, Deuterostomia, and
+similar comb nodes) are flattened on the high crown so those phyla
+hang near the root. Genera and other deep ranks stay hidden until the
+remaining set is small. The remaining subtree is a simple HTML list
+(`ul` / `li` + CSS rails). No custom SVG coordinate packer, no
+scale-to-fit cladogram engine, no rank labels, and no boxed +/−
+controls. The tree panel stays modest so the fossil stays prominent;
+the full remaining crown can scroll. Scrollbar chrome stays hidden;
+wheel/touch still works. Nodes with remaining children can expand or
+collapse when the taxon name is clicked. After each miss the view is
+only the remaining constraint subtree — pruned clades are removed, not
+greyed. Autocomplete uses the same remaining set.
 
 ## Daily rotation
 
