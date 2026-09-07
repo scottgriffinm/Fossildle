@@ -71,10 +71,12 @@ every PBDB stem rank. Unranked spine wrappers (Bilateria, Eubilateria,
 Protostomia, Deuterostomia, and similar comb nodes) are flattened on
 the high crown so those phyla hang near the root. Genera and other deep
 ranks stay hidden until the remaining set is small. The remaining
-subtree is drawn as a classic left-to-right cladogram with open-source
-`d3-hierarchy` cluster (equal leaf spacing, parents on midpoints) and
-`d3-shape` `linkHorizontal` curves — one real parent→child
-path per edge, labels at the nodes, no custom tick/elbow connectors.
+subtree is drawn as a classic left-to-right cladogram: `d3-hierarchy`
+cluster packs equal leaf rows and sits parents on midpoints, then each
+parent name sits on its branch. A thin stem leaves the right of the
+name, a vertical bar gathers siblings, and a real twig reaches each
+child — orthogonal elbows, not a spine of tick marks or a bundle of
+short cubics.
 The finished crown is scaled to the panel so the opening view does not
 require panning. Scrollbar chrome stays hidden; wheel/touch pan still
 works if a later expansion overflows. Nodes with remaining children can

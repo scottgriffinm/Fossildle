@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { TaxonomyIndex } from "@/lib/taxonomy";
 import {
   DEFAULT_METRICS,
@@ -62,7 +62,35 @@ export function TaxonomyTree({
     });
   }, [taxonomy, prune, status, answerId, expanded]);
 
-  const layout = useMemo(() => (tree ? layoutCladogram(tree) : null), [tree]);
+  const [inkWidths, setInkWidths] = useState<ReadonlyMap<number, number>>(() => new Map());
+  const treeSignature = tree
+    ? `${pruneKey}:${[...expanded].sort((a, b) => a - b).join(",")}:${status}:${answerId ?? ""}`
+    : "";
+
+  useEffect(() => {
+    setInkWidths(new Map());
+  }, [treeSignature]);
+
+  const layout = useMemo(
+    () => (tree ? layoutCladogram(tree, DEFAULT_METRICS, inkWidths) : null),
+    [tree, inkWidths],
+  );
+
+  const commitInkWidths = useCallback((next: Map<number, number>) => {
+    setInkWidths((prev) => {
+      if (prev.size === next.size) {
+        let same = true;
+        for (const [id, width] of next) {
+          if (Math.abs((prev.get(id) ?? Number.NaN) - width) > 0.5) {
+            same = false;
+            break;
+          }
+        }
+        if (same) return prev;
+      }
+      return next;
+    });
+  }, []);
 
   function toggle(id: number) {
     if (id === constraintId || !taxonomy || !prune) return;
@@ -90,6 +118,7 @@ export function TaxonomyTree({
             constraintId={constraintId}
             scrollRef={scrollRef}
             onToggle={toggle}
+            onInkWidths={commitInkWidths}
           />
         )}
       </div>
@@ -104,6 +133,7 @@ function Cladogram({
   constraintId,
   scrollRef,
   onToggle,
+  onInkWidths,
 }: {
   layout: NonNullable<ReturnType<typeof layoutCladogram>>;
   flashId: number | null;
@@ -111,9 +141,11 @@ function Cladogram({
   constraintId: number | undefined;
   scrollRef: RefObject<HTMLDivElement | null>;
   onToggle: (id: number) => void;
+  onInkWidths: (widths: Map<number, number>) => void;
 }) {
   const [scale, setScale] = useState(1);
   const [fits, setFits] = useState(true);
+  const labelLayerRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
     const scroller = scrollRef.current;
@@ -143,6 +175,18 @@ function Cladogram({
     observer.observe(scroller);
     return () => observer.disconnect();
   }, [layout, scrollRef]);
+
+  useLayoutEffect(() => {
+    const layer = labelLayerRef.current;
+    if (!layer) return;
+    const next = new Map<number, number>();
+    for (const node of layer.querySelectorAll<HTMLElement>("[data-node-id]")) {
+      const name = node.querySelector<HTMLElement>(".tax-name");
+      if (!name) continue;
+      next.set(Number(node.dataset.nodeId), name.offsetWidth);
+    }
+    onInkWidths(next);
+  }, [layout.nodes, onInkWidths]);
 
   const fittedW = Math.max(1, layout.width * scale);
   const fittedH = Math.max(1, layout.height * scale);
@@ -188,6 +232,7 @@ function Cladogram({
         className="cladogram"
         role="tree"
         aria-label="Remaining taxonomic hierarchy"
+        ref={labelLayerRef}
         style={{
           width: layout.width,
           height: layout.height,
@@ -246,14 +291,14 @@ function CladeLabel({
     <div
       className={classes}
       role="treeitem"
+      data-node-id={node.id}
       data-tree-root={isRoot ? "true" : undefined}
       aria-level={node.depth + 1}
       aria-selected={node.status === "constraint"}
       aria-expanded={canExpand ? isOpen : undefined}
       style={{
-        left: node.x + DEFAULT_METRICS.nodeRadius + 3,
+        left: node.x + DEFAULT_METRICS.labelOffset,
         top: node.y - DEFAULT_METRICS.rowHeight / 2,
-        width: node.labelWidth,
         height: DEFAULT_METRICS.rowHeight,
       }}
     >
