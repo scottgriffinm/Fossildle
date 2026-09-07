@@ -4,6 +4,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEve
 import type { TaxonomyIndex } from "@/lib/taxonomy";
 import {
   DEFAULT_METRICS,
+  FIT_MIN,
+  FIT_PAD,
   fitScale,
   layoutCladogram,
   type PlacedNode,
@@ -128,8 +130,8 @@ function Cladogram({
       const viewW = Math.max(1, scroller.clientWidth - padX);
       const viewH = Math.max(1, scroller.clientHeight - padY);
       const next = fitScale(layout.width, layout.height, viewW, viewH, {
-        min: 0.62,
-        pad: 2,
+        min: FIT_MIN,
+        pad: FIT_PAD,
       });
       setScale(next);
       const fittedW = layout.width * next;
@@ -160,15 +162,13 @@ function Cladogram({
     >
       <svg
         className="cladogram"
-        width={layout.width}
-        height={layout.height}
+        width={fittedW}
+        height={fittedH}
+        viewBox={`0 0 ${layout.width} ${layout.height}`}
+        preserveAspectRatio="xMinYMin meet"
         overflow="visible"
         role="tree"
         aria-label="Remaining taxonomic hierarchy"
-        style={{
-          transform: `scale(${scale})`,
-          transformOrigin: "0 0",
-        }}
       >
         <g className="cladogram-links" aria-hidden="true">
           <path d={layout.stem.d} />

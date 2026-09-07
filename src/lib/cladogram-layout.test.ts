@@ -7,6 +7,7 @@ import type { TreeNodeView } from "./tree-view";
 import { buildCabinetTree } from "./tree-view";
 import {
   DEFAULT_METRICS,
+  FIT_MIN,
   cladogramLink,
   fitScale,
   labelIsAttached,
@@ -120,8 +121,8 @@ describe("phylotree.js curveStepBefore rectangular cladogram", () => {
     expect(layout.engine).toBe("phylotree-curveStepBefore");
     expect(layout.leafCount).toBeGreaterThanOrEqual(8);
     expect(layout.leafCount).toBeLessThan(28);
-    expect(layout.height).toBeLessThan(520);
-    expect(layout.width).toBeLessThan(560);
+    expect(layout.height).toBeLessThan(430);
+    expect(layout.width).toBeLessThan(360);
     expect(layout.depth).toBeLessThan(6);
 
     const byName = new Map(layout.nodes.map((node) => [node.name, node]));
@@ -195,18 +196,30 @@ describe("phylotree.js curveStepBefore rectangular cladogram", () => {
       ]),
     );
 
-    const scale = fitScale(layout.width, layout.height, 332, 360, { min: 0.62, pad: 4 });
-    expect(scale).toBeGreaterThanOrEqual(0.62);
+    const scale = fitScale(layout.width, layout.height, 332, 360, { min: FIT_MIN, pad: 4 });
+    expect(scale).toBeGreaterThanOrEqual(FIT_MIN);
     expect(layout.width * scale).toBeLessThanOrEqual(332);
     expect(layout.height * scale).toBeLessThanOrEqual(360);
+
+    for (const node of layout.nodes) {
+      if (!node.isTip) continue;
+      expect(node.labelX + node.labelWidth).toBeLessThanOrEqual(layout.width);
+      expect(node.name.length).toBeGreaterThan(1);
+    }
+    const tips = layout.nodes.filter((node) => node.isTip).map((node) => node.name);
+    expect(tips).toEqual(
+      expect.arrayContaining(["Trilobita", "Bivalvia", "Gastropoda", "Ammonoidea"]),
+    );
   });
 
   it("does not invent extra vertical space beyond packed leaves", () => {
-    const scale = fitScale(8000, 8000, 332, 400, { min: 0.62, pad: 0 });
-    expect(scale).toBe(0.62);
+    const scale = fitScale(8000, 8000, 332, 400, { min: FIT_MIN, pad: 0 });
+    expect(scale).toBe(FIT_MIN);
     expect(fitScale(200, 200, 332, 400)).toBe(1);
     expect(DEFAULT_METRICS.rowHeight).toBeGreaterThan(12);
+    expect(DEFAULT_METRICS.fontSize).toBeLessThanOrEqual(10);
     expect(DEFAULT_METRICS.labelLift).toBeGreaterThanOrEqual(5);
     expect(DEFAULT_METRICS.tipGap).toBeLessThanOrEqual(5);
+    expect(DEFAULT_METRICS.branchMin).toBeLessThanOrEqual(28);
   });
 });
