@@ -162,6 +162,33 @@ function flattenCrownWrappers(
     }
     out.push(row);
   }
+  return flattenUnaryUnranked(taxonomy, state, out, counts, fullCounts);
+}
+
+/** Skip unary unranked PBDB intermediates so the cladogram stays textbook-wide. */
+function flattenUnaryUnranked(
+  taxonomy: TaxonomyIndex,
+  state: PruneState,
+  rows: TreeBranch[],
+  counts: Map<number, number>,
+  fullCounts: Map<number, number>,
+): TreeBranch[] {
+  const out: TreeBranch[] = [];
+  for (const row of rows) {
+    const skipUnary =
+      (row.taxon.rank === "unranked" || row.taxon.rank === "informal") &&
+      !SCAFFOLD_TAXA.has(row.taxon.name) &&
+      row.taxon.id !== state.constraintId &&
+      VISIBLE_STATUSES.has(row.status);
+    if (skipUnary) {
+      const nested = viewChildren(taxonomy, state, row.taxon.id, counts, fullCounts);
+      if (nested.length === 1) {
+        out.push(...flattenUnaryUnranked(taxonomy, state, nested, counts, fullCounts));
+        continue;
+      }
+    }
+    out.push(row);
+  }
   return out;
 }
 

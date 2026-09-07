@@ -146,8 +146,9 @@ describe("cabinet tree view", () => {
     expect(findNode(tree, "Animalia")).toBeNull();
     expect(findNode(tree, "Ornithischia")).toBeNull();
     expect(findNode(tree, "Triceratops")).toBeNull();
-    expect(names(tree.children)).toEqual(expect.arrayContaining(["Theropoda", "Saurischia"]));
-    expect(findNode(tree, "Theropoda")?.status).toBe("remaining");
+    expect(names(tree.children)).toEqual(expect.arrayContaining(["Tyrannosaurus", "Diplodocus"]));
+    expect(findNode(tree, "Tyrannosaurus")?.status).toBe("remaining");
+    expect(findNode(tree, "Diplodocus")?.status).toBe("remaining");
   });
 
   it("shows the path to the answer after a win", () => {
@@ -194,6 +195,8 @@ describe("cabinet tree on the shipped Animalia artifact", () => {
     expect(findNode(tree, "Dinosauria")).toBeTruthy();
     expect(findNode(tree, "Mammalia")).toBeTruthy();
     expect(findNode(tree, "Trilobita")).toBeTruthy();
+    expect(findNode(tree, "Reptiliomorpha")).toBeNull();
+    expect(findNode(tree, "Anthracosauria")).toBeNull();
     expect(findNode(tree, "Ecdysozoa")).toBeNull();
     expect(findNode(tree, "Panarthropoda")).toBeNull();
     expect(findNode(tree, "Opabiniidae")).toBeNull();

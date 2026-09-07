@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { TaxonomyIndex } from "@/lib/taxonomy";
 import {
   autoExpandIds,
@@ -24,6 +24,7 @@ export function TaxonomyTree({
   loading?: boolean;
 }) {
   const [flashId, setFlashId] = useState<number | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const stepCount = prune?.steps.length ?? 0;
   const constraintId = prune?.constraintId;
   const pruneKey = `${constraintId ?? "none"}:${stepCount}`;
@@ -69,9 +70,31 @@ export function TaxonomyTree({
     });
   }
 
+  useEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller || !tree) return;
+    const rootItem = scroller.querySelector("[data-tree-root] > .tax-item");
+    if (!(rootItem instanceof HTMLElement)) return;
+    const frame = window.requestAnimationFrame(() => {
+      const itemRect = rootItem.getBoundingClientRect();
+      const scrollerRect = scroller.getBoundingClientRect();
+      const top =
+        scroller.scrollTop +
+        (itemRect.top - scrollerRect.top) -
+        scroller.clientHeight / 2 +
+        itemRect.height / 2;
+      const left = scroller.scrollLeft + (itemRect.left - scrollerRect.left) - 12;
+      scroller.scrollTo({
+        top: Math.max(0, top),
+        left: Math.max(0, left),
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [tree, pruneKey]);
+
   return (
     <section className="tree-panel" aria-label="Taxonomic tree">
-      <div className="tree-scroll">
+      <div className="tree-scroll" ref={scrollRef}>
         {loading || !tree || !taxonomy ? (
           <TreeSkeleton />
         ) : (
@@ -127,6 +150,7 @@ function TreeNode({
     <li
       className={classes}
       role="treeitem"
+      data-tree-root={isRoot || node.status === "constraint" ? "true" : undefined}
       aria-selected={node.status === "constraint"}
       aria-expanded={canExpand ? isOpen : undefined}
     >
