@@ -55,7 +55,7 @@ export function GuessInput({
         submit();
       }}
     >
-      <label htmlFor="animal-guess">Guess the animal</label>
+      <label htmlFor="animal-guess">Guess the fossil</label>
       <div className="input-wrap">
         <input
           id="animal-guess"

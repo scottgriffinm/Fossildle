@@ -29,7 +29,7 @@ today's guesses (`fossildle:v1:YYYY-MM-DD`).
   as that genus. If that genus is the answer, the player wins.
 - Common names from PBDB `nm2` and the catalog (T. rex, mammoth, saber-toothed
   cat, …) also resolve to that genus.
-- Higher taxa (`Dinosauria`, `Mammalia`, …) are rejected: “Guess the animal”.
+- Higher taxa (`Dinosauria`, `Mammalia`, …) are rejected: “Guess the fossil”.
 - Search/autocomplete lists only **remaining** animals and matches common
   names where we have them.
 

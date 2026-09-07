@@ -19,7 +19,7 @@
   --label-h: 15px;
   --rail: 9px;
   --rail-unary: 7px;
-  --tree-stroke: 1.25px;
+  --tree-stroke: 2px;
   color-scheme: dark;
 }
 
@@ -181,8 +181,9 @@ input {
 }
 
 .play-hero {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
@@ -214,12 +215,14 @@ input {
 }
 
 .tree-panel {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 1 auto;
+  flex-basis: min(44vh, 390px);
+  max-height: min(44vh, 390px);
+  min-height: 228px;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 8px 12px 6px;
+  padding: 6px 10px 4px;
   border: 0;
   border-top: 1px solid var(--line);
   background: var(--tree-bg);
@@ -243,7 +246,10 @@ input {
 
 .specimen {
   overflow: hidden;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -252,7 +258,9 @@ input {
 
 .specimen-frame {
   position: relative;
-  height: clamp(176px, 24vh, 228px);
+  flex: 1 1 auto;
+  height: auto;
+  min-height: clamp(196px, 27vh, 244px);
   background: #0c0a08;
 }
 
@@ -459,7 +467,7 @@ input {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
-  padding: 6px 8px 10px;
+  padding: 8px 10px;
   overscroll-behavior: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -485,6 +493,7 @@ input {
 .cladogram-fit {
   position: relative;
   flex: 0 0 auto;
+  overflow: visible;
 }
 
 .cladogram {
@@ -496,14 +505,18 @@ input {
   position: absolute;
   inset: 0;
   overflow: visible;
+  pointer-events: none;
 }
 
 .cladogram-edges path {
   fill: none;
   stroke: var(--tree-line);
-  stroke-width: var(--tree-stroke);
+  stroke-width: 2px;
   stroke-linecap: square;
   stroke-linejoin: miter;
+  stroke-opacity: 1;
+  vector-effect: non-scaling-stroke;
+  shape-rendering: geometricPrecision;
 }
 
 .cladogram .tax-node {
@@ -709,6 +722,10 @@ button.tax-item .tax-name::after {
   .tree-panel {
     grid-column: 2;
     grid-row: 1;
+    flex: 1 1 auto;
+    flex-basis: auto;
+    max-height: none;
+    min-height: 0;
     border-top: 0;
     border-left: 1px solid var(--line);
   }

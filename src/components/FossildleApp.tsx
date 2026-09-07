@@ -88,7 +88,7 @@ export function FossildleApp() {
       const reasons = {
         empty: "Type an animal to guess.",
         unknown: "That name is not in the local tree. Try another animal.",
-        "not-genus": "Guess the animal, not a higher group.",
+        "not-genus": "Guess the fossil, not a higher group.",
         "not-remaining": "That branch is already pruned away.",
         duplicate: "You already guessed that animal.",
       } as const;
@@ -205,7 +205,7 @@ export function FossildleApp() {
             />
           ) : (
             <div className="composer">
-              <label htmlFor="animal-guess">Guess the animal</label>
+              <label htmlFor="animal-guess">Guess the fossil</label>
               <div className="input-wrap">
                 <input id="animal-guess" disabled placeholder="Loading animals…" />
                 <button className="guess-btn" type="button" disabled>

@@ -144,16 +144,36 @@ function Cladogram({
     return () => observer.disconnect();
   }, [layout, scrollRef]);
 
+  const fittedW = Math.max(1, layout.width * scale);
+  const fittedH = Math.max(1, layout.height * scale);
+
   return (
     <div
       className={`cladogram-fit${fits ? " is-fit" : ""}`}
       style={{
-        width: Math.max(1, Math.floor(layout.width * scale)),
-        height: Math.max(1, Math.floor(layout.height * scale)),
+        width: fittedW,
+        height: fittedH,
       }}
       data-cladogram-leaves={layout.leafCount}
       data-cladogram-scale={scale.toFixed(3)}
     >
+      <svg
+        className="cladogram-edges"
+        width={fittedW}
+        height={fittedH}
+        viewBox={`0 0 ${layout.width} ${layout.height}`}
+        preserveAspectRatio="xMinYMin meet"
+        overflow="visible"
+        aria-hidden="true"
+      >
+        {layout.edges.map((edge) => (
+          <path
+            key={`${edge.kind}:${edge.d}`}
+            d={edge.d}
+            vectorEffect="nonScalingStroke"
+          />
+        ))}
+      </svg>
       <div
         className="cladogram"
         role="tree"
@@ -164,16 +184,6 @@ function Cladogram({
           transform: `scale(${scale})`,
         }}
       >
-        <svg
-          className="cladogram-edges"
-          width={layout.width}
-          height={layout.height}
-          aria-hidden="true"
-        >
-          {layout.edges.map((edge) => (
-            <path key={edge.d} d={edge.d} />
-          ))}
-        </svg>
         {layout.nodes.map((node) => (
           <CladeLabel
             key={node.id}
