@@ -1,26 +1,39 @@
 import { cluster, hierarchy, type HierarchyNode, type HierarchyPointNode } from "d3-hierarchy";
-import { linkHorizontal } from "d3-shape";
+import { curveStepBefore, line } from "d3-shape";
 import type { NodeStatus, TreeNodeView } from "./tree-view";
 
 export type CladogramMetrics = {
   rowHeight: number;
   charWidth: number;
+  fontSize: number;
   labelPadX: number;
-  linkGap: number;
-  nodeRadius: number;
+  labelInset: number;
+  labelLift: number;
+  tipGap: number;
+  branchPad: number;
+  branchMin: number;
+  stemMin: number;
   padX: number;
   padY: number;
 };
 
-/** Tight leaf packing; columns sized from label estimates. */
+/**
+ * Packed LTR crown. Internals sit above the incoming run; tips hang off the
+ * line end — phylotree.js rectangular + textbook cladogram.
+ */
 export const DEFAULT_METRICS: CladogramMetrics = {
-  rowHeight: 17,
+  rowHeight: 22,
   charWidth: 6.6,
-  labelPadX: 10,
-  linkGap: 22,
-  nodeRadius: 2.4,
-  padX: 6,
-  padY: 8,
+  fontSize: 11,
+  labelPadX: 4,
+  labelInset: 5,
+  labelLift: 8,
+  tipGap: 3,
+  branchPad: 10,
+  branchMin: 40,
+  stemMin: 44,
+  padX: 8,
+  padY: 18,
 };
 
 export type PlacedNode = {
@@ -30,9 +43,18 @@ export type PlacedNode = {
   status: NodeStatus;
   expandable: boolean;
   depth: number;
+  /** Right end of the incoming branch; vertical spine for children. */
   x: number;
+  /** Horizontal branch / elbow y. */
   y: number;
+  /** Left end of the incoming horizontal (parent.x, or root stem start). */
+  incomingX: number;
+  /** Left edge of the name. */
+  labelX: number;
+  /** Text baseline. Internals sit above the stroke; tips sit on the tip. */
+  labelY: number;
   labelWidth: number;
+  isTip: boolean;
   children: PlacedNode[];
 };
 
@@ -48,11 +70,13 @@ export type CladogramLayout = {
   root: PlacedNode;
   nodes: PlacedNode[];
   links: CladogramLink[];
+  /** Root stem so the constraint sits on a branch, not a floating point. */
+  stem: CladogramLink;
   width: number;
   height: number;
   leafCount: number;
   depth: number;
-  engine: "d3-cluster-linkHorizontal";
+  engine: "phylotree-curveStepBefore";
 };
 
 type CladeDatum = {
@@ -89,40 +113,76 @@ export function treeDepth(node: TreeNodeView): number {
   return 1 + Math.max(...node.children.map(treeDepth));
 }
 
-const horizontalLink = linkHorizontal<
-  { source: [number, number]; target: [number, number] },
-  [number, number]
->();
+/**
+ * veg/phylotree.js `src/render/cartesian.js`:
+ * `d3.line().curve(d3.curveStepBefore)` — vertical at the parent, then a
+ * continuous horizontal into the child. Joins are node coordinates; labels
+ * are never part of the path.
+ */
+const stepLink = line<[number, number]>()
+  .x((point) => point[0])
+  .y((point) => point[1])
+  .curve(curveStepBefore);
 
-/** Parent→child cubic (curveBumpX) from d3-shape's linkHorizontal. */
 export function cladogramLink(source: [number, number], target: [number, number]): string {
-  return horizontalLink({ source, target }) ?? "";
+  return stepLink([source, target]) ?? "";
 }
 
-function columnWidths(
-  root: HierarchyNode<CladeDatum>,
-  metrics: CladogramMetrics,
-): number[] {
+/** Incoming run must fit internal names that sit on that branch. */
+function columnWidths(root: HierarchyNode<CladeDatum>, metrics: CladogramMetrics): number[] {
   const height = Math.max(root.height, 1);
-  const cols = Array.from({ length: height }, () => metrics.linkGap);
+  const cols = Array.from({ length: height }, () => metrics.branchMin);
   root.each((node) => {
-    if (!node.children || node.depth >= height) return;
-    const needed = estimateLabelWidth(node.data.name, metrics) + metrics.linkGap;
-    cols[node.depth] = Math.max(cols[node.depth]!, needed);
+    const isTip = !node.children?.length;
+    if (node.depth === 0 || isTip) return;
+    const needed =
+      metrics.labelInset + estimateLabelWidth(node.data.name, metrics) + metrics.branchPad;
+    cols[node.depth - 1] = Math.max(cols[node.depth - 1]!, needed);
   });
   return cols;
 }
 
-function cumulative(cols: number[], padX: number): number[] {
-  const xs = [padX];
+function rootStemWidth(root: HierarchyNode<CladeDatum>, metrics: CladogramMetrics): number {
+  const isTip = !root.children?.length;
+  if (isTip) return metrics.stemMin;
+  return Math.max(
+    metrics.stemMin,
+    metrics.labelInset + estimateLabelWidth(root.data.name, metrics) + metrics.branchPad,
+  );
+}
+
+function cumulative(stem: number, cols: number[], padX: number): number[] {
+  const xs = [padX + stem];
   for (const col of cols) xs.push(xs[xs.length - 1]! + col);
   return xs;
 }
 
+function placeLabel(
+  node: { x: number; y: number; incomingX: number; name: string; isTip: boolean },
+  metrics: CladogramMetrics,
+): { labelX: number; labelY: number; labelWidth: number } {
+  const labelWidth = estimateLabelWidth(node.name, metrics);
+  if (node.isTip) {
+    return {
+      labelX: node.x + metrics.tipGap,
+      labelY: node.y + metrics.fontSize * 0.32,
+      labelWidth,
+    };
+  }
+  // Left-aligned at the start of the incoming run so the stroke stays
+  // visible after the name all the way to the join (textbook / phylotree).
+  return {
+    labelX: node.incomingX + metrics.labelInset,
+    labelY: node.y - metrics.labelLift,
+    labelWidth,
+  };
+}
+
 /**
- * Classic left-to-right cladogram via open-source D3:
- * d3-hierarchy cluster (equal leaf spacing, parents on midpoints)
- * + d3-shape linkHorizontal (one real parent→child curve per edge).
+ * Left-to-right rectangular cladogram:
+ * - d3-hierarchy cluster (equal leaf spacing, parents on midpoints)
+ * - phylotree.js curveStepBefore elbows from parent join → child join
+ * - internal names above the incoming horizontal; tip names flush right of the tip
  */
 export function layoutCladogram(
   tree: TreeNodeView,
@@ -130,8 +190,9 @@ export function layoutCladogram(
 ): CladogramLayout {
   const root = hierarchy(toDatum(tree));
   const leafCount = Math.max(root.leaves().length, 1);
+  const stem = rootStemWidth(root, metrics);
   const cols = columnWidths(root, metrics);
-  const xAt = cumulative(cols, metrics.padX);
+  const xAt = cumulative(stem, cols, metrics.padX);
 
   const laid = cluster<CladeDatum>()
     .nodeSize([metrics.rowHeight, 1])
@@ -150,17 +211,18 @@ export function layoutCladogram(
 
   const placedById = new Map<number, PlacedNode>();
   const nodes: PlacedNode[] = [];
-  let maxRight = metrics.padX;
 
-  const screenOf = (node: HierarchyPointNode<CladeDatum>): { x: number; y: number; labelWidth: number } => {
-    const labelWidth = estimateLabelWidth(node.data.name, metrics);
-    const x = xAt[node.depth] ?? metrics.padX;
-    const y = node.x - minY + metrics.padY + metrics.rowHeight / 2;
-    return { x, y, labelWidth };
+  const screenOf = (node: HierarchyPointNode<CladeDatum>): { x: number; y: number } => {
+    const x = xAt[node.depth] ?? metrics.padX + stem;
+    const y = node.x - minY + metrics.padY;
+    return { x, y };
   };
 
   laid.each((node) => {
-    const { x, y, labelWidth } = screenOf(node);
+    const { x, y } = screenOf(node);
+    const incomingX = node.parent ? screenOf(node.parent).x : metrics.padX;
+    const isTip = !node.children?.length;
+    const label = placeLabel({ x, y, incomingX, name: node.data.name, isTip }, metrics);
     const placed: PlacedNode = {
       id: node.data.id,
       name: node.data.name,
@@ -170,12 +232,15 @@ export function layoutCladogram(
       depth: node.depth,
       x,
       y,
-      labelWidth,
+      incomingX,
+      labelX: label.labelX,
+      labelY: label.labelY,
+      labelWidth: label.labelWidth,
+      isTip,
       children: [],
     };
     placedById.set(placed.id, placed);
     nodes.push(placed);
-    maxRight = Math.max(maxRight, x + labelWidth + metrics.nodeRadius);
   });
 
   laid.each((node) => {
@@ -189,10 +254,7 @@ export function layoutCladogram(
     if (!node.parent) return;
     const parent = placedById.get(node.parent.data.id)!;
     const child = placedById.get(node.data.id)!;
-    const source: [number, number] = [
-      parent.x + parent.labelWidth + metrics.nodeRadius,
-      parent.y,
-    ];
+    const source: [number, number] = [parent.x, parent.y];
     const target: [number, number] = [child.x, child.y];
     links.push({
       parentId: parent.id,
@@ -204,17 +266,34 @@ export function layoutCladogram(
   });
 
   const placedRoot = placedById.get(laid.data.id)!;
-  const height = Math.ceil(maxY - minY + metrics.rowHeight + metrics.padY * 2);
+  const stemSource: [number, number] = [placedRoot.incomingX, placedRoot.y];
+  const stemTarget: [number, number] = [placedRoot.x, placedRoot.y];
+  const stemLink: CladogramLink = {
+    parentId: placedRoot.id,
+    childId: placedRoot.id,
+    source: stemSource,
+    target: stemTarget,
+    d: cladogramLink(stemSource, stemTarget),
+  };
+
+  let maxRight = placedRoot.x;
+  for (const node of nodes) {
+    maxRight = Math.max(maxRight, node.isTip ? node.labelX + node.labelWidth : node.x);
+  }
+
+  const height = Math.ceil(maxY - minY + metrics.padY * 2);
+  const width = Math.ceil(maxRight + metrics.padX);
 
   return {
     root: placedRoot,
     nodes,
     links,
-    width: Math.ceil(maxRight + metrics.padX),
+    stem: stemLink,
+    width,
     height,
     leafCount,
     depth: root.height + 1,
-    engine: "d3-cluster-linkHorizontal",
+    engine: "phylotree-curveStepBefore",
   };
 }
 
@@ -233,4 +312,19 @@ export function fitScale(
   if (contentWidth <= viewW && contentHeight <= viewH) return max;
   const raw = Math.min(viewW / Math.max(1, contentWidth), viewH / Math.max(1, contentHeight));
   return Math.min(max, Math.max(min, raw));
+}
+
+/** Names never sit in a hole in the path. */
+export function labelIsAttached(
+  node: PlacedNode,
+  metrics: CladogramMetrics = DEFAULT_METRICS,
+): boolean {
+  if (node.isTip) {
+    return node.labelX >= node.x && node.labelX <= node.x + metrics.tipGap + 1;
+  }
+  return (
+    node.labelY <= node.y - metrics.labelLift + 0.01 &&
+    node.labelX >= node.incomingX - 0.01 &&
+    node.labelX + node.labelWidth <= node.x + metrics.branchPad + 0.01
+  );
 }
