@@ -16,9 +16,10 @@
   --radius: 14px;
   --tree-line: #8a7460;
   --tree-bg: #1a1611;
-  --label-h: 24px;
-  --rail: 16px;
-  --tree-stroke: 2px;
+  --label-h: 15px;
+  --rail: 9px;
+  --rail-unary: 7px;
+  --tree-stroke: 1.25px;
   color-scheme: dark;
 }
 
@@ -193,6 +194,14 @@ input {
   max-height: 34%;
   overflow: auto;
   border-top: 1px solid var(--line);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.play-guesses::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .play-compose {
@@ -439,8 +448,16 @@ input {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  padding: 12px 16px 18px;
+  padding: 6px 8px 10px;
   overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tree-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .tax-tree,
@@ -473,6 +490,10 @@ input {
   padding: 0 0 0 var(--rail);
 }
 
+.tax-tree.is-ltr .tax-kids:has(> .tax-node:only-child) {
+  padding-left: var(--rail-unary);
+}
+
 .tax-item {
   position: relative;
   display: flex;
@@ -480,7 +501,7 @@ input {
   flex: 0 0 auto;
   width: auto;
   height: var(--label-h);
-  padding: 0 8px 0 4px;
+  padding: 0 5px 0 2px;
   border: 0;
   border-radius: 2px;
   background: transparent;
@@ -525,7 +546,7 @@ button.tax-item .tax-name::after {
   position: absolute;
   right: 0;
   top: 50%;
-  width: 8px;
+  width: 5px;
   border-top: var(--tree-stroke) solid var(--tree-line);
 }
 
@@ -562,10 +583,20 @@ button.tax-item .tax-name::after {
   border-top: var(--tree-stroke) solid var(--tree-line);
 }
 
+.tax-tree.is-ltr .tax-kids:has(> .tax-node:only-child) > .tax-node::before,
+.tax-tree.is-ltr .tax-kids:has(> .tax-node:only-child) > .tax-node::after {
+  left: calc(-1 * var(--rail-unary));
+}
+
+.tax-tree.is-ltr .tax-kids:has(> .tax-node:only-child) > .tax-node::after {
+  width: var(--rail-unary);
+}
+
 .tax-name {
   font-family: var(--font-serif), "Fraunces", serif;
-  font-size: 0.98rem;
-  line-height: 1.2;
+  font-size: 0.68rem;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
   flex: 0 0 auto;
   white-space: nowrap;
 }
@@ -705,16 +736,28 @@ button.tax-item .tax-name::after {
     border-top: 1px solid var(--line);
   }
 
+  :root {
+    --label-h: 16px;
+    --rail: 10px;
+    --rail-unary: 8px;
+  }
+
   .tax-name {
-    font-size: 0.95rem;
+    font-size: 0.72rem;
   }
 
   .tree-scroll {
-    padding: 12px 14px 18px;
+    padding: 8px 10px 12px;
   }
 }
 
 @media (max-width: 520px) {
+  :root {
+    --label-h: 14px;
+    --rail: 8px;
+    --rail-unary: 6px;
+  }
+
   .shell-play {
     width: calc(100% - 16px);
   }
@@ -726,5 +769,9 @@ button.tax-item .tax-name::after {
 
   .attribution {
     max-width: 54%;
+  }
+
+  .tax-name {
+    font-size: 0.64rem;
   }
 }

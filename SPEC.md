@@ -65,14 +65,17 @@ Helpers (`src/lib/taxonomy.ts`):
 The tree UI is a left-to-right cladogram: Animalia (or the current
 constraint) sits on the left, and lineages branch to the right toward
 sparse tips. A fresh game shows the full remaining crown/scaffold tree —
-not a collapsed top slice — with genera and other deep ranks still hidden
-until the remaining set is small. Unary unranked intermediates are skipped
-so the cladogram stays textbook-wide. The panel scrolls when the tree is
-tall or wide, and the current root is kept in view. Nodes with remaining children can still expand or collapse
-when the taxon name is clicked — no +/− twisty controls. After each miss
-the view is only the remaining constraint subtree — pruned clades are
-removed, not greyed — and the leftover tree is again fully visible.
-Autocomplete uses the same remaining set.
+phyla, classes, and named textbook clades — not a collapsed top slice and
+not every PBDB stem rank. Genera and other deep ranks stay hidden until
+the remaining set is small. Unary intermediates and unranked comb nodes
+are flattened so the opening view is dense enough to read the Animalia
+radiation at a glance. Row height, column rails, and type are sized for
+that compact LTR layout. The panel may still scroll after densifying.
+Nodes with remaining children can still expand or collapse when the taxon
+name is clicked — no +/− twisty controls. After each miss the view is
+only the remaining constraint subtree — pruned clades are removed, not
+greyed — and the leftover tree is again fully visible. Autocomplete uses
+the same remaining set.
 
 ## Daily rotation
 
