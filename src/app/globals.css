@@ -504,16 +504,6 @@ input {
   white-space: nowrap;
 }
 
-.tax-rank {
-  margin-left: 0.45rem;
-  color: var(--faint);
-  font-family: var(--font-sans), "Source Sans 3", sans-serif;
-  font-size: 0.64rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  flex: 0 0 auto;
-}
-
 .tax-node.is-genus > .tax-item .tax-name {
   font-style: italic;
 }

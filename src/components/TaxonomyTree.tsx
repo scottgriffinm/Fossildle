@@ -54,11 +54,6 @@ export function TaxonomyTree({
   );
 }
 
-function rankLabel(rank: string): string {
-  if (!rank || rank === "unranked" || rank === "informal") return "";
-  return rank;
-}
-
 function TreeNode({
   node,
   flashId,
@@ -70,7 +65,6 @@ function TreeNode({
 }) {
   const flashing = flashId === node.taxon.id;
   const isGenus = node.taxon.rank === "genus";
-  const rank = rankLabel(node.taxon.rank);
 
   const classes = [
     "tax-node",
@@ -86,7 +80,6 @@ function TreeNode({
     <li className={classes}>
       <div className="tax-item">
         <span className="tax-name">{node.taxon.name}</span>
-        {rank ? <span className="tax-rank">{rank}</span> : null}
       </div>
       {node.children.length > 0 && (
         <ul className="tax-kids">
@@ -105,19 +98,16 @@ function TreeSkeleton() {
       <li className="tax-node is-constraint is-root">
         <div className="tax-item">
           <span className="tax-name">Animalia</span>
-          <span className="tax-rank">kingdom</span>
         </div>
         <ul className="tax-kids">
           <li className="tax-node is-remaining">
             <div className="tax-item">
               <span className="tax-name">Porifera</span>
-              <span className="tax-rank">phylum</span>
             </div>
           </li>
           <li className="tax-node is-remaining">
             <div className="tax-item">
               <span className="tax-name">Cnidaria</span>
-              <span className="tax-rank">phylum</span>
             </div>
           </li>
           <li className="tax-node is-remaining">
