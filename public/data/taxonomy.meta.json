@@ -1,9 +1,9 @@
 {
   "taxonCount": 19050,
   "genusCount": 13293,
-  "aliasCount": 259,
+  "aliasCount": 488,
   "rootId": 67091,
-  "bytes": 1312244,
+  "bytes": 1322142,
   "clades": [
     "Dinosauria",
     "Trilobita",
@@ -24,7 +24,14 @@
     "Dunkleosteus",
     "Smilodon",
     "Elrathia",
-    "Diplodocus"
+    "Diplodocus",
+    "Anomalocaris",
+    "Baculites",
+    "Stegosaurus",
+    "Mucrospirifer",
+    "Bothriolepis",
+    "Allosaurus",
+    "Calymene"
   ],
   "generatedAt": "2026-09-06T23:11:10.749Z"
 }
