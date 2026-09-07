@@ -47,15 +47,6 @@ const SCAFFOLD_TAXA = new Set([
   "Avialae",
 ]);
 
-/** Named spine clades open by default so the crown reads as a real tree. */
-const SCAFFOLD_EXPAND = new Set([
-  "Animalia",
-  "Bilateria",
-  "Eubilateria",
-  "Protostomia",
-  "Deuterostomia",
-]);
-
 /** Unranked wrappers skipped so phyla hang on the named spine (textbook crown). */
 const CROWN_WRAPPERS = new Set([
   "Eumetazoa",
@@ -171,6 +162,33 @@ function flattenCrownWrappers(
     }
     out.push(row);
   }
+  return flattenUnaryUnranked(taxonomy, state, out, counts, fullCounts);
+}
+
+/** Skip unary unranked PBDB intermediates so the cladogram stays textbook-wide. */
+function flattenUnaryUnranked(
+  taxonomy: TaxonomyIndex,
+  state: PruneState,
+  rows: TreeBranch[],
+  counts: Map<number, number>,
+  fullCounts: Map<number, number>,
+): TreeBranch[] {
+  const out: TreeBranch[] = [];
+  for (const row of rows) {
+    const skipUnary =
+      (row.taxon.rank === "unranked" || row.taxon.rank === "informal") &&
+      !SCAFFOLD_TAXA.has(row.taxon.name) &&
+      row.taxon.id !== state.constraintId &&
+      VISIBLE_STATUSES.has(row.status);
+    if (skipUnary) {
+      const nested = viewChildren(taxonomy, state, row.taxon.id, counts, fullCounts);
+      if (nested.length === 1) {
+        out.push(...flattenUnaryUnranked(taxonomy, state, nested, counts, fullCounts));
+        continue;
+      }
+    }
+    out.push(row);
+  }
   return out;
 }
 
@@ -227,20 +245,6 @@ export function viewChildren(
   });
 }
 
-function shouldDefaultExpand(
-  taxonomy: TaxonomyIndex,
-  state: PruneState,
-  taxon: Taxon,
-  splitDepth: number,
-): boolean {
-  if (taxon.rank === "genus") return false;
-  if (taxon.id === state.constraintId) return true;
-  if (SCAFFOLD_EXPAND.has(taxon.name)) return true;
-  if (state.constraintId === taxonomy.rootId) return false;
-  if (CROWN_HIDE_RANKS.has(taxon.rank) || taxon.rank === "phylum") return false;
-  return splitDepth < 2;
-}
-
 /** Node plus its remaining unary chain, so a click reaches the next split. */
 export function expandBranchIds(
   taxonomy: TaxonomyIndex,
@@ -260,24 +264,24 @@ export function expandBranchIds(
   return ids;
 }
 
-/** Crown / remaining-subtree nodes that start open (~top 3 levels). */
+/** Every remaining visible node with children — full tree, sparse tips. */
 export function autoExpandIds(taxonomy: TaxonomyIndex, state: PruneState): number[] {
   const expanded = new Set<number>();
   const counts = remainingGenusCounts(taxonomy, state);
   const fullCounts = allGenusCounts(taxonomy);
 
-  const walk = (id: number, splitDepth: number) => {
+  const walk = (id: number) => {
     const taxon = taxonomy.require(id);
     const status = nodeStatus(taxonomy, id, state);
     if (!VISIBLE_STATUSES.has(status)) return;
-    if (!shouldDefaultExpand(taxonomy, state, taxon, splitDepth)) return;
-    expanded.add(id);
+    if (taxon.rank === "genus") return;
     const kids = viewChildren(taxonomy, state, id, counts, fullCounts);
-    const nextDepth = kids.length <= 1 ? splitDepth : splitDepth + 1;
-    for (const kid of kids) walk(kid.taxon.id, nextDepth);
+    if (kids.length === 0) return;
+    expanded.add(id);
+    for (const kid of kids) walk(kid.taxon.id);
   };
 
-  walk(state.constraintId, 0);
+  walk(state.constraintId);
   return [...expanded];
 }
 
