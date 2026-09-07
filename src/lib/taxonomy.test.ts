@@ -28,6 +28,8 @@ function fixture(): TaxonomyData {
     aliases: [
       { name: "Tyrannosaurus rex", id: 5 },
       { name: "Phacops rana", id: 13 },
+      { name: "T. rex", id: 5 },
+      { name: "mammoth", id: 11 },
     ],
   };
 }
@@ -115,6 +117,20 @@ describe("TaxonomyIndex helpers", () => {
     expect(tax.searchGenera("p", open).map((t) => t.name)).toContain("Phacops");
     const pruned = tax.pruneRemaining(5, [13]);
     expect(tax.searchGenera("p", pruned).map((t) => t.name)).not.toContain("Phacops");
+  });
+
+  it("accepts a common name and maps it to the animal taxon", () => {
+    const state = tax.pruneRemaining(5, []);
+    const rex = tax.resolveGuess("T. rex", state, []);
+    expect(rex.ok).toBe(true);
+    if (rex.ok) {
+      expect(rex.taxon.name).toBe("Tyrannosaurus");
+      expect(rex.viaAlias).toBe("T. rex");
+    }
+
+    const hits = tax.searchAnimals("t. r", state);
+    expect(hits.some((hit) => hit.taxon.name === "Tyrannosaurus")).toBe(true);
+    expect(hits.some((hit) => /t\.?\s*rex/i.test(hit.matchedName))).toBe(true);
   });
 });
 

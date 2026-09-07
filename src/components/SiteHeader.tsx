@@ -15,24 +15,22 @@ export function SiteHeader({
     <header className="topbar">
       <Link className="brand" href="/">
         <strong>FOSSILDLE</strong>
-        <span>Daily genus</span>
+        <span>Daily fossil</span>
       </Link>
       {dateKey && (
         <p className="game-meta" aria-live="polite">
-          <span>{dateKey}</span>
           {playing ? (
-            <span>
-              {guessesLeft} guess{guessesLeft === 1 ? "" : "es"} left
-            </span>
+            <span className="guesses-left">{guessesLeft} left</span>
           ) : (
-            <span>done</span>
+            <span className="guesses-left is-done">done</span>
           )}
+          <span className="date-key">{dateKey}</span>
         </p>
       )}
       <nav className="nav-links" aria-label="Primary">
-        <Link href="/" aria-current={current === "play" ? "page" : undefined}>
-          Play
-        </Link>
+        {current !== "play" ? (
+          <Link href="/">Play</Link>
+        ) : null}
         <Link href="/about" aria-current={current === "about" ? "page" : undefined}>
           About
         </Link>

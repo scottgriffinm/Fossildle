@@ -12,8 +12,13 @@ const manifestById = new Map<string, ManifestEntry>(
 
 export const fossils: FossilRecord[] = fossilsJson.fossils.map((fossil: FossilSource) => {
   const image = manifestById.get(fossil.id);
+  const commonName =
+    "common_name" in fossil && typeof fossil.common_name === "string"
+      ? fossil.common_name
+      : undefined;
   return {
     ...fossil,
+    commonName,
     taxonId: parsePbdbOid(fossil.pbdb_oid),
     imageSrc: `/${image?.file ?? `fossils/${fossil.id}.jpg`}`,
   };

@@ -4,6 +4,7 @@
     {
       "id": "tyrannosaurus-lacm-baby-skull",
       "taxon": "Tyrannosaurus",
+      "common_name": "T. rex",
       "pbdb_oid": "txn:38613",
       "phylum": "Chordata",
       "commons_file": "File:Baby Tyrannosaurus skull LACM.jpg",
@@ -34,6 +35,7 @@
     {
       "id": "mammuthus-primigenius-molar",
       "taxon": "Mammuthus",
+      "common_name": "woolly mammoth",
       "pbdb_oid": "txn:43266",
       "phylum": "Chordata",
       "commons_file": "File:Mammuthus primigenius - molar.png",
@@ -74,6 +76,7 @@
     {
       "id": "smilodon-fatalis-amnh",
       "taxon": "Smilodon",
+      "common_name": "saber-toothed cat",
       "pbdb_oid": "txn:41079",
       "phylum": "Chordata",
       "commons_file": "File:AMNH Smilodon fatalis skull, Pleistocene California.jpg",

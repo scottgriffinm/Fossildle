@@ -1,0 +1,30 @@
+{
+  "source": "PBDB nm2 plus catalog vernacular aliases",
+  "names": [
+    { "name": "T. rex", "id": 38613, "via": "catalog" },
+    { "name": "T-rex", "id": 38613, "via": "catalog" },
+    { "name": "T rex", "id": 38613, "via": "catalog" },
+    { "name": "trex", "id": 38613, "via": "catalog" },
+    { "name": "tyrannosaur", "id": 38613, "via": "catalog" },
+    { "name": "tyrant lizard", "id": 38613, "via": "pbdb" },
+    { "name": "mammoth", "id": 43266, "via": "pbdb" },
+    { "name": "woolly mammoth", "id": 43266, "via": "catalog" },
+    { "name": "wooly mammoth", "id": 43266, "via": "catalog" },
+    { "name": "saber-toothed cat", "id": 41079, "via": "pbdb" },
+    { "name": "sabre-toothed cat", "id": 41079, "via": "catalog" },
+    { "name": "saber-tooth cat", "id": 41079, "via": "catalog" },
+    { "name": "sabre-tooth cat", "id": 41079, "via": "catalog" },
+    { "name": "saber-toothed tiger", "id": 41079, "via": "catalog" },
+    { "name": "sabre-toothed tiger", "id": 41079, "via": "catalog" },
+    { "name": "saber-tooth tiger", "id": 41079, "via": "catalog" },
+    { "name": "sabre-tooth tiger", "id": 41079, "via": "catalog" },
+    { "name": "saber-tooth", "id": 41079, "via": "catalog" },
+    { "name": "sabertooth", "id": 41079, "via": "catalog" },
+    { "name": "mastodon", "id": 43274, "via": "pbdb" },
+    { "name": "elephant", "id": 43264, "via": "pbdb" },
+    { "name": "Irish elk", "id": 42678, "via": "pbdb" },
+    { "name": "horse", "id": 42996, "via": "pbdb" },
+    { "name": "canine", "id": 41198, "via": "pbdb" },
+    { "name": "elegant jaw", "id": 38538, "via": "pbdb" }
+  ]
+}

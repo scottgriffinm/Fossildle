@@ -51,7 +51,7 @@ export function TaxonomyTree({
   }
 
   return (
-    <section className="panel tree-panel" aria-label="Taxonomic tree">
+    <section className="tree-panel" aria-label="Taxonomic tree">
       <div className="tree-scroll">
         {loading || !tree || !taxonomy ? (
           <TreeSkeleton />
@@ -70,6 +70,11 @@ export function TaxonomyTree({
       </div>
     </section>
   );
+}
+
+function rankLabel(rank: string): string {
+  if (!rank || rank === "unranked" || rank === "informal") return "";
+  return rank;
 }
 
 function TreeNode({
@@ -92,6 +97,7 @@ function TreeNode({
   const flashing = flashId === node.taxon.id;
   const shared = lastMrcaId === node.taxon.id;
   const isGenus = node.taxon.rank === "genus";
+  const rank = rankLabel(node.taxon.rank);
 
   const classes = [
     "tax-node",
@@ -105,6 +111,17 @@ function TreeNode({
     .filter(Boolean)
     .join(" ");
 
+  const label = (
+    <>
+      <span className="tax-twist" aria-hidden="true">
+        {canExpand ? (isOpen ? "−" : "+") : ""}
+      </span>
+      {node.skipped ? <span className="tax-skip">⋯</span> : null}
+      <span className="tax-name">{node.taxon.name}</span>
+      {rank ? <span className="tax-rank">{rank}</span> : null}
+    </>
+  );
+
   return (
     <li
       className={classes}
@@ -113,23 +130,11 @@ function TreeNode({
       aria-expanded={canExpand ? isOpen : undefined}
     >
       {canExpand ? (
-        <button
-          type="button"
-          className="tax-item"
-          onClick={() => onToggle(node.taxon.id)}
-        >
-          <span className="tax-twist" aria-hidden="true">
-            {isOpen ? "−" : "+"}
-          </span>
-          {node.skipped ? <span className="tax-skip">⋯</span> : null}
-          <span className="tax-name">{node.taxon.name}</span>
+        <button type="button" className="tax-item" onClick={() => onToggle(node.taxon.id)}>
+          {label}
         </button>
       ) : (
-        <div className="tax-item">
-          <span className="tax-twist is-leaf" aria-hidden="true" />
-          {node.skipped ? <span className="tax-skip">⋯</span> : null}
-          <span className="tax-name">{node.taxon.name}</span>
-        </div>
+        <div className="tax-item">{label}</div>
       )}
       {isOpen && node.children.length > 0 && (
         <ul className="tax-kids" role="group">
@@ -159,18 +164,21 @@ function TreeSkeleton() {
         <div className="tax-item">
           <span className="tax-twist">−</span>
           <span className="tax-name">Animalia</span>
+          <span className="tax-rank">kingdom</span>
         </div>
         <ul className="tax-kids">
           <li className="tax-node is-remaining">
             <div className="tax-item">
-              <span className="tax-twist is-leaf" />
+              <span className="tax-twist" />
               <span className="tax-name">Porifera</span>
+              <span className="tax-rank">phylum</span>
             </div>
           </li>
           <li className="tax-node is-remaining">
             <div className="tax-item">
               <span className="tax-twist">+</span>
               <span className="tax-name">Cnidaria</span>
+              <span className="tax-rank">phylum</span>
             </div>
           </li>
           <li className="tax-node is-remaining is-open">
@@ -181,7 +189,7 @@ function TreeSkeleton() {
             <ul className="tax-kids">
               <li className="tax-node is-remaining">
                 <div className="tax-item">
-                  <span className="tax-twist is-leaf" />
+                  <span className="tax-twist" />
                   <span className="tax-name">Loading branches…</span>
                 </div>
               </li>

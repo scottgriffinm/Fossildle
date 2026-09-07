@@ -22,6 +22,7 @@ export type TaxonomyData = {
 export type FossilRecord = {
   id: string;
   taxon: string;
+  commonName?: string;
   pbdb_oid: string;
   phylum: string;
   commons_file: string;
@@ -30,6 +31,12 @@ export type FossilRecord = {
   attribution: string;
   imageSrc: string;
   taxonId: number;
+};
+
+export type SearchHit = {
+  taxon: Taxon;
+  matchedName: string;
+  via: "scientific" | "common" | "alias";
 };
 
 export type PruneStep = {

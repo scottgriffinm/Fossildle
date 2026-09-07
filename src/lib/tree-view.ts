@@ -23,8 +23,6 @@ export type TreeNodeView = {
 const SCAFFOLD_TAXA = new Set([
   "Porifera",
   "Cnidaria",
-  "Placozoa",
-  "Ctenophora",
   "Eumetazoa",
   "Triploblastica",
   "Bilateria",
@@ -51,15 +49,19 @@ const SCAFFOLD_TAXA = new Set([
   "Avialae",
 ]);
 
-/** Unranked wrappers that should be open so major phyla are visible on load. */
+/** Named spine clades that stay visible; unranked wrappers between them are flattened. */
 const SCAFFOLD_EXPAND = new Set([
   "Animalia",
-  "Eumetazoa",
-  "Triploblastica",
   "Bilateria",
   "Eubilateria",
   "Protostomia",
   "Deuterostomia",
+]);
+
+/** Unranked wrappers skipped so phyla hang on the named spine (textbook crown). */
+const CROWN_WRAPPERS = new Set([
+  "Eumetazoa",
+  "Triploblastica",
   "Ecdysozoa",
   "Spiralia",
   "Lophotrochozoa",
@@ -162,6 +164,30 @@ export function allGenusCounts(taxonomy: TaxonomyIndex): Map<number, number> {
   });
 }
 
+function flattenCrownWrappers(
+  taxonomy: TaxonomyIndex,
+  state: PruneState,
+  rows: TreeBranch[],
+  counts: Map<number, number>,
+  fullCounts: Map<number, number>,
+): TreeBranch[] {
+  const out: TreeBranch[] = [];
+  for (const row of rows) {
+    if (
+      CROWN_WRAPPERS.has(row.taxon.name) &&
+      row.status !== "pruned" &&
+      row.status !== "outside" &&
+      row.taxon.id !== state.constraintId
+    ) {
+      const nested = viewChildren(taxonomy, state, row.taxon.id, counts, fullCounts);
+      out.push(...flattenCrownWrappers(taxonomy, state, nested, counts, fullCounts));
+      continue;
+    }
+    out.push(row);
+  }
+  return out;
+}
+
 export function viewChildren(
   taxonomy: TaxonomyIndex,
   state: PruneState,
@@ -217,7 +243,8 @@ export function viewChildren(
     return index === -1 ? 1000 : index;
   };
 
-  return rows.sort((a, b) => {
+  const flattened = flattenCrownWrappers(taxonomy, state, rows, counts, fullCounts);
+  return flattened.sort((a, b) => {
     const genusPenalty = (row: TreeBranch) => (row.taxon.rank === "genus" ? 1 : 0);
     return (
       rank(a) - rank(b) ||

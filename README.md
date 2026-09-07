@@ -1,7 +1,7 @@
 # Fossildle
 
 Wordle for fossils. Each UTC day shows one specimen photograph. Guess the
-scientific **genus**. After every miss the taxonomic tree prunes to the clade
+**animal**. After every miss the taxonomic tree prunes to the clade
 you still share with the answer.
 
 The game is fully client-side after load. Taxonomy and images are static

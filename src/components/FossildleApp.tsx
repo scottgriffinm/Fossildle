@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fossils } from "@/lib/catalog";
 import { CATALOG_SEED, MAX_GUESSES, puzzleForDay } from "@/lib/daily";
+import { animalPhrase } from "@/lib/names";
 import { loadSavedGame, saveGame } from "@/lib/storage";
 import { TaxonomyIndex } from "@/lib/taxonomy";
 import type { GameStatus, TaxonomyData } from "@/lib/types";
@@ -23,6 +24,7 @@ export function FossildleApp() {
   const restoreRef = useRef(false);
 
   const puzzle = useMemo(() => puzzleForDay(fossils), []);
+  const animal = animalPhrase(puzzle.fossil);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,15 +51,15 @@ export function FossildleApp() {
       setGuesses(saved.guesses);
       setStatus(saved.status);
       if (saved.status === "won") {
-        setMessage(`Yes — ${puzzle.fossil.taxon}.`);
+        setMessage(`Yes — that's ${animal}.`);
       } else if (saved.status === "lost") {
-        setMessage(`Out of guesses. It was ${puzzle.fossil.taxon}.`);
+        setMessage(`Out of guesses. It was ${animal}.`);
         setMessageKind("error");
       }
     }
     restoreRef.current = true;
     setHydrated(true);
-  }, [taxonomy, puzzle.dateKey, puzzle.fossil.id, puzzle.fossil.taxon]);
+  }, [taxonomy, puzzle.dateKey, puzzle.fossil.id, animal]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -84,11 +86,11 @@ export function FossildleApp() {
     const resolved = taxonomy.resolveGuess(raw, prune, guesses);
     if (!resolved.ok) {
       const reasons = {
-        empty: "Type a genus to guess.",
-        unknown: "That name is not in the local tree. Try another genus.",
-        "not-genus": "Guess a genus, not a higher taxon.",
+        empty: "Type an animal to guess.",
+        unknown: "That name is not in the local tree. Try another animal.",
+        "not-genus": "Guess the animal, not a higher group.",
         "not-remaining": "That branch is already pruned away.",
-        duplicate: "You already guessed that genus.",
+        duplicate: "You already guessed that animal.",
       } as const;
       announce(reasons[resolved.reason], "error");
       return false;
@@ -99,17 +101,13 @@ export function FossildleApp() {
 
     if (resolved.taxon.id === puzzle.fossil.taxonId) {
       setStatus("won");
-      announce(
-        resolved.viaAlias
-          ? `${resolved.viaAlias} belongs to ${resolved.taxon.name}. Specimen identified.`
-          : `Yes — ${resolved.taxon.name}.`,
-      );
+      announce(`Yes — that's ${animal}.`);
       return true;
     }
 
     if (nextGuesses.length >= MAX_GUESSES) {
       setStatus("lost");
-      announce(`Out of guesses. It was ${puzzle.fossil.taxon}.`, "error");
+      announce(`Out of guesses. It was ${animal}.`, "error");
       return true;
     }
 
@@ -138,6 +136,7 @@ export function FossildleApp() {
 
   const guessesLeft = MAX_GUESSES - guesses.length;
   const remaining = taxonomy && prune ? taxonomy.remainingGenera(prune).length : null;
+  const showGuesses = guesses.length > 0 || status !== "playing";
 
   return (
     <>
@@ -148,43 +147,47 @@ export function FossildleApp() {
         playing={status === "playing"}
       />
       <div className="board">
-        <div className="play-hero">
-          <SpecimenCard
-            fossil={puzzle.fossil}
-            revealed={status !== "playing"}
-            dateKey={puzzle.dateKey}
-          />
-        </div>
-        <TaxonomyTree
-          taxonomy={taxonomy}
-          prune={prune}
-          loading={!taxonomy || !prune}
-        />
-        <div className="play-guesses">
-          <GuessBoard
-            taxonomy={taxonomy}
-            guesses={guesses}
-            prune={prune}
-            answerId={puzzle.fossil.taxonId}
-            status={status}
-          />
-          {status !== "playing" && (
-            <div className="result">
-              <h3>
-                {status === "won"
-                  ? `Identified in ${guesses.length}`
-                  : `It was ${puzzle.fossil.taxon}`}
-              </h3>
-              <p className="guess-note">
-                Puzzle {puzzle.dateKey}. Same specimen worldwide until the next UTC midnight.
-              </p>
-              <div className="actions">
-                <button type="button" onClick={() => void share()}>
-                  Copy result
-                </button>
+        <div className="play-stage">
+          <div className="play-hero">
+            <SpecimenCard
+              fossil={puzzle.fossil}
+              revealed={status !== "playing"}
+              dateKey={puzzle.dateKey}
+            />
+            {showGuesses && (
+              <div className="play-guesses">
+                <GuessBoard
+                  taxonomy={taxonomy}
+                  guesses={guesses}
+                  prune={prune}
+                  answerId={puzzle.fossil.taxonId}
+                  status={status}
+                />
+                {status !== "playing" && (
+                  <div className="result">
+                    <h3>
+                      {status === "won"
+                        ? `Yes — that's ${animal}`
+                        : `It was ${animal}`}
+                    </h3>
+                    <p className="guess-note">
+                      Puzzle {puzzle.dateKey}. Same specimen worldwide until the next UTC midnight.
+                    </p>
+                    <div className="actions">
+                      <button type="button" onClick={() => void share()}>
+                        Copy result
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
+          <TaxonomyTree
+            taxonomy={taxonomy}
+            prune={prune}
+            loading={!taxonomy || !prune}
+          />
         </div>
         <div className="play-compose">
           {loadError ? (
@@ -200,9 +203,9 @@ export function FossildleApp() {
             />
           ) : (
             <div className="composer">
-              <label htmlFor="genus-guess">Guess a scientific genus</label>
+              <label htmlFor="animal-guess">Guess the animal</label>
               <div className="input-wrap">
-                <input id="genus-guess" disabled placeholder="Loading genera…" />
+                <input id="animal-guess" disabled placeholder="Loading animals…" />
                 <button className="guess-btn" type="button" disabled>
                   Guess
                 </button>
@@ -213,7 +216,7 @@ export function FossildleApp() {
             {message ||
               (status === "playing"
                 ? remaining != null
-                  ? `${remaining.toLocaleString()} genera possible · ${guessesLeft} left`
+                  ? `${remaining.toLocaleString()} animals still possible`
                   : "Loading the taxonomic tree…"
                 : "")}
           </p>
