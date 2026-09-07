@@ -14,9 +14,6 @@ export type TreeNodeView = {
   status: NodeStatus;
   genusCount: number;
   children: TreeNodeView[];
-  expandable: boolean;
-  skipped?: number;
-  overflow?: number;
 };
 
 /** Textbook Animalia crown and major clades shown as structure even without genera. */
@@ -49,7 +46,7 @@ const SCAFFOLD_TAXA = new Set([
   "Avialae",
 ]);
 
-/** Named spine clades that stay visible; unranked wrappers between them are flattened. */
+/** Named spine clades that stay expanded so the crown is a real tree. */
 const SCAFFOLD_EXPAND = new Set([
   "Animalia",
   "Bilateria",
@@ -67,11 +64,6 @@ const CROWN_WRAPPERS = new Set([
   "Lophotrochozoa",
   "Panarthropoda",
   "Ambulacraria",
-]);
-
-const SPINE_NAMES = new Set([
-  "Animalia",
-  ...SCAFFOLD_TAXA,
 ]);
 
 const SCAFFOLD_ORDER = [
@@ -100,8 +92,6 @@ const SCAFFOLD_ORDER = [
   "Chordata",
 ];
 
-const MAX_CHILDREN = 16;
-
 const CROWN_HIDE_RANKS = new Set([
   "genus",
   "subgenus",
@@ -112,14 +102,10 @@ const CROWN_HIDE_RANKS = new Set([
   "superfamily",
 ]);
 
-const DRILLED_PARENT_RANKS = new Set([
-  "class",
-  "subclass",
-  "infraclass",
-  "order",
-  "suborder",
-  "infraorder",
-]);
+/** Show genera only when a parent has a small remaining set. */
+const SMALL_REMAINING = 16;
+
+const VISIBLE_STATUSES = new Set<NodeStatus>(["lineage", "constraint", "remaining"]);
 
 export function isScaffoldTaxon(
   taxon: Taxon,
@@ -175,8 +161,7 @@ function flattenCrownWrappers(
   for (const row of rows) {
     if (
       CROWN_WRAPPERS.has(row.taxon.name) &&
-      row.status !== "pruned" &&
-      row.status !== "outside" &&
+      VISIBLE_STATUSES.has(row.status) &&
       row.taxon.id !== state.constraintId
     ) {
       const nested = viewChildren(taxonomy, state, row.taxon.id, counts, fullCounts);
@@ -197,35 +182,22 @@ export function viewChildren(
 ): TreeBranch[] {
   const kids = taxonomy.children.get(parentId) ?? [];
   const rows: TreeBranch[] = [];
-
-  const parent = taxonomy.require(parentId);
-  const parentDrilled = DRILLED_PARENT_RANKS.has(parent.rank);
+  const constraintRemaining = counts.get(state.constraintId) ?? 0;
 
   for (const taxon of kids) {
     const status = nodeStatus(taxonomy, taxon.id, state);
+    if (!VISIBLE_STATUSES.has(status)) continue;
+
     const genusCount = counts.get(taxon.id) ?? 0;
-    const scaffold = isScaffoldTaxon(taxon, fullCounts);
     const hideDeepLeaf =
-      CROWN_HIDE_RANKS.has(taxon.rank) &&
-      status !== "pruned" &&
-      parentId !== state.constraintId &&
-      !parentDrilled;
+      CROWN_HIDE_RANKS.has(taxon.rank) && constraintRemaining > SMALL_REMAINING;
     if (hideDeepLeaf) continue;
-    if (status === "pruned") {
-      rows.push({ taxon, genusCount, status });
-      continue;
-    }
-    if (status === "outside") {
-      if ((fullCounts.get(taxon.id) ?? 0) > 0 || scaffold) {
-        rows.push({ taxon, genusCount, status });
-      }
-      continue;
-    }
+
     if (
       genusCount > 0 ||
       status === "lineage" ||
       status === "constraint" ||
-      scaffold
+      isScaffoldTaxon(taxon, fullCounts)
     ) {
       rows.push({ taxon, genusCount, status });
     }
@@ -233,9 +205,7 @@ export function viewChildren(
 
   const rank = (row: TreeBranch) => {
     if (row.status === "constraint" || row.status === "lineage") return 0;
-    if (row.status === "pruned") return 1;
-    if (row.status === "remaining") return 2;
-    return 3;
+    return 1;
   };
 
   const orderOf = (name: string) => {
@@ -256,156 +226,150 @@ export function viewChildren(
   });
 }
 
-export function spineKeepIds(taxonomy: TaxonomyIndex, state: PruneState): Set<number> {
-  const keep = new Set<number>([taxonomy.rootId, state.constraintId]);
-  for (const step of state.steps) {
-    keep.add(step.mrcaId);
-    if (step.prunedId != null) {
-      keep.add(step.prunedId);
-      const parent = taxonomy.require(step.prunedId).parentId;
-      if (parent != null) keep.add(parent);
-    }
-  }
-  for (const id of taxonomy.pathToRoot(state.constraintId)) {
-    const taxon = taxonomy.require(id);
-    if (SPINE_NAMES.has(taxon.name) || taxon.rank === "phylum") keep.add(id);
-  }
-  return keep;
+function shouldExpand(
+  taxonomy: TaxonomyIndex,
+  state: PruneState,
+  taxon: Taxon,
+  splitDepth: number,
+): boolean {
+  if (taxon.rank === "genus") return false;
+  if (taxon.id === state.constraintId) return true;
+  if (SCAFFOLD_EXPAND.has(taxon.name)) return true;
+  if (state.constraintId === taxonomy.rootId) return false;
+  if (CROWN_HIDE_RANKS.has(taxon.rank) || taxon.rank === "phylum") return false;
+  return splitDepth < 2;
 }
 
-export function autoExpandIds(taxonomy: TaxonomyIndex, state: PruneState): number[] {
-  const keep = spineKeepIds(taxonomy, state);
-  const expanded = new Set<number>(keep);
+function walkRemaining(
+  taxonomy: TaxonomyIndex,
+  state: PruneState,
+  id: number,
+  counts: Map<number, number>,
+  fullCounts: Map<number, number>,
+  splitDepth: number,
+): TreeNodeView {
+  const taxon = taxonomy.require(id);
+  const status = nodeStatus(taxonomy, id, state);
+  const node: TreeNodeView = {
+    taxon,
+    status,
+    genusCount: counts.get(id) ?? 0,
+    children: [],
+  };
 
+  if (!VISIBLE_STATUSES.has(status)) return node;
+  if (!shouldExpand(taxonomy, state, taxon, splitDepth)) return node;
+
+  const kids = viewChildren(taxonomy, state, id, counts, fullCounts);
+  const nextDepth = kids.length <= 1 ? splitDepth : splitDepth + 1;
+  node.children = kids.map((kid) =>
+    walkRemaining(taxonomy, state, kid.taxon.id, counts, fullCounts, nextDepth),
+  );
+  return node;
+}
+
+function nestPath(nodes: TreeNodeView[]): TreeNodeView {
+  const root = nodes[0]!;
+  let cursor = root;
+  for (const next of nodes.slice(1)) {
+    cursor.children = [next];
+    cursor = next;
+  }
+  return root;
+}
+
+const REVEAL_RANKS = new Set([
+  "kingdom",
+  "phylum",
+  "subphylum",
+  "class",
+  "subclass",
+  "order",
+  "suborder",
+  "superfamily",
+  "family",
+  "subfamily",
+  "genus",
+]);
+
+const REVEAL_NAMES = new Set([
+  "Animalia",
+  "Bilateria",
+  "Eubilateria",
+  "Protostomia",
+  "Deuterostomia",
+  "Dinosauria",
+  "Trilobita",
+  "Ammonoidea",
+  "Mammalia",
+  "Avialae",
+]);
+
+function revealLineage(
+  taxonomy: TaxonomyIndex,
+  state: PruneState,
+  answerId: number,
+): Taxon[] {
+  const full = taxonomy
+    .pathToRoot(answerId)
+    .map((id) => taxonomy.require(id))
+    .reverse();
+  const start = full.findIndex((taxon) => taxon.id === state.constraintId);
+  const slice =
+    start >= 0
+      ? full.slice(start)
+      : full.filter(
+          (taxon) =>
+            taxon.id === state.constraintId ||
+            taxonomy.isAncestor(state.constraintId, taxon.id),
+        );
+  const parentId = taxonomy.require(answerId).parentId;
+
+  return slice.filter((taxon, index) => {
+    if (index === 0 || taxon.id === answerId) return true;
+    if (CROWN_WRAPPERS.has(taxon.name) && taxon.id !== state.constraintId) return false;
+    if (taxon.id === parentId) return true;
+    if (REVEAL_RANKS.has(taxon.rank)) return true;
+    return REVEAL_NAMES.has(taxon.name);
+  });
+}
+
+function buildRevealPath(
+  taxonomy: TaxonomyIndex,
+  state: PruneState,
+  answerId: number,
+): TreeNodeView {
   const counts = remainingGenusCounts(taxonomy, state);
-  const fullCounts = allGenusCounts(taxonomy);
-  const constraintDepth = taxonomy.pathToRoot(state.constraintId).length;
+  const path = revealLineage(taxonomy, state, answerId);
 
-  if (constraintDepth <= 8) {
-    for (const taxon of taxonomy.byId.values()) {
-      if (!SCAFFOLD_EXPAND.has(taxon.name)) continue;
-      const status = nodeStatus(taxonomy, taxon.id, state);
-      if (status === "remaining" || status === "lineage" || status === "constraint") {
-        expanded.add(taxon.id);
-      }
-    }
-  }
+  const nodes: TreeNodeView[] = path.map((taxon) => {
+    const status: NodeStatus =
+      taxon.id === answerId
+        ? "remaining"
+        : taxon.id === state.constraintId
+          ? "constraint"
+          : "lineage";
+    return {
+      taxon,
+      status,
+      genusCount: counts.get(taxon.id) ?? 0,
+      children: [],
+    };
+  });
 
-  let cursor = state.constraintId;
-  let extraLevels = constraintDepth > 1 && constraintDepth <= 6 ? 1 : 0;
-
-  for (let depth = 0; depth < 10; depth += 1) {
-    const kids = viewChildren(taxonomy, state, cursor, counts, fullCounts).filter(
-      (row) => row.status === "remaining" || row.status === "lineage" || row.status === "constraint",
-    );
-    if (kids.length === 0) break;
-    expanded.add(cursor);
-
-    if (kids.length === 1) {
-      cursor = kids[0]!.taxon.id;
-      continue;
-    }
-
-    const total = kids.reduce((sum, row) => sum + row.genusCount, 0);
-    const top = kids[0]!;
-    const dominant = total > 0 && top.genusCount / total >= 0.85;
-    const unranked = top.taxon.rank === "unranked" || top.taxon.rank === "informal";
-    if (dominant && unranked) {
-      cursor = top.taxon.id;
-      continue;
-    }
-
-    if (extraLevels > 0) {
-      extraLevels -= 1;
-      for (const kid of kids.filter((row) => row.taxon.rank !== "genus").slice(0, 6)) {
-        expanded.add(kid.taxon.id);
-      }
-    }
-    break;
-  }
-
-  expanded.add(cursor);
-  return [...expanded];
+  return nestPath(nodes);
 }
 
 export function buildCabinetTree(
   taxonomy: TaxonomyIndex,
   state: PruneState,
-  expandedIds: Iterable<number>,
+  options?: { revealId?: number },
 ): TreeNodeView {
-  const expanded = new Set(expandedIds);
+  if (options?.revealId != null) {
+    return buildRevealPath(taxonomy, state, options.revealId);
+  }
+
   const counts = remainingGenusCounts(taxonomy, state);
   const fullCounts = allGenusCounts(taxonomy);
-  const keep = new Set(spineKeepIds(taxonomy, state));
-  for (const id of expanded) {
-    const status = nodeStatus(taxonomy, id, state);
-    if (status !== "lineage") keep.add(id);
-  }
-
-  const walk = (id: number): TreeNodeView => {
-    const taxon = taxonomy.require(id);
-    const status = nodeStatus(taxonomy, id, state);
-    const kids = viewChildren(taxonomy, state, id, counts, fullCounts);
-    const node: TreeNodeView = {
-      taxon,
-      status,
-      genusCount: counts.get(id) ?? 0,
-      children: [],
-      expandable:
-        status !== "pruned" &&
-        status !== "outside" &&
-        kids.length > 0,
-    };
-
-    if (status === "pruned" || status === "outside") return node;
-    if (!expanded.has(id) && id !== state.constraintId) return node;
-    const rendered: TreeNodeView[] = [];
-
-    for (const kid of kids) {
-      if (
-        kid.status === "lineage" &&
-        !keep.has(kid.taxon.id) &&
-        kid.taxon.id !== state.constraintId
-      ) {
-        const nextShown = nextKeptDescendant(taxonomy, state, kid.taxon.id, keep);
-        if (nextShown != null) {
-          const collapsed = walk(nextShown);
-          const gap = taxonomy.pathToRoot(nextShown).indexOf(kid.taxon.id);
-          collapsed.skipped = (collapsed.skipped ?? 0) + Math.max(gap, 1);
-          rendered.push(collapsed);
-        }
-        continue;
-      }
-      rendered.push(walk(kid.taxon.id));
-    }
-
-    const pruned = rendered.filter((child) => child.status === "pruned");
-    const rest = rendered.filter((child) => child.status !== "pruned");
-    if (rendered.length > MAX_CHILDREN) {
-      const room = Math.max(MAX_CHILDREN - pruned.length, 0);
-      node.overflow = rest.length - room;
-      node.children = [...pruned, ...rest.slice(0, room)];
-    } else {
-      node.children = rendered;
-    }
-    return node;
-  };
-
-  return walk(taxonomy.rootId);
-}
-
-function nextKeptDescendant(
-  taxonomy: TaxonomyIndex,
-  state: PruneState,
-  startId: number,
-  keep: Set<number>,
-): number | null {
-  const path = taxonomy.pathToRoot(state.constraintId);
-  const startIndex = path.indexOf(startId);
-  if (startIndex <= 0) return keep.has(startId) ? startId : null;
-  for (let i = startIndex - 1; i >= 0; i -= 1) {
-    const id = path[i]!;
-    if (keep.has(id) || id === state.constraintId) return id;
-  }
-  return state.constraintId;
+  return walkRemaining(taxonomy, state, state.constraintId, counts, fullCounts, 0);
 }

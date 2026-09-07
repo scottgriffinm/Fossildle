@@ -186,6 +186,8 @@ export function FossildleApp() {
           <TaxonomyTree
             taxonomy={taxonomy}
             prune={prune}
+            status={status}
+            answerId={puzzle.fossil.taxonId}
             loading={!taxonomy || !prune}
           />
         </div>
