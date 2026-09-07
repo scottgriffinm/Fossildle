@@ -1,8 +1,10 @@
 # Fossildle specification
 
-Fossildle is a daily, Wordle-like identification game. The secret is a
-scientific **genus**. Feedback is phylogenetic: each miss reveals the shared
-clade with the answer and prunes impossible branches of the Animalia tree.
+Fossildle is a daily, Wordle-like identification game. The player is guessing
+the **animal** (the creature the fossil came from). Under the hood the secret
+is still a scientific **genus**. Feedback is phylogenetic: each miss reveals
+the shared clade with the answer and prunes impossible branches of the
+Animalia tree.
 
 ## Client-only constraint
 
@@ -20,13 +22,16 @@ today's guesses (`fossildle:v1:YYYY-MM-DD`).
 
 ## Guessing
 
-- Rank to guess: **genus** (six attempts).
+- Rank to guess: **genus** (six attempts). Player-facing copy says **animal**.
 - Matching is case-insensitive and accent-insensitive.
 - A species or subspecies binomial that maps to a genus via shipped aliases
   (PBDB children of each starter genus, plus the genus name itself) is treated
   as that genus. If that genus is the answer, the player wins.
-- Higher taxa (`Dinosauria`, `Mammalia`, …) are rejected: “Guess a genus”.
-- Search/autocomplete lists only **remaining** genera.
+- Common names from PBDB `nm2` and the catalog (T. rex, mammoth, saber-toothed
+  cat, …) also resolve to that genus.
+- Higher taxa (`Dinosauria`, `Mammalia`, …) are rejected: “Guess the animal”.
+- Search/autocomplete lists only **remaining** animals and matches common
+  names where we have them.
 
 ## Prune rule
 
@@ -98,8 +103,9 @@ Images are downloaded from the catalog `image_url`s into `public/fossils/`
 
 ## Winning and losing
 
-- Win: guess the answer genus, or a species alias of that genus.
-- Lose: six wrong genera. The answer is revealed; attribution remains visible.
+- Win: guess the answer animal (genus, species alias, or common name).
+- Lose: six wrong animals. The answer is revealed as the animal, not a
+  lecture about genus. Attribution remains visible.
 
 ## Out of scope for v1
 

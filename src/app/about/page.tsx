@@ -13,9 +13,11 @@ export default function AboutPage() {
         <h1>How Fossildle works</h1>
         <p>
           Each UTC day shows one fossil photograph. You have six guesses to name
-          its scientific <em>genus</em>. After every miss, the game tells you the
-          shared clade with the answer and cuts away the branch you were on.
-          Search only offers genera that are still possible.
+          the <em>animal</em> — the creature that fossil came from. Common names
+          work when we have them (mammoth, T. rex), and so do scientific names.
+          After every miss, the game tells you the shared clade with the answer
+          and cuts away the branch you were on. Search only offers animals that
+          are still possible.
         </p>
 
         <h2>Prune rule</h2>
@@ -41,9 +43,10 @@ export default function AboutPage() {
           So a distant miss (an arthropod when the answer is a theropod) teaches
           you the shared high clade and removes that arthropod line. A close miss
           (a ceratopsian when the answer is a tyrannosaur) jumps the cabinet down
-          to Dinosauria and throws out Ornithischia. Guessing the answer genus
-          wins. Typing a species that belongs to that genus —{" "}
-          <em>Tyrannosaurus rex</em> for <em>Tyrannosaurus</em> — also wins.
+          to Dinosauria and throws out Ornithischia. Naming the right animal
+          wins. A species or common name that maps to that animal —{" "}
+          <em>Tyrannosaurus rex</em> or T. rex for <em>Tyrannosaurus</em> — also
+          wins.
         </p>
 
         <h2>Daily puzzle</h2>

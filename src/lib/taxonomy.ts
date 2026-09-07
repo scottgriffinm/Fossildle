@@ -1,6 +1,8 @@
+import { COMMON_NAME_ALIASES, commonLabelsFor } from "./names";
 import type {
   GuessResolution,
   PruneState,
+  SearchHit,
   Taxon,
   TaxonomyData,
 } from "./types";
@@ -26,6 +28,7 @@ export class TaxonomyIndex {
   readonly genera: Taxon[];
   private readonly byName: Map<string, Taxon[]>;
   private readonly aliasToId: Map<string, number>;
+  private readonly aliasLabel: Map<string, string>;
   private readonly pathCache = new Map<number, number[]>();
 
   constructor(data: TaxonomyData) {
@@ -52,8 +55,12 @@ export class TaxonomyIndex {
 
     this.genera = data.taxa.filter((taxon) => taxon.rank === "genus");
     this.aliasToId = new Map();
-    for (const alias of data.aliases) {
-      this.aliasToId.set(normalizeName(alias.name), alias.id);
+    this.aliasLabel = new Map();
+    for (const alias of [...data.aliases, ...COMMON_NAME_ALIASES]) {
+      if (!this.byId.has(alias.id)) continue;
+      const key = normalizeName(alias.name);
+      this.aliasToId.set(key, alias.id);
+      this.aliasLabel.set(key, alias.name);
     }
   }
 
@@ -271,35 +278,55 @@ export class TaxonomyIndex {
   }
 
   searchGenera(raw: string, state: PruneState, limit = 8): Taxon[] {
+    return this.searchAnimals(raw, state, limit).map((hit) => hit.taxon);
+  }
+
+  searchAnimals(raw: string, state: PruneState, limit = 8): SearchHit[] {
     const query = normalizeName(raw);
     if (query.length < 1) return [];
 
-    const hits: { taxon: Taxon; score: number }[] = [];
+    const hits: { hit: SearchHit; score: number }[] = [];
     const seen = new Set<number>();
 
-    const consider = (taxon: Taxon, label: string) => {
-      if (seen.has(taxon.id) || taxon.rank !== "genus") return;
+    const consider = (taxon: Taxon, label: string, via: SearchHit["via"]) => {
+      if (taxon.rank !== "genus") return;
       if (!this.isRemaining(taxon.id, state)) return;
       const name = normalizeName(label);
       if (!name.includes(query) && !name.startsWith(query)) return;
-      seen.add(taxon.id);
       const score = scoreMatch(name, query);
-      hits.push({ taxon, score });
+      const existing = hits.find((row) => row.hit.taxon.id === taxon.id);
+      if (existing) {
+        if (score < existing.score) {
+          existing.score = score;
+          existing.hit.matchedName = label;
+          existing.hit.via = via;
+        }
+        return;
+      }
+      if (seen.has(taxon.id)) return;
+      seen.add(taxon.id);
+      hits.push({ hit: { taxon, matchedName: label, via }, score });
     };
 
-    for (const genus of this.genera) consider(genus, genus.name);
+    for (const genus of this.genera) consider(genus, genus.name, "scientific");
     for (const [alias, id] of this.aliasToId) {
       const taxon = this.byId.get(id);
-      if (taxon) consider(taxon, alias);
+      if (!taxon) continue;
+      const via = commonLabelsFor(taxon.id).some(
+        (label) => normalizeName(label) === alias,
+      )
+        ? "common"
+        : "alias";
+      consider(taxon, this.aliasLabel.get(alias) ?? displayAlias(alias, taxon), via);
     }
 
     hits.sort(
       (a, b) =>
         a.score - b.score ||
-        a.taxon.name.length - b.taxon.name.length ||
-        a.taxon.name.localeCompare(b.taxon.name),
+        a.hit.taxon.name.length - b.hit.taxon.name.length ||
+        a.hit.taxon.name.localeCompare(b.hit.taxon.name),
     );
-    return hits.slice(0, limit).map((hit) => hit.taxon);
+    return hits.slice(0, limit).map((row) => row.hit);
   }
 }
 
@@ -312,6 +339,17 @@ function scoreMatch(name: string, query: string): number {
   if (name.startsWith(query)) return 1;
   const idx = name.indexOf(query);
   return idx >= 0 ? 2 + idx / 100 : 50;
+}
+
+function displayAlias(normalized: string, taxon: Taxon): string {
+  const common = commonLabelsFor(taxon.id).find(
+    (label) => normalizeName(label) === normalized,
+  );
+  if (common) return common;
+  return normalized
+    .split(" ")
+    .map((part) => (part.length ? part[0]!.toUpperCase() + part.slice(1) : part))
+    .join(" ");
 }
 
 export function parsePbdbOid(oid: string): number {

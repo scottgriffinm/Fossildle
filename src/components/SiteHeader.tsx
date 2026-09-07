@@ -15,14 +15,14 @@ export function SiteHeader({
     <header className="topbar">
       <Link className="brand" href="/">
         <strong>FOSSILDLE</strong>
-        <span>Daily genus</span>
+        <span>Daily fossil</span>
       </Link>
       {dateKey && (
         <p className="game-meta" aria-live="polite">
           <span>{dateKey}</span>
           {playing ? (
             <span>
-              {guessesLeft} guess{guessesLeft === 1 ? "" : "es"} left
+              {guessesLeft} left
             </span>
           ) : (
             <span>done</span>

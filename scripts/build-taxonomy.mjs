@@ -198,12 +198,18 @@ function addRecord(taxa, record) {
   return taxon;
 }
 
-async function ingestList(taxa, params, label) {
+async function ingestList(taxa, params, label, aliases) {
   const url = taxaUrl(params);
   console.log(`fetch ${label}`);
   const data = await fetchJson(url);
   const records = data.records ?? [];
-  for (const record of records) addRecord(taxa, record);
+  for (const record of records) {
+    const taxon = addRecord(taxa, record);
+    const common = record.nm2;
+    if (aliases && taxon && common && taxon.rank === "genus") {
+      aliases.push({ name: common, id: taxon.id });
+    }
+  }
   console.log(`  +${records.length} records (tree ${taxa.size})`);
   return records;
 }
@@ -361,34 +367,35 @@ async function main() {
 
   await ingestList(
     taxa,
-    { name: "Animalia", rel: "exact", show: "parent" },
+    { name: "Animalia", rel: "exact", show: "parent,common" },
     "Animalia",
   );
   await ingestList(
     taxa,
-    { base_name: "Animalia", rank: "phylum", show: "parent" },
+    { base_name: "Animalia", rank: "phylum", show: "parent,common" },
     "Animalia phyla",
   );
   await ingestList(
     taxa,
-    { base_name: "Animalia", rank: "class", show: "parent" },
+    { base_name: "Animalia", rank: "class", show: "parent,common" },
     "Animalia classes",
   );
   await ingestList(
     taxa,
-    { base_name: "Animalia", rank: "order", show: "parent" },
+    { base_name: "Animalia", rank: "order", show: "parent,common" },
     "Animalia orders",
   );
 
   const starterIds = fossils.map((f) => f.pbdb_oid).join(",");
   await ingestList(
     taxa,
-    { id: starterIds, rel: "exact", show: "parent" },
+    { id: starterIds, rel: "exact", show: "parent,common" },
     "starter genera",
+    aliases,
   );
   await ingestList(
     taxa,
-    { id: starterIds, rel: "all_parents", show: "parent" },
+    { id: starterIds, rel: "all_parents", show: "parent,common" },
     "starter all_parents",
   );
 
@@ -399,7 +406,7 @@ async function main() {
         id: fossil.pbdb_oid,
         rel: "all_children",
         rank: "species,subspecies",
-        show: "parent",
+        show: "parent,common",
       },
       `species of ${fossil.taxon}`,
     );
@@ -408,6 +415,7 @@ async function main() {
       const name = record.nam;
       if (!name) continue;
       aliases.push({ name, id: genusId });
+      if (record.nm2) aliases.push({ name: record.nm2, id: genusId });
       // Keep species nodes out of the playable tree; aliases handle normalization.
       const speciesId = parseOid(record.oid);
       if (speciesId) taxa.delete(speciesId);
@@ -422,9 +430,10 @@ async function main() {
         base_name: clade,
         rank: "genus",
         status: "accepted",
-        show: "parent",
+        show: "parent,common",
       },
       `genera in ${clade}`,
+      aliases,
     );
   }
 
@@ -434,16 +443,17 @@ async function main() {
       {
         name: EXTRA_GENERA.join(","),
         rel: "exact",
-        show: "parent",
+        show: "parent,common",
       },
       "extra famous genera",
+      aliases,
     );
     await ingestList(
       taxa,
       {
         name: EXTRA_GENERA.join(","),
         rel: "all_parents",
-        show: "parent",
+        show: "parent,common",
       },
       "extra famous all_parents",
     );

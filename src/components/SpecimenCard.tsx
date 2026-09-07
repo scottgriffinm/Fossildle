@@ -30,7 +30,7 @@ export function SpecimenCard({
         />
       </div>
       <div className="specimen-meta">
-        <div className="kicker">{revealed ? fossil.taxon : "Identify the genus"}</div>
+        <div className="kicker">{revealed ? fossil.taxon : "Identify the animal"}</div>
         <p className="attribution">
           {fossil.attribution} · {fossil.license}
           {" · "}
