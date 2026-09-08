@@ -69,9 +69,11 @@ taxon of each so PBDB stem duplicates drop out. Unranked stem wrappers
 (Bilateria, Eubilateria, Protostomia, Deuterostomia, and the like) are
 not padded in as empty CLADE tiles.
 
-Green = taxa on the shared path from Animalia down to the remaining
-constraint (the MRCA of the latest miss and the answer). Deeper
-standard ranks stay muted: rank label + ellipsis, never prune leftovers.
+Until the first guess, every rank — including Animalia / kingdom —
+stays muted (rank label + ellipsis). After a guess, green = taxa on
+the shared path from Animalia down to the remaining constraint (the
+MRCA of the latest miss and the answer). Deeper standard ranks stay
+muted: rank label + ellipsis, never prune leftovers.
 If the current constraint is a named non-standard clade (Amniota,
 Dinosauria, Eubilateria, …) it is inserted **by that name** so green
 depth is visible; it is never shown as a blank CLADE slot. A hit greens

@@ -55,15 +55,16 @@ export function playRankPath(taxonomy: TaxonomyIndex, answerId: number): Taxon[]
 
 /**
  * Deepest shared taxon that should light green: the remaining prune
- * constraint, or the answer itself after a hit.
+ * constraint, or the answer itself after a hit. Before the first guess
+ * there is no locked-in depth — Animalia stays unrevealed.
  */
 export function sharedDepthId(
   taxonomy: TaxonomyIndex,
   answerId: number,
   prune: PruneState,
-): number {
+): number | null {
   const last = prune.steps.at(-1);
-  if (!last) return taxonomy.rootId;
+  if (!last) return null;
   if (last.guessId === answerId) return answerId;
   return prune.constraintId;
 }
@@ -98,11 +99,13 @@ export function colorRankPath(
   status: GameStatus = "playing",
 ): RankSegment[] {
   const sharedId = sharedDepthId(taxonomy, answerId, prune);
-  const path = withConstraint(taxonomy, playRankPath(taxonomy, answerId), sharedId);
+  const base = playRankPath(taxonomy, answerId);
+  const path =
+    sharedId == null ? base : withConstraint(taxonomy, base, sharedId);
   const revealRest = status === "lost";
 
   return path.flatMap((taxon) => {
-    const green = isOnSharedPath(taxonomy, taxon.id, sharedId);
+    const green = sharedId != null && isOnSharedPath(taxonomy, taxon.id, sharedId);
     const state: PathSegmentState = green ? "green" : revealRest ? "revealed" : "unknown";
     // Never pad with unlabeled clade slots (Bilateria / Eubilateria / …).
     // A non-standard clade appears only when it is known: the current
