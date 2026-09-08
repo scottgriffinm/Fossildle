@@ -177,7 +177,7 @@ input {
 }
 
 .play-hero {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -227,7 +227,7 @@ input {
 
 .specimen {
   overflow: hidden;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -239,19 +239,24 @@ input {
 
 .specimen-frame {
   position: relative;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   height: auto;
-  min-height: clamp(260px, 42vh, 560px);
-  background: #0c0a08;
+  min-height: 0;
+  line-height: 0;
+  background: none;
 }
 
 .specimen-frame img {
-  width: 100%;
-  height: 100%;
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: min(52dvh, 560px);
   object-fit: contain;
-  background:
-    linear-gradient(45deg, #1a1611 25%, #221c16 25%, #221c16 50%, #1a1611 50%, #1a1611 75%, #221c16 75%);
-  background-size: 18px 18px;
+  background: none;
 }
 
 .specimen-meta {
@@ -447,7 +452,7 @@ input {
 .rank-path {
   display: flex;
   flex-wrap: nowrap;
-  align-items: stretch;
+  align-items: center;
   gap: 0;
   margin: 0;
   padding: 0;
@@ -469,7 +474,10 @@ input {
 }
 
 .rank-arrow {
+  display: flex;
   flex: 0 0 auto;
+  align-items: center;
+  align-self: center;
   color: var(--faint);
   font-size: 0.75rem;
   padding: 0 2px;
@@ -645,9 +653,13 @@ input {
   }
 
   .specimen-frame {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     height: auto;
-    min-height: 320px;
+    min-height: 0;
+  }
+
+  .specimen-frame img {
+    max-height: min(78dvh, 720px);
   }
 
   .rank-path-panel {
