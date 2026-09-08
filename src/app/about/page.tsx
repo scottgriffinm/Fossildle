@@ -17,7 +17,7 @@ export default function AboutPage() {
           work when we have them (mammoth, T. rex), and so do scientific names.
           After every miss, matching standard ranks on the taxonomic path
           turn green down to the clade you still share with the answer.
-          Search only offers animals that are still possible.
+          Search only offers fossils that are still possible.
         </p>
 
         <h2>Prune rule</h2>

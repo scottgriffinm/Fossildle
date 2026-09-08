@@ -94,7 +94,7 @@ export function GuessInput({
             {suggestions.length === 0 ? (
               <li>
                 <button type="button" disabled>
-                  No remaining animals match
+                  No remaining fossils match
                 </button>
               </li>
             ) : (

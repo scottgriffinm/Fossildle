@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { remainingFossilsCopy } from "./copy";
 
 const FILES = [
   "src/components/SpecimenCard.tsx",
@@ -52,5 +53,21 @@ describe("player-facing guess copy", () => {
     const card = readFileSync(path.join(process.cwd(), "src/components/SpecimenCard.tsx"), "utf8");
     expect(card).not.toMatch(/\bfill\b/);
     expect(card).toMatch(/Guess the fossil/);
+  });
+
+  it("says fossils for the remaining count, with singular", () => {
+    expect(remainingFossilsCopy(13293)).toBe("13,293 fossils still possible");
+    expect(remainingFossilsCopy(1)).toBe("1 fossil still possible");
+    expect(remainingFossilsCopy(0)).toBe("0 fossils still possible");
+
+    const app = readFileSync(path.join(process.cwd(), "src/components/FossildleApp.tsx"), "utf8");
+    const input = readFileSync(path.join(process.cwd(), "src/components/GuessInput.tsx"), "utf8");
+    const about = readFileSync(path.join(process.cwd(), "src/app/about/page.tsx"), "utf8");
+    expect(app).not.toMatch(/animals still possible/);
+    expect(app).toMatch(/remainingFossilsCopy/);
+    expect(input).not.toMatch(/No remaining animals match/);
+    expect(input).toMatch(/No remaining fossils match/);
+    expect(about).toMatch(/fossils that are still possible/);
+    expect(about).not.toMatch(/animals that are still possible/);
   });
 });
