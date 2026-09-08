@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { laymanTitle } from "@/lib/layman";
 import { sharedDepthId } from "@/lib/rank-path";
 import {
-  openingExpandedIds,
+  neighborhoodChildren,
+  neighborhoodExpandIds,
   paintTaxon,
-  sharedPathExpandIds,
+  pathNeighborhoodIds,
   type TreePaint,
 } from "@/lib/tree-paint";
 import type { TaxonomyIndex } from "@/lib/taxonomy";
@@ -32,20 +33,15 @@ export function TaxonomyTree({
   const sharedId =
     taxonomy && prune ? sharedDepthId(taxonomy, answerId, prune) : null;
 
-  useEffect(() => {
-    if (!taxonomy) return;
-    setExpanded(new Set(openingExpandedIds(taxonomy)));
-  }, [taxonomy]);
+  const neighborhood = useMemo(() => {
+    if (!taxonomy || !prune) return new Set<number>();
+    return new Set(pathNeighborhoodIds(taxonomy, answerId, prune, status));
+  }, [taxonomy, prune, answerId, status]);
 
   useEffect(() => {
     if (!taxonomy || !prune) return;
-    const extra = sharedPathExpandIds(taxonomy, answerId, prune);
-    setExpanded((current) => {
-      const next = new Set(current);
-      for (const id of extra) next.add(id);
-      return next;
-    });
-  }, [taxonomy, prune, answerId, sharedId, stepCount]);
+    setExpanded(new Set(neighborhoodExpandIds(taxonomy, answerId, prune, status)));
+  }, [taxonomy, prune, answerId, status, sharedId, stepCount]);
 
   useEffect(() => {
     if (constraintId == null || stepCount === 0) return;
@@ -66,18 +62,19 @@ export function TaxonomyTree({
   }
 
   return (
-    <section className="tree-panel" aria-label="Animalia taxonomy">
+    <section className="tree-panel" aria-label="Taxonomy around the path">
       <div className="tree-scroll">
         {!ready || !taxonomy || !prune ? (
           <TreeSkeleton />
         ) : (
-          <ul className="tax-tree" role="tree" aria-label="Full Animalia taxonomy">
+          <ul className="tax-tree" role="tree" aria-label="Path neighborhood">
             <TreeNode
               taxonomy={taxonomy}
               taxon={taxonomy.require(taxonomy.rootId)}
               prune={prune}
               status={status}
               answerId={answerId}
+              neighborhood={neighborhood}
               expanded={expanded}
               flashId={flashId}
               onToggle={toggle}
@@ -95,6 +92,7 @@ function TreeNode({
   prune,
   status,
   answerId,
+  neighborhood,
   expanded,
   flashId,
   onToggle,
@@ -104,11 +102,19 @@ function TreeNode({
   prune: PruneState;
   status: GameStatus;
   answerId: number;
+  neighborhood: Set<number>;
   expanded: Set<number>;
   flashId: number | null;
   onToggle: (id: number) => void;
 }) {
-  const kids = taxonomy.children.get(taxon.id) ?? [];
+  const kids = neighborhoodChildren(
+    taxonomy,
+    taxon.id,
+    neighborhood,
+    answerId,
+    prune,
+    status,
+  );
   const canExpand = kids.length > 0;
   const isOpen = canExpand && expanded.has(taxon.id);
   const paint: TreePaint = paintTaxon(taxonomy, taxon.id, answerId, prune, status);
@@ -163,6 +169,7 @@ function TreeNode({
               prune={prune}
               status={status}
               answerId={answerId}
+              neighborhood={neighborhood}
               expanded={expanded}
               flashId={flashId}
               onToggle={onToggle}
@@ -177,30 +184,11 @@ function TreeNode({
 function TreeSkeleton() {
   return (
     <ul className="tax-tree is-loading" aria-hidden="true">
-      <li className="tax-node is-neutral is-root is-open">
+      <li className="tax-node is-neutral is-root">
         <div className="tax-item">
           <span className="tax-name">Animalia</span>
           <span className="tax-layman">animals</span>
         </div>
-        <ul className="tax-kids">
-          <li className="tax-node is-neutral is-expandable">
-            <div className="tax-item">
-              <span className="tax-name">Bilateria</span>
-            </div>
-          </li>
-          <li className="tax-node is-neutral is-expandable">
-            <div className="tax-item">
-              <span className="tax-name">Porifera</span>
-              <span className="tax-layman">sponges</span>
-            </div>
-          </li>
-          <li className="tax-node is-neutral is-expandable">
-            <div className="tax-item">
-              <span className="tax-name">Cnidaria</span>
-              <span className="tax-layman">jellyfish and corals</span>
-            </div>
-          </li>
-        </ul>
       </li>
     </ul>
   );

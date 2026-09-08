@@ -28,7 +28,7 @@ describe("player-facing guess copy", () => {
     }
   });
 
-  it("keeps the one-row rank path and an expandable outline, not a cladogram", () => {
+  it("keeps the one-row rank path and a path-neighborhood tree, not a cladogram", () => {
     for (const file of PLAY_UI) {
       const src = readFileSync(path.join(process.cwd(), file), "utf8");
       expect(src, file).not.toMatch(/cladogram/);
@@ -40,6 +40,8 @@ describe("player-facing guess copy", () => {
     expect(app).toMatch(/TaxonomyTree/);
     expect(tree).toMatch(/tax-tree/);
     expect(tree).toMatch(/laymanTitle/);
+    expect(tree).toMatch(/pathNeighborhoodIds/);
+    expect(tree).not.toMatch(/Full Animalia/);
     expect(tree).not.toMatch(/\+\s*\/\s*-/);
   });
 
@@ -87,11 +89,13 @@ describe("specimen and rank-path chrome", () => {
     expect(css).toMatch(/\.specimen-photo[\s\S]*?background:\s*none/);
   });
 
-  it("lets the outline use leftover vertical space and scroll inside the panel", () => {
+  it("sizes the neighborhood to its content and hides scrollbar chrome", () => {
     const css = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
-    expect(css).toMatch(/\.tree-panel[\s\S]*?flex:\s*1 1 auto/);
+    expect(css).toMatch(/\.tree-panel[\s\S]*?flex:\s*0 1 auto/);
     expect(css).toMatch(/\.tree-panel[\s\S]*?max-height:\s*min\(/);
     expect(css).toMatch(/\.tree-panel[\s\S]*?min-height:\s*0/);
+    expect(css).not.toMatch(/max-height:\s*min\(24dvh,\s*200px\)/);
+    expect(css).toMatch(/\.tax-name[\s\S]*?font-size:\s*1\./);
     expect(css).toMatch(/\.tree-scroll[\s\S]*?overflow:\s*auto/);
     expect(css).toMatch(/\.tree-scroll[\s\S]*?scrollbar-width:\s*none/);
     expect(css).toMatch(/\.tree-scroll::-webkit-scrollbar[\s\S]*?display:\s*none/);
