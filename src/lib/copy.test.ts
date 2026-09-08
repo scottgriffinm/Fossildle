@@ -13,6 +13,7 @@ const FILES = [
 const PLAY_UI = [
   "src/components/FossildleApp.tsx",
   "src/components/TaxonomyPath.tsx",
+  "src/components/TaxonomyTree.tsx",
   "src/components/GuessBoard.tsx",
   "src/app/globals.css",
 ];
@@ -27,14 +28,19 @@ describe("player-facing guess copy", () => {
     }
   });
 
-  it("uses a rank path, not a tree panel", () => {
+  it("keeps the one-row rank path and an expandable outline, not a cladogram", () => {
     for (const file of PLAY_UI) {
       const src = readFileSync(path.join(process.cwd(), file), "utf8");
-      expect(src, file).not.toMatch(/TaxonomyTree/);
       expect(src, file).not.toMatch(/cladogram/);
-      expect(src, file).not.toMatch(/tree-panel/);
       expect(src, file).not.toMatch(/buildCabinetTree/);
     }
+    const app = readFileSync(path.join(process.cwd(), "src/components/FossildleApp.tsx"), "utf8");
+    const tree = readFileSync(path.join(process.cwd(), "src/components/TaxonomyTree.tsx"), "utf8");
+    expect(app).toMatch(/TaxonomyPath/);
+    expect(app).toMatch(/TaxonomyTree/);
+    expect(tree).toMatch(/tax-tree/);
+    expect(tree).toMatch(/laymanTitle/);
+    expect(tree).not.toMatch(/\+\s*\/\s*-/);
   });
 
   it("does not pad the path skeleton with clade placeholders", () => {
@@ -69,5 +75,22 @@ describe("player-facing guess copy", () => {
     expect(input).toMatch(/No remaining fossils match/);
     expect(about).toMatch(/fossils that are still possible/);
     expect(about).not.toMatch(/animals that are still possible/);
+  });
+});
+
+describe("specimen and rank-path chrome", () => {
+  it("does not paint a striped letterbox behind the fossil photo", () => {
+    const css = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
+    expect(css).not.toMatch(/background-size:\s*18px 18px/);
+    expect(css).not.toMatch(/linear-gradient\(45deg, #1a1611/);
+    expect(css).toMatch(/\.specimen-frame[\s\S]*?background:\s*none/);
+    expect(css).toMatch(/\.specimen-photo[\s\S]*?background:\s*none/);
+  });
+
+  it("lets the outline use leftover vertical space and scroll inside the panel", () => {
+    const css = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
+    expect(css).toMatch(/\.play-side[\s\S]*?flex:\s*1 1 auto/);
+    expect(css).toMatch(/\.tree-panel[\s\S]*?flex:\s*1 1 auto/);
+    expect(css).toMatch(/\.tree-scroll[\s\S]*?overflow:\s*auto/);
   });
 });

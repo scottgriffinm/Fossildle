@@ -13,6 +13,7 @@ import { GuessInput } from "./GuessInput";
 import { SiteHeader } from "./SiteHeader";
 import { SpecimenCard } from "./SpecimenCard";
 import { TaxonomyPath } from "./TaxonomyPath";
+import { TaxonomyTree } from "./TaxonomyTree";
 
 export function FossildleApp() {
   const [taxonomy, setTaxonomy] = useState<TaxonomyIndex | null>(null);
@@ -162,34 +163,43 @@ export function FossildleApp() {
             answerId={puzzle.fossil.taxonId}
             loading={!taxonomy || !prune}
           />
-          {showGuesses && (
-            <div className="play-guesses">
-              <GuessBoard
-                taxonomy={taxonomy}
-                guesses={guesses}
-                prune={prune}
-                answerId={puzzle.fossil.taxonId}
-                status={status}
-              />
-              {status !== "playing" && (
-                <div className="result">
-                  <h3>
-                    {status === "won"
-                      ? `Yes — that's ${animal}`
-                      : `It was ${animal}`}
-                  </h3>
-                  <p className="guess-note">
-                    Puzzle {puzzle.dateKey}. Same specimen worldwide until the next UTC midnight.
-                  </p>
-                  <div className="actions">
-                    <button type="button" onClick={() => void share()}>
-                      Copy result
-                    </button>
+          <div className="play-side">
+            {showGuesses && (
+              <div className="play-guesses">
+                <GuessBoard
+                  taxonomy={taxonomy}
+                  guesses={guesses}
+                  prune={prune}
+                  answerId={puzzle.fossil.taxonId}
+                  status={status}
+                />
+                {status !== "playing" && (
+                  <div className="result">
+                    <h3>
+                      {status === "won"
+                        ? `Yes — that's ${animal}`
+                        : `It was ${animal}`}
+                    </h3>
+                    <p className="guess-note">
+                      Puzzle {puzzle.dateKey}. Same specimen worldwide until the next UTC midnight.
+                    </p>
+                    <div className="actions">
+                      <button type="button" onClick={() => void share()}>
+                        Copy result
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+            <TaxonomyTree
+              taxonomy={taxonomy}
+              prune={prune}
+              status={status}
+              answerId={puzzle.fossil.taxonId}
+              loading={!taxonomy || !prune}
+            />
+          </div>
         </div>
         <div className="play-compose">
           {loadError ? (

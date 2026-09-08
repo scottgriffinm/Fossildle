@@ -26,6 +26,7 @@ export function SpecimenCard({
           height={1000}
           unoptimized
           sizes="(max-width: 860px) 100vw, 42vw"
+          className="specimen-photo"
           priority
         />
       </div>

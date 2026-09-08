@@ -184,6 +184,15 @@ input {
   flex-direction: column;
 }
 
+.play-side {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--path-bg);
+}
+
 .play-guesses {
   flex: 0 0 auto;
   display: flex;
@@ -218,6 +227,141 @@ input {
   background: var(--path-bg);
 }
 
+.tree-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+  background: var(--path-bg);
+}
+
+.tree-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 6px 10px 12px;
+  overscroll-behavior: contain;
+}
+
+.tax-tree,
+.tax-kids {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tax-kids {
+  padding-left: 14px;
+}
+
+.tax-node {
+  margin: 0;
+}
+
+.tax-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  width: 100%;
+  margin: 0;
+  padding: 5px 6px 6px 8px;
+  border: 0;
+  border-left: 3px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+button.tax-item {
+  cursor: pointer;
+}
+
+button.tax-item:hover,
+button.tax-item:focus-visible {
+  background: rgba(208, 138, 74, 0.1);
+}
+
+button.tax-item:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: -2px;
+}
+
+.tax-name {
+  font-family: var(--font-serif), "Fraunces", serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.tax-node.is-genus > .tax-item .tax-name {
+  font-style: italic;
+}
+
+.tax-node.is-expandable > .tax-item .tax-name::after {
+  content: "";
+  display: inline-block;
+  width: 0.28em;
+  height: 0.28em;
+  margin-left: 0.4em;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  opacity: 0.45;
+  transform: rotate(-45deg) translateY(-0.06em);
+  vertical-align: 0.12em;
+}
+
+.tax-node.is-open > .tax-item .tax-name::after {
+  transform: rotate(45deg) translateY(-0.1em);
+}
+
+.tax-layman {
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+.tax-node.is-green > .tax-item {
+  border-left-color: #6f9a58;
+  background: rgba(61, 90, 50, 0.38);
+}
+
+.tax-node.is-green > .tax-item .tax-name {
+  color: #d4f0b8;
+}
+
+.tax-node.is-green > .tax-item .tax-layman {
+  color: #b4d49a;
+}
+
+.tax-node.is-red > .tax-item {
+  border-left-color: #c45c4a;
+}
+
+.tax-node.is-red > .tax-item .tax-name {
+  color: #f3a090;
+}
+
+.tax-node.is-red > .tax-item .tax-layman {
+  color: #c8887c;
+}
+
+.tax-node.is-neutral > .tax-item .tax-name {
+  color: var(--ink);
+}
+
+.tax-node.is-flash > .tax-item {
+  animation: path-flash 1.2s ease;
+}
+
+.tax-tree.is-loading .tax-name {
+  color: var(--muted);
+}
+
 .panel {
   background: linear-gradient(180deg, var(--card), var(--bg-2));
   border: 1px solid var(--line);
@@ -249,7 +393,8 @@ input {
   background: none;
 }
 
-.specimen-frame img {
+.specimen-frame img,
+.specimen-photo {
   display: block;
   width: auto;
   height: auto;
@@ -658,7 +803,8 @@ input {
     min-height: 0;
   }
 
-  .specimen-frame img {
+  .specimen-frame img,
+  .specimen-photo {
     max-height: min(78dvh, 720px);
   }
 
@@ -670,15 +816,31 @@ input {
     align-self: start;
   }
 
-  .play-guesses {
+  .play-side {
     grid-column: 2;
     grid-row: 2;
+    border-left: 1px solid var(--line);
+  }
+
+  .play-guesses {
     max-height: none;
     border-top: 1px solid var(--line);
   }
 
   .rank-name {
     font-size: 0.92rem;
+  }
+
+  .tree-scroll {
+    padding: 8px 12px 16px;
+  }
+
+  .tax-name {
+    font-size: 0.98rem;
+  }
+
+  .tax-kids {
+    padding-left: 18px;
   }
 }
 
@@ -718,5 +880,25 @@ input {
   .rank-arrow {
     font-size: 0.62rem;
     padding: 0 1px;
+  }
+
+  .tree-scroll {
+    padding: 4px 8px 10px;
+  }
+
+  .tax-name {
+    font-size: 0.86rem;
+  }
+
+  .tax-layman {
+    font-size: 0.64rem;
+  }
+
+  .tax-kids {
+    padding-left: 12px;
+  }
+
+  .tax-item {
+    padding: 4px 2px 5px;
   }
 }

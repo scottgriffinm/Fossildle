@@ -63,12 +63,15 @@ Helpers (`src/lib/taxonomy.ts`):
 - `mrca(a, b)`
 - `pruneRemaining(answerId, guesses[])`
 
-The play UI is a Wordle-like **taxonomic path**, not a tree. The chain
-is a clean standard-rank ladder from the answer path: kingdom, phylum,
-class, order, family, genus — only ranks that actually exist, deepest
-taxon of each so PBDB stem duplicates drop out. Unranked stem wrappers
-(Bilateria, Eubilateria, Protostomia, Deuterostomia, and the like) are
-not padded in as empty CLADE tiles.
+The play UI keeps a Wordle-like **taxonomic path** on one row, and fills
+the leftover board with an expandable **full Animalia outline** (not a
+cladogram, not limited to the remaining-possible set).
+
+The path is a clean standard-rank ladder from the answer path: kingdom,
+phylum, class, order, family, genus — only ranks that actually exist,
+deepest taxon of each so PBDB stem duplicates drop out. Unranked stem
+wrappers (Bilateria, Eubilateria, Protostomia, Deuterostomia, and the
+like) are not padded in as empty CLADE tiles.
 
 Until the first guess, every rank — including Animalia / kingdom —
 stays muted (rank label + ellipsis). After a guess, green = taxa on
@@ -80,6 +83,14 @@ Dinosauria, Eubilateria, …) it is inserted **by that name** so green
 depth is visible; it is never shown as a blank CLADE slot. A hit greens
 the whole path, including genus. Autocomplete still uses the remaining
 set from `pruneRemaining`.
+
+The outline starts collapsed at Animalia plus its shallow children.
+Click a name to expand; collapsed subtrees are not mounted. Layman
+titles sit under scientific names (curated vernaculars, catalog common
+names, regular `-idae` / `-inae` / `-oidea` endings, then a rank gloss).
+Tree paint: green = confirmed shared path, red = ruled out, white =
+still ambiguous. Animalia is not green until the first guess. The full
+scaffold stays browsable; only the paint follows game state.
 
 ## Daily rotation
 
