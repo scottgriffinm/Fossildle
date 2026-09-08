@@ -267,8 +267,9 @@ input {
   gap: 1px;
   width: 100%;
   margin: 0;
-  padding: 5px 4px 6px 2px;
+  padding: 5px 6px 6px 8px;
   border: 0;
+  border-left: 3px solid transparent;
   border-radius: 6px;
   background: transparent;
   color: inherit;
@@ -324,20 +325,29 @@ button.tax-item:focus-visible {
   letter-spacing: 0.01em;
 }
 
+.tax-node.is-green > .tax-item {
+  border-left-color: #6f9a58;
+  background: rgba(61, 90, 50, 0.38);
+}
+
 .tax-node.is-green > .tax-item .tax-name {
-  color: #c8e0b6;
+  color: #d4f0b8;
 }
 
 .tax-node.is-green > .tax-item .tax-layman {
-  color: #9bb88a;
+  color: #b4d49a;
+}
+
+.tax-node.is-red > .tax-item {
+  border-left-color: #c45c4a;
 }
 
 .tax-node.is-red > .tax-item .tax-name {
-  color: #e8a090;
+  color: #f3a090;
 }
 
 .tax-node.is-red > .tax-item .tax-layman {
-  color: #b57a70;
+  color: #c8887c;
 }
 
 .tax-node.is-neutral > .tax-item .tax-name {
