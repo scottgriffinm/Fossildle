@@ -22,10 +22,10 @@ export function SpecimenCard({
               ? `${fossil.taxon} fossil specimen`
               : "Today's mystery fossil specimen"
           }
-          fill
+          width={1400}
+          height={1000}
           unoptimized
           sizes="(max-width: 860px) 100vw, 42vw"
-          style={{ objectFit: "contain" }}
           priority
         />
       </div>

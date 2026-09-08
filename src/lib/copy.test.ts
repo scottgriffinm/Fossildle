@@ -41,4 +41,16 @@ describe("player-facing guess copy", () => {
     expect(src).not.toMatch(/rank-label">clade</);
     expect(src).toMatch(/SKELETON_RANKS/);
   });
+
+  it("centers rank-path arrows and hugs the fossil photo", () => {
+    const css = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
+    expect(css).toMatch(/\.rank-path\s*\{[^}]*align-items:\s*center/s);
+    expect(css).toMatch(/\.rank-arrow\s*\{[^}]*align-items:\s*center/s);
+    expect(css).not.toMatch(/linear-gradient\(45deg/);
+    expect(css).not.toMatch(/background-size:\s*18px 18px/);
+
+    const card = readFileSync(path.join(process.cwd(), "src/components/SpecimenCard.tsx"), "utf8");
+    expect(card).not.toMatch(/\bfill\b/);
+    expect(card).toMatch(/Guess the fossil/);
+  });
 });
