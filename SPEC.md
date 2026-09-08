@@ -86,8 +86,12 @@ set from `pruneRemaining`.
 
 The outline starts collapsed at Animalia plus its shallow children.
 Click a name to expand; collapsed subtrees are not mounted. Layman
-titles sit under scientific names (curated vernaculars, catalog common
-names, regular `-idae` / `-inae` / `-oidea` endings, then a rank gloss).
+titles sit under scientific names only when they add real English
+(sponges, mammals, birds, trilobites). Latin echoes (bilaterians) and
+rank glosses (a clade, a class) are omitted. Regular `-idae` / `-inae`
+endings still become English group names. The outline
+flexes into leftover board space with a modest max height; it does
+not invent a tall section or show scrollbar chrome.
 Tree paint: green = confirmed shared path, red = ruled out, white =
 still ambiguous. Animalia is not green until the first guess. The full
 scaffold stays browsable; only the paint follows game state.
