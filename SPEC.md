@@ -30,8 +30,9 @@ today's guesses (`fossildle:v1:YYYY-MM-DD`).
 - Common names from PBDB `nm2` and the catalog (T. rex, mammoth, saber-toothed
   cat, …) also resolve to that genus.
 - Higher taxa (`Dinosauria`, `Mammalia`, …) are rejected: “Guess the fossil”.
-- Search/autocomplete lists only **remaining** animals and matches common
-  names where we have them.
+- Search/autocomplete lists only **remaining** fossils and matches common
+  names where we have them. The remaining-count line says fossils
+  (`13,293 fossils still possible`, or `1 fossil still possible`).
 
 ## Prune rule
 

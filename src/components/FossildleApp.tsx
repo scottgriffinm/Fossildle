@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fossils } from "@/lib/catalog";
+import { remainingFossilsCopy } from "@/lib/copy";
 import { CATALOG_SEED, MAX_GUESSES, puzzleForDay } from "@/lib/daily";
 import { animalPhrase } from "@/lib/names";
 import { loadSavedGame, saveGame } from "@/lib/storage";
@@ -206,7 +207,7 @@ export function FossildleApp() {
             <div className="composer">
               <label htmlFor="animal-guess">Guess the fossil</label>
               <div className="input-wrap">
-                <input id="animal-guess" disabled placeholder="Loading animals…" />
+                <input id="animal-guess" disabled placeholder="Loading fossils…" />
                 <button className="guess-btn" type="button" disabled>
                   Guess
                 </button>
@@ -217,7 +218,7 @@ export function FossildleApp() {
             {message ||
               (status === "playing"
                 ? remaining != null
-                  ? `${remaining.toLocaleString()} animals still possible`
+                  ? remainingFossilsCopy(remaining)
                   : "Loading today's taxonomy…"
                 : "")}
           </p>
