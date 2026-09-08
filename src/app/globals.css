@@ -446,36 +446,44 @@ input {
 
 .rank-path {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: stretch;
-  gap: 6px 0;
+  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.rank-path::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .rank-step {
-  display: flex;
-  align-items: center;
-  flex: 0 0 auto;
-  gap: 4px;
+  display: contents;
 }
 
 .rank-arrow {
+  flex: 0 0 auto;
   color: var(--faint);
-  font-size: 0.85rem;
-  padding: 0 4px;
+  font-size: 0.75rem;
+  padding: 0 2px;
   line-height: 1;
 }
 
 .rank-chip {
   display: flex;
+  flex: 1 1 0;
   flex-direction: column;
   justify-content: center;
   gap: 1px;
-  min-width: 4.6rem;
-  max-width: 9.5rem;
-  padding: 5px 8px 6px;
+  min-width: 0;
+  padding: 5px 6px 6px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--card-2);
@@ -506,6 +514,9 @@ input {
   text-transform: uppercase;
   color: var(--faint);
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rank-chip.is-green .rank-label {
@@ -673,12 +684,27 @@ input {
     max-width: 54%;
   }
 
+  .rank-path-panel {
+    padding: 6px 4px 8px;
+  }
+
   .rank-chip {
-    min-width: 4.1rem;
-    padding: 4px 7px 5px;
+    min-width: 0;
+    padding: 3px 3px 4px;
+    border-radius: 6px;
+  }
+
+  .rank-label {
+    font-size: 0.5rem;
+    letter-spacing: 0.04em;
   }
 
   .rank-name {
-    font-size: 0.8rem;
+    font-size: 0.68rem;
+  }
+
+  .rank-arrow {
+    font-size: 0.62rem;
+    padding: 0 1px;
   }
 }

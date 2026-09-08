@@ -79,15 +79,28 @@ describe("play rank path", () => {
 describe("green depth from MRCA / remaining constraint", () => {
   const tax = new TaxonomyIndex(fixture());
 
-  it("starts green only at Animalia on the standard ladder", () => {
+  it("stays unrevealed, including Animalia, before any guess", () => {
     const open = tax.pruneRemaining(5, []);
     const path = colorRankPath(tax, 5, open);
-    expect(sharedDepthId(tax, 5, open)).toBe(1);
+    expect(sharedDepthId(tax, 5, open)).toBeNull();
     expect(names(path)).toEqual(["Animalia", "Chordata", "Tyrannosaurus"]);
     expect(labels(path)).toEqual(["kingdom", "phylum", "genus"]);
-    expect(states(path)).toEqual(["green", "unknown", "unknown"]);
+    expect(states(path)).toEqual(["unknown", "unknown", "unknown"]);
     expect(unknownClades(path)).toEqual([]);
     expect(path.at(-1)?.state).toBe("unknown");
+  });
+
+  it("greens Animalia after the first guess even when the MRCA stays at the root", () => {
+    const after = tax.pruneRemaining(5, [13]);
+    expect(tax.require(after.constraintId).name).toBe("Animalia");
+    expect(sharedDepthId(tax, 5, after)).toBe(1);
+    const path = colorRankPath(tax, 5, after);
+    expect(path[0]).toMatchObject({
+      taxon: { name: "Animalia" },
+      rankLabel: "kingdom",
+      state: "green",
+    });
+    expect(states(path)).toEqual(["green", "unknown", "unknown"]);
   });
 
   it("greens the shared path through the MRCA after a distant miss", () => {
@@ -179,15 +192,15 @@ describe("play path on the shipped Animalia artifact", () => {
     expect(path.some((taxon) => taxon.rank === "subclass")).toBe(false);
   });
 
-  it("opens with Animalia green and no blank CLADE tiles", () => {
+  it("opens with Animalia unrevealed and no blank CLADE tiles", () => {
     const open = colorRankPath(tax, answer, tax.pruneRemaining(answer, []));
     expect(open[0]).toMatchObject({
       taxon: { name: "Animalia" },
       rankLabel: "kingdom",
-      state: "green",
+      state: "unknown",
     });
     expect(labels(open)).toEqual(["kingdom", "phylum", "class", "family", "genus"]);
-    expect(states(open)).toEqual(["green", "unknown", "unknown", "unknown", "unknown"]);
+    expect(states(open)).toEqual(["unknown", "unknown", "unknown", "unknown", "unknown"]);
     expect(unknownClades(open)).toEqual([]);
   });
 
@@ -252,7 +265,11 @@ describe("play path on the shipped Animalia artifact", () => {
         fossil.id,
       ).toEqual([]);
       expect(path[0]?.taxon.name, fossil.id).toBe("Animalia");
-      expect(path[0]?.state, fossil.id).toBe("green");
+      expect(path[0]?.state, fossil.id).toBe("unknown");
+      expect(
+        path.every((seg) => seg.state === "unknown"),
+        fossil.id,
+      ).toBe(true);
       expect(path.every((seg) => isPlayRank(seg.taxon.rank)), fossil.id).toBe(true);
     }
   });
