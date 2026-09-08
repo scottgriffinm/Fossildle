@@ -89,12 +89,12 @@ describe("specimen and rank-path chrome", () => {
 
   it("lets the outline use leftover vertical space and scroll inside the panel", () => {
     const css = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
-    expect(css).toMatch(/\.play-side[\s\S]*?flex:\s*1 1 auto/);
     expect(css).toMatch(/\.tree-panel[\s\S]*?flex:\s*1 1 auto/);
     expect(css).toMatch(/\.tree-panel[\s\S]*?max-height:\s*min\(/);
     expect(css).toMatch(/\.tree-panel[\s\S]*?min-height:\s*0/);
     expect(css).toMatch(/\.tree-scroll[\s\S]*?overflow:\s*auto/);
     expect(css).toMatch(/\.tree-scroll[\s\S]*?scrollbar-width:\s*none/);
     expect(css).toMatch(/\.tree-scroll::-webkit-scrollbar[\s\S]*?display:\s*none/);
+    expect(css).toMatch(/\.shell-play[\s\S]*?min-height:\s*100dvh/);
   });
 });
