@@ -67,12 +67,13 @@ input {
 
 .shell-play {
   width: min(100% - 20px, 1240px);
-  height: 100dvh;
-  max-height: 100dvh;
+  min-height: 100dvh;
+  height: auto;
+  max-height: none;
   padding: 0 0 env(safe-area-inset-bottom);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .topbar {
@@ -155,7 +156,7 @@ input {
 }
 
 .board {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -170,7 +171,7 @@ input {
 }
 
 .play-stage {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -185,7 +186,7 @@ input {
 }
 
 .play-side {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
   min-width: 0;
   display: flex;
@@ -231,10 +232,12 @@ input {
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
+  max-height: min(24dvh, 200px);
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--line);
   background: var(--path-bg);
+  overflow: hidden;
 }
 
 .tree-scroll {
@@ -243,6 +246,14 @@ input {
   overflow: auto;
   padding: 6px 10px 12px;
   overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tree-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .tax-tree,
@@ -765,6 +776,14 @@ button.tax-item:focus-visible {
 @media (min-width: 861px) {
   .shell-play {
     width: min(1240px, calc(100% - 24px));
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .board {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
   .brand strong {
@@ -777,6 +796,8 @@ button.tax-item:focus-visible {
   }
 
   .play-stage {
+    flex: 1 1 auto;
+    min-height: 0;
     display: grid;
     grid-template-columns: minmax(280px, 1.15fr) minmax(280px, 0.85fr);
     grid-template-rows: auto minmax(0, 1fr);
@@ -819,7 +840,15 @@ button.tax-item:focus-visible {
   .play-side {
     grid-column: 2;
     grid-row: 2;
+    flex: 1 1 auto;
+    max-height: none;
+    background: var(--path-bg);
     border-left: 1px solid var(--line);
+  }
+
+  .tree-panel {
+    flex: 1 1 auto;
+    max-height: none;
   }
 
   .play-guesses {

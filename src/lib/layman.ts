@@ -2,57 +2,30 @@ import { primaryCommonName } from "./names";
 import type { Taxon } from "./types";
 
 /**
- * Curated vernaculars for familiar Animalia groups. Keys are lowercase
- * scientific names. Values are everyday English — never invented zoology.
+ * Everyday English for familiar Animalia groups. Keys are lowercase
+ * scientific names. Values must be a real vernacular — never a Latin echo
+ * ("bilaterians") and never a rank gloss ("a clade").
  */
 export const CURATED_LAYMAN: Record<string, string> = {
   animalia: "animals",
   porifera: "sponges",
-  cnidaria: "cnidarians",
+  cnidaria: "jellyfish and corals",
   ctenophora: "comb jellies",
-  placozoa: "placozoans",
-  bilateria: "bilaterians",
-  eubilateria: "eubilaterians",
-  protostomia: "protostomes",
-  deuterostomia: "deuterostomes",
-  ecdysozoa: "ecdysozoans",
-  spiralia: "spiralians",
-  lophotrochozoa: "lophotrochozoans",
-  chordata: "chordates",
-  vertebrata: "vertebrates",
-  tunicata: "tunicates",
-  cephalochordata: "lancelets",
-  ambulacraria: "ambulacrarians",
-  echinodermata: "echinoderms",
-  hemichordata: "hemichordates",
-  arthropoda: "arthropods",
-  euarthropoda: "arthropods",
-  mollusca: "molluscs",
-  annelida: "annelid worms",
-  brachiopoda: "brachiopods",
-  bryozoa: "bryozoans",
-  ectoprocta: "bryozoans",
   nematoda: "roundworms",
   nemata: "roundworms",
   nemertea: "ribbon worms",
   nemertini: "ribbon worms",
   platyhelminthes: "flatworms",
-  tardigrada: "tardigrades",
   onychophora: "velvet worms",
   priapulida: "priapulid worms",
-  rotifera: "rotifers",
   sipuncula: "peanut worms",
   sipunculida: "peanut worms",
   chaetognatha: "arrow worms",
-  gastrotricha: "gastrotrichs",
   kinorhyncha: "mud dragons",
-  loricifera: "loriciferans",
-  entoprocta: "entoprocts",
   phoronida: "horseshoe worms",
   acanthocephala: "thorny-headed worms",
-  hyolitha: "hyoliths",
-  lobopodia: "lobopodians",
-  problematica: "problematica",
+  tardigrada: "water bears",
+  brachiopoda: "lamp shells",
   mammalia: "mammals",
   reptilia: "reptiles",
   aves: "birds",
@@ -63,108 +36,135 @@ export const CURATED_LAYMAN: Record<string, string> = {
   actinopterygii: "ray-finned fishes",
   sarcopterygii: "lobe-finned fishes",
   gnathostomata: "jawed vertebrates",
-  tetrapoda: "tetrapods",
-  tetrapodomorpha: "tetrapodomorphs",
-  amniota: "amniotes",
-  sauropsida: "sauropsids",
-  synapsida: "synapsids",
-  diapsida: "diapsids",
-  archosauria: "archosaurs",
-  dinosauria: "dinosaurs",
-  saurischia: "saurischian dinosaurs",
-  ornithischia: "ornithischian dinosaurs",
-  theropoda: "theropods",
-  sauropoda: "sauropods",
-  sauropodomorpha: "sauropodomorphs",
-  ceratopsia: "ceratopsians",
-  thyreophora: "armored dinosaurs",
-  ornithopoda: "ornithopods",
-  coelurosauria: "coelurosaurs",
-  tyrannosauroidea: "tyrannosauroids",
+  vertebrata: "vertebrates",
+  arthropoda: "arthropods",
+  euarthropoda: "arthropods",
+  mollusca: "molluscs",
   insecta: "insects",
-  arachnida: "arachnids",
-  myriapoda: "myriapods",
-  malacostraca: "malacostracans",
-  branchiopoda: "branchiopods",
-  ostracoda: "ostracods",
+  arachnida: "spiders and kin",
   trilobita: "trilobites",
-  merostomata: "merostomes",
   xiphosura: "horseshoe crabs",
   pycnogonida: "sea spiders",
-  gastropoda: "gastropods",
-  bivalvia: "bivalves",
-  cephalopoda: "cephalopods",
-  ammonoidea: "ammonites",
-  nautiloidea: "nautiloids",
-  coleoidea: "coleoids",
   polyplacophora: "chitons",
   scaphopoda: "tusk shells",
   anthozoa: "corals and anemones",
-  hydrozoa: "hydrozoans",
   scyphozoa: "jellyfish",
   cubozoa: "box jellyfish",
-  crinoidea: "crinoids",
   asteroidea: "starfish",
   ophiuroidea: "brittle stars",
   echinoidea: "sea urchins",
   holothuroidea: "sea cucumbers",
-  blastoidea: "blastoids",
-  placodermi: "placoderms",
-  arthrodira: "arthrodires",
-  acanthodii: "acanthodians",
-  conodonta: "conodonts",
-  carnivora: "carnivorans",
+  dinosauria: "dinosaurs",
+  thyreophora: "armored dinosaurs",
+  ammonoidea: "ammonites",
+  pterosauria: "pterosaurs",
+  ichthyosauria: "ichthyosaurs",
+  plesiosauria: "plesiosaurs",
   proboscidea: "elephants and kin",
-  primates: "primates",
   rodentia: "rodents",
+  primates: "primates",
   cetacea: "whales and dolphins",
   artiodactyla: "even-toed ungulates",
   perissodactyla: "odd-toed ungulates",
   crocodylia: "crocodilians",
   squamata: "lizards and snakes",
   testudines: "turtles",
-  pterosauria: "pterosaurs",
-  ichthyosauria: "ichthyosaurs",
-  plesiosauria: "plesiosaurs",
-  dimetrodon: "Dimetrodon",
 };
 
-const RANK_GLOSS: Record<string, string> = {
-  kingdom: "a kingdom",
-  phylum: "a phylum",
-  subphylum: "a subphylum",
-  superclass: "a superclass",
-  class: "a class",
-  subclass: "a subclass",
-  infraclass: "an infraclass",
-  cohort: "a cohort",
-  superorder: "a superorder",
-  order: "an order",
-  suborder: "a suborder",
-  infraorder: "an infraorder",
-  superfamily: "a superfamily",
-  family: "a family",
-  subfamily: "a subfamily",
-  tribe: "a tribe",
-  genus: "a genus",
-};
+const RANK_GLOSS = /^(a|an)\s+(clade|kingdom|phylum|subphylum|superclass|class|subclass|infraclass|cohort|superorder|order|suborder|infraorder|superfamily|family|subfamily|tribe|genus)$/i;
 
 /**
- * Everyday title under a scientific name. Curated map first, then shipped
- * common names, then regular English endings (-idae → -ids). Rank gloss is
- * last and only names the Linnaean rank — it does not invent a vernacular.
+ * Household words we still show even when they share a stem with the
+ * scientific name (Mammalia → mammals). Echoes like Bilateria →
+ * bilaterians are not in this set.
+ */
+const HOUSEHOLD_VERNAMACS = new Set([
+  "animals",
+  "mammals",
+  "reptiles",
+  "birds",
+  "amphibians",
+  "insects",
+  "dinosaurs",
+  "trilobites",
+  "ammonites",
+  "vertebrates",
+  "arthropods",
+  "molluscs",
+  "pterosaurs",
+  "ichthyosaurs",
+  "plesiosaurs",
+  "rodents",
+  "primates",
+  "hyoliths",
+]);
+
+function foldLetters(value: string): string {
+  return value.toLowerCase().replace(/[^a-z]/g, "");
+}
+
+function stripScientificTail(name: string): string {
+  return name.replace(/(iformes|oidea|idae|inae|aceae|ales|ia|ea|ata|a)$/u, "");
+}
+
+function stripEnglishTail(name: string): string {
+  return name.replace(/(ians|ans|ates|oids|ides|ids|ines|es|s)$/u, "");
+}
+
+/**
+ * True when the subtitle just restates the Latin (Bilateria → bilaterians)
+ * or names the rank (a clade, a class). Multi-word vernaculars and
+ * household words pass.
+ */
+export function isRedundantVernacular(scientific: string, vernacular: string): boolean {
+  const raw = vernacular.trim().toLowerCase();
+  if (!raw) return true;
+  if (RANK_GLOSS.test(raw)) return true;
+
+  const sci = foldLetters(scientific);
+  const ver = foldLetters(vernacular);
+  if (!sci || !ver) return true;
+  if (sci === ver) return true;
+
+  if (HOUSEHOLD_VERNAMACS.has(raw)) return false;
+
+  const sciStem = stripScientificTail(sci);
+  const verStem = stripEnglishTail(ver);
+  if (sciStem.length >= 4 && verStem.length >= 4 && sciStem === verStem) {
+    return true;
+  }
+  if (ver.startsWith(sci) && ver.length - sci.length <= 4) {
+    return true;
+  }
+  return false;
+}
+
+function acceptLayman(scientific: string, candidate: string | null | undefined): string | null {
+  if (!candidate) return null;
+  const trimmed = candidate.trim();
+  if (!trimmed) return null;
+  if (isRedundantVernacular(scientific, trimmed)) return null;
+  return trimmed;
+}
+
+/**
+ * Everyday title under a scientific name. Curated vernaculars first, then
+ * shipped common names, then regular English endings (-idae → -ids).
+ * Returns null when we only have a Latin echo or a rank gloss.
  */
 export function laymanTitle(taxon: Taxon): string | null {
-  const curated = CURATED_LAYMAN[taxon.name.toLowerCase()];
+  const curated = acceptLayman(taxon.name, CURATED_LAYMAN[taxon.name.toLowerCase()]);
   if (curated) return curated;
 
-  const common = primaryCommonName(taxon.id);
+  const common = acceptLayman(taxon.name, primaryCommonName(taxon.id));
   if (common) return common;
 
   const fromEnding = vernacularFromEnding(taxon.name);
-  if (fromEnding) return fromEnding;
-
-  return RANK_GLOSS[taxon.rank] ?? (taxon.rank === "unranked" || taxon.rank === "informal" ? "a clade" : null);
+  if (!fromEnding) return null;
+  // Family / subfamily English (-ids, -ines) is the regular vernacular.
+  // Superfamily -oids that only echo the Latin are omitted.
+  if (taxon.name.endsWith("idae") || taxon.name.endsWith("inae")) return fromEnding;
+  return acceptLayman(taxon.name, fromEnding);
 }
 
 /** Standard English from regular zoological endings. Returns null if unsure. */

@@ -186,7 +186,6 @@ function TreeSkeleton() {
           <li className="tax-node is-neutral is-expandable">
             <div className="tax-item">
               <span className="tax-name">Bilateria</span>
-              <span className="tax-layman">bilaterians</span>
             </div>
           </li>
           <li className="tax-node is-neutral is-expandable">
@@ -198,7 +197,7 @@ function TreeSkeleton() {
           <li className="tax-node is-neutral is-expandable">
             <div className="tax-item">
               <span className="tax-name">Cnidaria</span>
-              <span className="tax-layman">cnidarians</span>
+              <span className="tax-layman">jellyfish and corals</span>
             </div>
           </li>
         </ul>
