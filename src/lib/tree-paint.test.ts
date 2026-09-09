@@ -3,9 +3,9 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   mountedTaxonIds,
-  openingExpandedIds,
+  neighborhoodExpandIds,
   paintTaxon,
-  sharedPathExpandIds,
+  pathNeighborhoodIds,
 } from "./tree-paint";
 import { TaxonomyIndex, parsePbdbOid } from "./taxonomy";
 import type { Taxon, TaxonomyData } from "./types";
@@ -29,10 +29,14 @@ function fixture(): TaxonomyData {
   return { version: 1, rootId: 1, taxa, aliases: [] };
 }
 
+function namesOf(tax: TaxonomyIndex, ids: number[]): string[] {
+  return ids.map((id) => tax.require(id).name);
+}
+
 describe("tree paint from prune state", () => {
   const tax = new TaxonomyIndex(fixture());
 
-  it("keeps the full scaffold neutral, including Animalia, before any guess", () => {
+  it("keeps Animalia and the rest of the neighborhood neutral before any guess", () => {
     const open = tax.pruneRemaining(5, []);
     expect(paintTaxon(tax, 1, 5, open)).toBe("neutral");
     expect(paintTaxon(tax, 12, 5, open)).toBe("neutral");
@@ -73,26 +77,43 @@ describe("tree paint from prune state", () => {
   });
 });
 
-describe("lazy mount of the outline", () => {
+describe("path-neighborhood, not the full Animalia crown", () => {
   const tax = new TaxonomyIndex(fixture());
 
-  it("opens on Animalia plus shallow children, not the whole tree", () => {
-    const expanded = openingExpandedIds(tax);
-    const mounted = mountedTaxonIds(tax, expanded).map((id) => tax.require(id).name);
-    expect(expanded).toEqual([1]);
-    expect(mounted).toEqual(["Animalia", "Arthropoda", "Chordata"]);
-    expect(mounted).not.toContain("Tyrannosaurus");
-    expect(mounted).not.toContain("Phacops");
+  it("opens on Animalia alone, with no shallow-child dump", () => {
+    const open = tax.pruneRemaining(5, []);
+    const hood = pathNeighborhoodIds(tax, 5, open);
+    expect(namesOf(tax, hood)).toEqual(["Animalia"]);
+    expect(neighborhoodExpandIds(tax, 5, open)).toEqual([]);
+    const mounted = mountedTaxonIds(tax, [], hood, 5, open);
+    expect(namesOf(tax, mounted)).toEqual(["Animalia"]);
   });
 
-  it("only mounts descendants of expanded nodes", () => {
-    const mounted = mountedTaxonIds(tax, [1, 2]).map((id) => tax.require(id).name);
-    expect(mounted).toEqual(["Animalia", "Arthropoda", "Chordata", "Dinosauria", "Mammalia"]);
-    expect(mounted).not.toContain("Theropoda");
+  it("after a distant miss shows the painted Animalia fork, not the secret genus", () => {
+    const after = tax.pruneRemaining(5, [13]);
+    const hood = namesOf(tax, pathNeighborhoodIds(tax, 5, after));
+    expect(hood).toContain("Animalia");
+    expect(hood).toContain("Arthropoda");
+    expect(hood).toContain("Chordata");
+    expect(hood).not.toContain("Tyrannosaurus");
+    expect(hood).not.toContain("Phacops");
+    expect(hood).not.toContain("Theropoda");
+  });
+
+  it("after a close miss keeps the Dinosauria frontier and drops the arthropod line's descendants", () => {
+    const after = tax.pruneRemaining(5, [13, 7]);
+    const hood = namesOf(tax, pathNeighborhoodIds(tax, 5, after));
+    expect(hood).toEqual(
+      expect.arrayContaining(["Animalia", "Chordata", "Dinosauria", "Ornithischia", "Theropoda"]),
+    );
+    expect(hood).toContain("Arthropoda");
+    expect(hood).not.toContain("Phacops");
+    expect(hood).not.toContain("Tyrannosaurus");
+    expect(hood).not.toContain("Triceratops");
   });
 });
 
-describe("paint and mount on the shipped Animalia artifact", () => {
+describe("paint and neighborhood on the shipped Animalia artifact", () => {
   const data = JSON.parse(
     readFileSync(path.join(process.cwd(), "public/data/taxonomy.json"), "utf8"),
   ) as TaxonomyData;
@@ -100,13 +121,15 @@ describe("paint and mount on the shipped Animalia artifact", () => {
   const answer = parsePbdbOid("txn:38613");
   const phacops = parsePbdbOid("txn:21701");
   const triceratops = parsePbdbOid("txn:38862");
+  const animaliaKids = (tax.children.get(tax.rootId) ?? []).map((row) => row.name);
 
-  it("mounts far fewer nodes than the ~19k tree at the opening", () => {
-    const mounted = mountedTaxonIds(tax, openingExpandedIds(tax));
-    expect(mounted).toHaveLength(1 + (tax.children.get(tax.rootId)?.length ?? 0));
-    expect(mounted.length).toBeLessThan(40);
+  it("does not dump Animalia plus all shallow children at the opening", () => {
+    const open = tax.pruneRemaining(answer, []);
+    const hood = pathNeighborhoodIds(tax, answer, open);
+    expect(hood).toEqual([tax.rootId]);
+    expect(hood.length).toBe(1);
+    expect(animaliaKids.length).toBeGreaterThan(8);
     expect(data.taxa.length).toBeGreaterThan(10_000);
-    expect(mounted).toContain(tax.rootId);
   });
 
   it("paints Eubilateria green and Protostomia red after an arthropod miss", () => {
@@ -128,11 +151,75 @@ describe("paint and mount on the shipped Animalia artifact", () => {
     expect(byName("Tyrannosaurus")).toBe("neutral");
   });
 
-  it("expands the confirmed shared path after a miss so green nodes can show", () => {
+  it("keeps the first-miss neighborhood on the Eubilateria fork", () => {
+    const after = tax.pruneRemaining(answer, [phacops]);
+    const hood = namesOf(tax, pathNeighborhoodIds(tax, answer, after));
+    expect(hood).toEqual(
+      expect.arrayContaining(["Animalia", "Eubilateria", "Deuterostomia", "Protostomia"]),
+    );
+    expect(hood).not.toContain("Porifera");
+    expect(hood).not.toContain("Cnidaria");
+    expect(hood).not.toContain("Erniettomorpha");
+    expect(hood).not.toContain("Hyolithelminthida");
+    expect(hood).not.toContain("Tyrannosaurus");
+    expect(hood).not.toContain("Chordata");
+    expect(hood.length).toBeLessThan(12);
+  });
+
+  it("moves the neighborhood to the Dinosauria frontier after a close miss", () => {
     const after = tax.pruneRemaining(answer, [phacops, triceratops]);
-    const ids = sharedPathExpandIds(tax, answer, after).map((id) => tax.require(id).name);
-    expect(ids).toContain("Animalia");
-    expect(ids).toContain("Dinosauria");
-    expect(ids).not.toContain("Tyrannosaurus");
+    const hood = namesOf(tax, pathNeighborhoodIds(tax, answer, after));
+    expect(hood).toEqual(
+      expect.arrayContaining([
+        "Animalia",
+        "Chordata",
+        "Reptilia",
+        "Dinosauria",
+        "Ornithischia",
+        "Theropoda",
+      ]),
+    );
+    expect(hood).toContain("Protostomia");
+    expect(hood).not.toContain("Porifera");
+    expect(hood).not.toContain("Cnidaria");
+    expect(hood).not.toContain("Toyamasauripus");
+    expect(hood).not.toContain("Dictyoolithidae");
+    expect(hood).not.toContain("Tyrannosaurus");
+    expect(hood.length).toBeLessThan(16);
+  });
+
+  it("paints the Deuterostomia fork for an echinoderm secret after a dinosaur miss", () => {
+    const encrinus = parsePbdbOid("txn:32698");
+    const after = tax.pruneRemaining(encrinus, [phacops, triceratops]);
+    expect(tax.require(after.constraintId).name).toBe("Deuterostomia");
+    const hood = namesOf(tax, pathNeighborhoodIds(tax, encrinus, after));
+    expect(hood).toEqual(
+      expect.arrayContaining([
+        "Animalia",
+        "Eubilateria",
+        "Deuterostomia",
+        "Ambulacraria",
+        "Chordata",
+        "Protostomia",
+      ]),
+    );
+    const chordata = data.taxa.find((row) => row.name === "Chordata");
+    expect(chordata).toBeTruthy();
+    expect(paintTaxon(tax, chordata!.id, encrinus, after)).toBe("red");
+    expect(hood).not.toContain("Porifera");
+    expect(hood).not.toContain("Dinosauria");
+    expect(hood.length).toBeLessThan(14);
+  });
+
+  it("expands the neighborhood so green path nodes and frontier forks are visible", () => {
+    const after = tax.pruneRemaining(answer, [phacops, triceratops]);
+    const hood = pathNeighborhoodIds(tax, answer, after);
+    const expanded = neighborhoodExpandIds(tax, answer, after);
+    const mounted = namesOf(tax, mountedTaxonIds(tax, expanded, hood, answer, after));
+    expect(mounted).toContain("Animalia");
+    expect(mounted).toContain("Dinosauria");
+    expect(mounted).toContain("Ornithischia");
+    expect(mounted).toContain("Theropoda");
+    expect(mounted).not.toContain("Tyrannosaurus");
   });
 });

@@ -63,9 +63,9 @@ Helpers (`src/lib/taxonomy.ts`):
 - `mrca(a, b)`
 - `pruneRemaining(answerId, guesses[])`
 
-The play UI keeps a Wordle-like **taxonomic path** on one row, and fills
-the leftover board with an expandable **full Animalia outline** (not a
-cladogram, not limited to the remaining-possible set).
+The play UI keeps a Wordle-like **taxonomic path** on one row, and a
+**path-neighborhood** outline under it (not a cladogram, not a full
+Animalia crown dump).
 
 The path is a clean standard-rank ladder from the answer path: kingdom,
 phylum, class, order, family, genus — only ranks that actually exist,
@@ -84,17 +84,20 @@ depth is visible; it is never shown as a blank CLADE slot. A hit greens
 the whole path, including genus. Autocomplete still uses the remaining
 set from `pruneRemaining`.
 
-The outline starts collapsed at Animalia plus its shallow children.
-Click a name to expand; collapsed subtrees are not mounted. Layman
-titles sit under scientific names only when they add real English
-(sponges, mammals, birds, trilobites). Latin echoes (bilaterians) and
-rank glosses (a clade, a class) are omitted. Regular `-idae` / `-inae`
-endings still become English group names. The outline
-flexes into leftover board space with a modest max height; it does
-not invent a tall section or show scrollbar chrome.
+The neighborhood is the play-relevant slice of the tree: compressed
+ancestors on the confirmed shared path, exclusive branches guesses
+have painted red, and the still-ambiguous sibling forks at the current
+frontier. Before the first guess it is Animalia alone. Click a name to
+collapse or expand nodes that still have neighborhood children;
+nothing outside that set is mounted. Layman titles sit under
+scientific names only when they add real English (sponges, mammals,
+birds, trilobites). Latin echoes (bilaterians) and rank glosses (a
+clade, a class) are omitted. Regular `-idae` / `-inae` endings still
+become English group names. The panel sizes to that content with a
+modest max height and hidden scrollbar chrome — it does not fill
+leftover board space with a crown dump.
 Tree paint: green = confirmed shared path, red = ruled out, white =
-still ambiguous. Animalia is not green until the first guess. The full
-scaffold stays browsable; only the paint follows game state.
+still ambiguous. Animalia is not green until the first guess.
 
 ## Daily rotation
 
