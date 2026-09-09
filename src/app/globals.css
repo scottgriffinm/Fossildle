@@ -230,10 +230,10 @@ input {
 }
 
 .tree-panel {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
   min-width: 0;
-  max-height: min(34dvh, 20rem);
+  max-height: min(38dvh, 22rem);
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--line);
@@ -849,7 +849,7 @@ button.tax-item:focus-visible {
   }
 
   .tree-panel {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
     max-height: min(52dvh, 28rem);
   }
 

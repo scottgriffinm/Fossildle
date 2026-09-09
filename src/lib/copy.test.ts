@@ -91,7 +91,7 @@ describe("specimen and rank-path chrome", () => {
 
   it("sizes the neighborhood to its content and hides scrollbar chrome", () => {
     const css = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
-    expect(css).toMatch(/\.tree-panel[\s\S]*?flex:\s*0 1 auto/);
+    expect(css).toMatch(/\.tree-panel[\s\S]*?flex:\s*0 0 auto/);
     expect(css).toMatch(/\.tree-panel[\s\S]*?max-height:\s*min\(/);
     expect(css).toMatch(/\.tree-panel[\s\S]*?min-height:\s*0/);
     expect(css).not.toMatch(/max-height:\s*min\(24dvh,\s*200px\)/);

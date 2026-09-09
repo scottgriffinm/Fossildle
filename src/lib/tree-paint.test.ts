@@ -188,6 +188,29 @@ describe("paint and neighborhood on the shipped Animalia artifact", () => {
     expect(hood.length).toBeLessThan(16);
   });
 
+  it("paints the Deuterostomia fork for an echinoderm secret after a dinosaur miss", () => {
+    const encrinus = parsePbdbOid("txn:32698");
+    const after = tax.pruneRemaining(encrinus, [phacops, triceratops]);
+    expect(tax.require(after.constraintId).name).toBe("Deuterostomia");
+    const hood = namesOf(tax, pathNeighborhoodIds(tax, encrinus, after));
+    expect(hood).toEqual(
+      expect.arrayContaining([
+        "Animalia",
+        "Eubilateria",
+        "Deuterostomia",
+        "Ambulacraria",
+        "Chordata",
+        "Protostomia",
+      ]),
+    );
+    const chordata = data.taxa.find((row) => row.name === "Chordata");
+    expect(chordata).toBeTruthy();
+    expect(paintTaxon(tax, chordata!.id, encrinus, after)).toBe("red");
+    expect(hood).not.toContain("Porifera");
+    expect(hood).not.toContain("Dinosauria");
+    expect(hood.length).toBeLessThan(14);
+  });
+
   it("expands the neighborhood so green path nodes and frontier forks are visible", () => {
     const after = tax.pruneRemaining(answer, [phacops, triceratops]);
     const hood = pathNeighborhoodIds(tax, answer, after);
