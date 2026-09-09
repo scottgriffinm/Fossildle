@@ -30,9 +30,7 @@ describe("daily puzzle rotation", () => {
   it("keeps 2026-09-09 as Encrinus after unlabeled image swap", () => {
     const puzzle = puzzleForDay(fossils, new Date("2026-09-09T12:00:00Z"));
     expect(puzzle.fossil.id).toBe("encrinus-liliiformis");
-    expect(puzzle.fossil.commons_file).toBe(
-      "File:Encrinus liliiformis with barchiopods.jpg",
-    );
+    expect(puzzle.fossil.commons_file).toBe("File:Crinoid-MCG 982-P4150549-black.jpg");
   });
 
   it("cycles through the whole pool", () => {

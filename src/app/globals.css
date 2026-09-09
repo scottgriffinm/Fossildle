@@ -472,21 +472,12 @@ input {
 .rank-path {
   display: flex;
   flex-wrap: nowrap;
-  align-items: center;
+  align-items: stretch;
   gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.rank-path::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
+  overflow: visible;
 }
 
 .rank-step {
@@ -542,9 +533,10 @@ input {
   text-transform: uppercase;
   color: var(--faint);
   line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .rank-chip.is-green .rank-label {
@@ -556,9 +548,10 @@ input {
   font-size: 0.86rem;
   font-weight: 600;
   line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .rank-chip.is-genus .rank-name {
