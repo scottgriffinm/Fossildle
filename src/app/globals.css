@@ -639,7 +639,7 @@ input {
 
 @media (min-width: 861px) {
   .shell-play {
-    width: min(1240px, calc(100% - 24px));
+    width: min(960px, calc(100% - 24px));
     height: 100dvh;
     max-height: 100dvh;
     overflow: hidden;
@@ -662,22 +662,20 @@ input {
   .play-stage {
     flex: 1 1 auto;
     min-height: 0;
-    display: grid;
-    grid-template-columns: minmax(280px, 1.15fr) minmax(280px, 0.85fr);
-    grid-template-rows: auto minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
   }
 
   .play-hero {
-    grid-column: 1;
-    grid-row: 1 / -1;
+    flex: 1 1 auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   .specimen {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
@@ -691,28 +689,23 @@ input {
 
   .specimen-frame img,
   .specimen-photo {
-    max-height: min(78dvh, 720px);
+    max-height: min(68dvh, 640px);
   }
 
   .rank-path-panel {
-    grid-column: 2;
-    grid-row: 1;
-    border-top: 0;
-    border-left: 1px solid var(--line);
-    align-self: start;
+    border-top: 1px solid var(--line);
+    border-left: 0;
   }
 
   .play-side {
-    grid-column: 2;
-    grid-row: 2;
-    align-self: start;
+    align-self: stretch;
     flex: 0 0 auto;
     max-height: none;
-    border-left: 1px solid var(--line);
+    border-left: 0;
   }
 
   .play-guesses {
-    max-height: min(58dvh, 28rem);
+    max-height: min(32dvh, 16rem);
     border-top: 1px solid var(--line);
   }
 

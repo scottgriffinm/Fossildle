@@ -105,5 +105,6 @@ describe("specimen and rank-path chrome", () => {
     expect(css).toMatch(/\.shell-play[\s\S]*?min-height:\s*100dvh/);
     expect(css).toMatch(/\.shell-play[\s\S]*?height:\s*100dvh/);
     expect(css).toMatch(/\.play-hero[\s\S]*?justify-content:\s*center/);
+    expect(css).not.toMatch(/grid-template-columns:\s*minmax\(280px/);
   });
 });
