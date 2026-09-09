@@ -100,5 +100,7 @@ describe("specimen and rank-path chrome", () => {
     expect(css).toMatch(/\.tree-scroll[\s\S]*?scrollbar-width:\s*none/);
     expect(css).toMatch(/\.tree-scroll::-webkit-scrollbar[\s\S]*?display:\s*none/);
     expect(css).toMatch(/\.shell-play[\s\S]*?min-height:\s*100dvh/);
+    expect(css).toMatch(/\.shell-play[\s\S]*?height:\s*100dvh/);
+    expect(css).toMatch(/\.play-hero[\s\S]*?justify-content:\s*center/);
   });
 });
