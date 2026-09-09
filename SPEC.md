@@ -63,9 +63,12 @@ Helpers (`src/lib/taxonomy.ts`):
 - `mrca(a, b)`
 - `pruneRemaining(answerId, guesses[])`
 
-The play UI keeps a Wordle-like **taxonomic path** on one row, and a
-**path-neighborhood** outline under it (not a cladogram, not a full
-Animalia crown dump).
+The play UI keeps a Wordle-like **taxonomic path** on one row. The
+leftover board under it is **today’s guess history** — each miss lists
+the animal and the shared clade already computed by prune
+(`Match through Eubilateria`). Before the first guess the list stays
+collapsed; leftover viewport is breathing room around the fossil, not
+a browse or neighborhood tree.
 
 The path is a clean standard-rank ladder from the answer path: kingdom,
 phylum, class, order, family, genus — only ranks that actually exist,
@@ -82,22 +85,7 @@ If the current constraint is a named non-standard clade (Amniota,
 Dinosauria, Eubilateria, …) it is inserted **by that name** so green
 depth is visible; it is never shown as a blank CLADE slot. A hit greens
 the whole path, including genus. Autocomplete still uses the remaining
-set from `pruneRemaining`.
-
-The neighborhood is the play-relevant slice of the tree: compressed
-ancestors on the confirmed shared path, exclusive branches guesses
-have painted red, and the still-ambiguous sibling forks at the current
-frontier. Before the first guess it is Animalia alone. Click a name to
-collapse or expand nodes that still have neighborhood children;
-nothing outside that set is mounted. Layman titles sit under
-scientific names only when they add real English (sponges, mammals,
-birds, trilobites). Latin echoes (bilaterians) and rank glosses (a
-clade, a class) are omitted. Regular `-idae` / `-inae` endings still
-become English group names. The panel sizes to that content with a
-modest max height and hidden scrollbar chrome — it does not fill
-leftover board space with a crown dump.
-Tree paint: green = confirmed shared path, red = ruled out, white =
-still ambiguous. Animalia is not green until the first guess.
+set from `pruneRemaining`. Animalia is not green until the first guess.
 
 ## Daily rotation
 

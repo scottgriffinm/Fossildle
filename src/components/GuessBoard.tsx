@@ -14,7 +14,13 @@ export function GuessBoard({
   answerId: number;
   status: GameStatus;
 }) {
-  if (guesses.length === 0) return null;
+  if (guesses.length === 0) {
+    return (
+      <div className="guess-empty" aria-label="Guesses">
+        <span className="sr-only">No guesses yet.</span>
+      </div>
+    );
+  }
 
   return (
     <ol className="guess-list" aria-label="Guesses">
@@ -33,7 +39,7 @@ export function GuessBoard({
               <div className="guess-name">{taxon ? taxon.name : "—"}</div>
               {taxonomy && step && !won && step.mrcaId && (
                 <div className="guess-note">
-                  through {taxonomy.require(step.mrcaId).name}
+                  Match through {taxonomy.require(step.mrcaId).name}
                 </div>
               )}
               {won && <div className="guess-note">that&apos;s the animal</div>}

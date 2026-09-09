@@ -13,7 +13,6 @@ const FILES = [
 const PLAY_UI = [
   "src/components/FossildleApp.tsx",
   "src/components/TaxonomyPath.tsx",
-  "src/components/TaxonomyTree.tsx",
   "src/components/GuessBoard.tsx",
   "src/app/globals.css",
 ];
@@ -28,21 +27,23 @@ describe("player-facing guess copy", () => {
     }
   });
 
-  it("keeps the one-row rank path and a path-neighborhood tree, not a cladogram", () => {
+  it("keeps the one-row rank path and guess history, not a neighborhood tree", () => {
     for (const file of PLAY_UI) {
       const src = readFileSync(path.join(process.cwd(), file), "utf8");
       expect(src, file).not.toMatch(/cladogram/);
       expect(src, file).not.toMatch(/buildCabinetTree/);
+      expect(src, file).not.toMatch(/TaxonomyTree/);
+      expect(src, file).not.toMatch(/pathNeighborhoodIds/);
+      expect(src, file).not.toMatch(/tree-panel/);
+      expect(src, file).not.toMatch(/tax-tree/);
     }
     const app = readFileSync(path.join(process.cwd(), "src/components/FossildleApp.tsx"), "utf8");
-    const tree = readFileSync(path.join(process.cwd(), "src/components/TaxonomyTree.tsx"), "utf8");
+    const board = readFileSync(path.join(process.cwd(), "src/components/GuessBoard.tsx"), "utf8");
     expect(app).toMatch(/TaxonomyPath/);
-    expect(app).toMatch(/TaxonomyTree/);
-    expect(tree).toMatch(/tax-tree/);
-    expect(tree).toMatch(/laymanTitle/);
-    expect(tree).toMatch(/pathNeighborhoodIds/);
-    expect(tree).not.toMatch(/Full Animalia/);
-    expect(tree).not.toMatch(/\+\s*\/\s*-/);
+    expect(app).toMatch(/GuessBoard/);
+    expect(app).not.toMatch(/TaxonomyTree/);
+    expect(board).toMatch(/guess-list/);
+    expect(board).toMatch(/Match through/);
   });
 
   it("does not pad the path skeleton with clade placeholders", () => {
@@ -77,6 +78,9 @@ describe("player-facing guess copy", () => {
     expect(input).toMatch(/No remaining fossils match/);
     expect(about).toMatch(/fossils that are still possible/);
     expect(about).not.toMatch(/animals that are still possible/);
+    expect(about).toMatch(/Match through Eubilateria/);
+    expect(about).not.toMatch(/neighborhood/);
+    expect(about).not.toMatch(/outline under the path/);
   });
 });
 
@@ -89,18 +93,18 @@ describe("specimen and rank-path chrome", () => {
     expect(css).toMatch(/\.specimen-photo[\s\S]*?background:\s*none/);
   });
 
-  it("sizes the neighborhood to its content and hides scrollbar chrome", () => {
+  it("collapses the leftover board to guesses and hugs the fossil", () => {
     const css = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
-    expect(css).toMatch(/\.tree-panel[\s\S]*?flex:\s*0 0 auto/);
-    expect(css).toMatch(/\.tree-panel[\s\S]*?max-height:\s*min\(/);
-    expect(css).toMatch(/\.tree-panel[\s\S]*?min-height:\s*0/);
-    expect(css).not.toMatch(/max-height:\s*min\(24dvh,\s*200px\)/);
-    expect(css).toMatch(/\.tax-name[\s\S]*?font-size:\s*1\./);
-    expect(css).toMatch(/\.tree-scroll[\s\S]*?overflow:\s*auto/);
-    expect(css).toMatch(/\.tree-scroll[\s\S]*?scrollbar-width:\s*none/);
-    expect(css).toMatch(/\.tree-scroll::-webkit-scrollbar[\s\S]*?display:\s*none/);
+    expect(css).not.toMatch(/\.tree-panel/);
+    expect(css).not.toMatch(/\.tree-scroll/);
+    expect(css).not.toMatch(/\.tax-tree/);
+    expect(css).not.toMatch(/\.tax-name/);
+    expect(css).toMatch(/\.play-side\.is-empty[\s\S]*?display:\s*none/);
+    expect(css).toMatch(/\.play-guesses[\s\S]*?max-height:\s*min\(/);
+    expect(css).toMatch(/\.play-guesses[\s\S]*?scrollbar-width:\s*none/);
     expect(css).toMatch(/\.shell-play[\s\S]*?min-height:\s*100dvh/);
     expect(css).toMatch(/\.shell-play[\s\S]*?height:\s*100dvh/);
     expect(css).toMatch(/\.play-hero[\s\S]*?justify-content:\s*center/);
+    expect(css).not.toMatch(/grid-template-columns:\s*minmax\(280px/);
   });
 });
