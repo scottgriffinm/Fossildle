@@ -70,9 +70,18 @@ describe("starter catalog", () => {
     }
   });
 
+  it("keeps Encrinus on the same catalog id with a single-subject Commons photo", () => {
+    const fossil = fossils.find((row) => row.id === "encrinus-liliiformis");
+    expect(fossil?.taxon).toBe("Encrinus");
+    expect(fossil?.taxonId).toBe(32698);
+    expect(fossil?.commons_file).toBe("File:Crinoid-MCG 982-P4150549-black.jpg");
+    expect(fossil?.attribution).toBe("Rama");
+  });
+
   it("does not ship Commons files that print the taxon name on the photo", () => {
     const banned = [
       "File:Encrinus liliiformis MNHN.JPG",
+      "File:Encrinus liliiformis with barchiopods.jpg",
       "File:Perisphinctes ammonite.jpg",
       "File:Dimetrodon limbatus AMNH 4636.JPG",
       "File:Stegosaurus stenops (stegosaur dinosaur dorsal plate) (Morrison Formation, Upper Jurassic; Dinosaur National Monument, Utah, USA) (48696019227).jpg",
