@@ -17,11 +17,9 @@ export default function AboutPage() {
           work when we have them (mammoth, T. rex), and so do scientific names.
           After every miss, matching standard ranks on the taxonomic path
           turn green down to the clade you still share with the answer.
-          The outline under the path is the neighborhood around that
-          shared clade — ancestors on the path plus the sibling forks
-          your guesses still leave open or have ruled out. Green, red,
-          and white follow what is confirmed, eliminated, or still
-          ambiguous. Search only offers fossils that are still possible.
+          That guess stays on the board with the same match feedback
+          (for example, Match through Eubilateria). Search only offers
+          fossils that are still possible.
         </p>
 
         <h2>Prune rule</h2>
