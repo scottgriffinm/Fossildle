@@ -68,10 +68,13 @@ describe("player-facing guess copy", () => {
   it("wraps rank-path chip text instead of clipping to ellipses", () => {
     const css = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
     expect(css).toMatch(/\.rank-path\s*\{[^}]*flex-wrap:\s*nowrap/s);
-    expect(css).toMatch(/\.rank-label\s*\{[^}]*overflow-wrap:\s*anywhere/s);
+    expect(css).toMatch(/\.rank-label\s*\{[^}]*overflow-wrap:\s*break-word/s);
     expect(css).toMatch(/\.rank-label\s*\{[^}]*white-space:\s*normal/s);
     expect(css).toMatch(/\.rank-name\s*\{[^}]*overflow-wrap:\s*anywhere/s);
     expect(css).toMatch(/\.rank-name\s*\{[^}]*white-space:\s*normal/s);
+    expect(css).toMatch(
+      /\.rank-chip\.is-green,\s*\.rank-chip\.is-revealed\s*\{[^}]*flex:\s*2\.6/s,
+    );
     expect(css).not.toMatch(/\.rank-label\s*\{[^}]*text-overflow:\s*ellipsis/s);
     expect(css).not.toMatch(/\.rank-label\s*\{[^}]*white-space:\s*nowrap/s);
     expect(css).not.toMatch(/\.rank-name\s*\{[^}]*text-overflow:\s*ellipsis/s);

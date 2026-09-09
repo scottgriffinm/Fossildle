@@ -508,6 +508,12 @@ input {
   background: var(--card-2);
 }
 
+.rank-chip.is-green,
+.rank-chip.is-revealed {
+  flex: 2.6 1 0;
+  min-width: 4.4rem;
+}
+
 .rank-chip.is-green {
   border-color: #6f9a58;
   background: var(--green-tile);
@@ -516,6 +522,12 @@ input {
 .rank-chip.is-unknown {
   background: #221c16;
   color: var(--faint);
+}
+
+.rank-path:has(.rank-chip.is-green) .rank-chip.is-unknown,
+.rank-path:has(.rank-chip.is-revealed) .rank-chip.is-unknown {
+  flex: 0 0 auto;
+  width: max-content;
 }
 
 .rank-chip.is-revealed {
@@ -534,8 +546,9 @@ input {
   color: var(--faint);
   line-height: 1.2;
   overflow: visible;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: manual;
   white-space: normal;
 }
 
@@ -551,6 +564,7 @@ input {
   overflow: visible;
   overflow-wrap: anywhere;
   word-break: break-word;
+  hyphens: auto;
   white-space: normal;
 }
 
@@ -727,13 +741,23 @@ input {
 
   .rank-chip {
     min-width: 0;
-    padding: 3px 3px 4px;
+    padding: 4px 3px 5px;
     border-radius: 6px;
+  }
+
+  .rank-chip.is-green,
+  .rank-chip.is-revealed {
+    min-width: 4.6rem;
   }
 
   .rank-label {
     font-size: 0.5rem;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
+  }
+
+  .rank-chip.is-unknown .rank-label {
+    letter-spacing: 0;
+    font-size: 0.46rem;
   }
 
   .rank-name {
