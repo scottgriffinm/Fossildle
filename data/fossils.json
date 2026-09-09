@@ -58,10 +58,10 @@
       "taxon": "Perisphinctes",
       "pbdb_oid": "txn:15382",
       "phylum": "Mollusca",
-      "commons_file": "File:Perisphinctes ammonite.jpg",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/7/76/Perisphinctes_ammonite.jpg",
-      "license": "CC BY-SA 3.0",
-      "attribution": "Masur"
+      "commons_file": "File:Perisphinctes malm hg.jpg",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Perisphinctes_malm_hg.jpg",
+      "license": "CC BY 3.0",
+      "attribution": "Hannes Grobe"
     },
     {
       "id": "dunkleosteus-terrelli",
@@ -129,8 +129,8 @@
       "taxon": "Stegosaurus",
       "pbdb_oid": "txn:38814",
       "phylum": "Chordata",
-      "commons_file": "File:Stegosaurus stenops (stegosaur dinosaur dorsal plate) (Morrison Formation, Upper Jurassic; Dinosaur National Monument, Utah, USA) (48696019227).jpg",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/8/81/Stegosaurus_stenops_%28stegosaur_dinosaur_dorsal_plate%29_%28Morrison_Formation%2C_Upper_Jurassic%3B_Dinosaur_National_Monument%2C_Utah%2C_USA%29_%2848696019227%29.jpg",
+      "commons_file": "File:Stegosaurus sp. (stegosaur dinosaur bones) (Morrison Formation, Upper Jurassic; Carnegie Quarry, Dinosaur National Monument, Utah, USA) 1 (48714095997).jpg",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Stegosaurus_sp._%28stegosaur_dinosaur_bones%29_%28Morrison_Formation%2C_Upper_Jurassic%3B_Carnegie_Quarry%2C_Dinosaur_National_Monument%2C_Utah%2C_USA%29_1_%2848714095997%29.jpg",
       "license": "CC BY 2.0",
       "attribution": "James St. John"
     },
@@ -159,8 +159,8 @@
       "taxon": "Allosaurus",
       "pbdb_oid": "txn:38590",
       "phylum": "Chordata",
-      "commons_file": "File:Allosaurus atrox (theropod dinosaur) (Morrison Formation, Upper Jurassic; Carnegie Quarry, Dinosaur National Monument, Utah, USA) 7 (48691921341).jpg",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Allosaurus_atrox_(theropod_dinosaur)_(Morrison_Formation,_Upper_Jurassic;_Carnegie_Quarry,_Dinosaur_National_Monument,_Utah,_USA)_7_(48691921341).jpg",
+      "commons_file": "File:Allosaurus atrox (theropod dinosaur) (Morrison Formation, Upper Jurassic; Carnegie Quarry, Dinosaur National Monument, Utah, USA) 1 (48692087322).jpg",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/a/a1/Allosaurus_atrox_%28theropod_dinosaur%29_%28Morrison_Formation%2C_Upper_Jurassic%3B_Carnegie_Quarry%2C_Dinosaur_National_Monument%2C_Utah%2C_USA%29_1_%2848692087322%29.jpg",
       "license": "CC BY 2.0",
       "attribution": "James St. John"
     },
@@ -269,10 +269,10 @@
       "taxon": "Encrinus",
       "pbdb_oid": "txn:32698",
       "phylum": "Echinodermata",
-      "commons_file": "File:Encrinus liliiformis MNHN.JPG",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/0/03/Encrinus_liliiformis_MNHN.JPG",
-      "license": "CC BY-SA 3.0",
-      "attribution": "FredD"
+      "commons_file": "File:Encrinus liliiformis with barchiopods.jpg",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Encrinus_liliiformis_with_barchiopods.jpg",
+      "license": "CC BY-SA 4.0",
+      "attribution": "Ghedoghedo"
     },
     {
       "id": "opabinia-regalis",
@@ -299,10 +299,10 @@
       "taxon": "Dimetrodon",
       "pbdb_oid": "txn:38904",
       "phylum": "Chordata",
-      "commons_file": "File:Dimetrodon limbatus AMNH 4636.JPG",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/b/bf/Dimetrodon_limbatus_AMNH_4636.JPG",
-      "license": "CC BY-SA 3.0",
-      "attribution": "Smokeybjb"
+      "commons_file": "File:Dimetrodon limbatus MCZ 2779 - UBC.jpg",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Dimetrodon_limbatus_MCZ_2779_-_UBC.jpg",
+      "license": "CC BY 4.0",
+      "attribution": "IJReid"
     },
     {
       "id": "coelophysis-bauri",

@@ -1,6 +1,7 @@
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import manifestJson from "../../public/fossils/manifest.json";
 import { fossils } from "./catalog";
 import { puzzleForDay, seededShuffle, CATALOG_SEED, utcDayIndex } from "./daily";
 
@@ -43,9 +44,12 @@ describe("starter catalog", () => {
       expect(fossil.license.length).toBeGreaterThan(0);
       expect(fossil.commons_file.startsWith("File:")).toBe(true);
       expect(fossil.imageSrc).toBe(`/fossils/${fossil.id}.jpg`);
-      expect(
-        existsSync(path.join(process.cwd(), "public", fossil.imageSrc.replace(/^\//, ""))),
-      ).toBe(true);
+      const imagePath = path.join(process.cwd(), "public", fossil.imageSrc.replace(/^\//, ""));
+      expect(existsSync(imagePath)).toBe(true);
+      const manifest = manifestJson.find((entry) => entry.id === fossil.id);
+      expect(manifest, fossil.id).toBeTruthy();
+      expect(manifest?.commons_file).toBe(fossil.commons_file);
+      expect(statSync(imagePath).size).toBe(manifest?.bytes);
     }
   });
 
@@ -63,6 +67,20 @@ describe("starter catalog", () => {
     const taxa = new Set(fossils.map((fossil) => fossil.taxon));
     for (const name of skipped) {
       expect(taxa.has(name)).toBe(false);
+    }
+  });
+
+  it("does not ship Commons files that print the taxon name on the photo", () => {
+    const banned = [
+      "File:Encrinus liliiformis MNHN.JPG",
+      "File:Perisphinctes ammonite.jpg",
+      "File:Dimetrodon limbatus AMNH 4636.JPG",
+      "File:Stegosaurus stenops (stegosaur dinosaur dorsal plate) (Morrison Formation, Upper Jurassic; Dinosaur National Monument, Utah, USA) (48696019227).jpg",
+      "File:Allosaurus atrox (theropod dinosaur) (Morrison Formation, Upper Jurassic; Carnegie Quarry, Dinosaur National Monument, Utah, USA) 7 (48691921341).jpg",
+    ];
+    const shipped = new Set(fossils.map((fossil) => fossil.commons_file));
+    for (const file of banned) {
+      expect(shipped.has(file), file).toBe(false);
     }
   });
 
